@@ -1,0 +1,36 @@
+services:
+  app:
+    container_name: crm-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/usr/src/app
+    env_file:
+      - .env.local
+    depends_on:
+      - db
+    networks:
+      - crm-network
+    command: air ./cmd/main.go -b 0.0.0.0
+  db:
+    image: postgres:alpine
+    container_name: postgres-database
+    restart: always
+    env_file:
+      - .env.local
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - crm-network
+
+volumes:
+  pg_data:
+
+networks:
+  crm-network:
+    driver: bridge

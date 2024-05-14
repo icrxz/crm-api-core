@@ -5,6 +5,9 @@ go 1.22.1
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/lib/pq v1.10.9
+	github.com/magiconair/properties v1.8.7
+	go.uber.org/mock v0.4.0
 )
 
 require (
@@ -27,9 +30,12 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

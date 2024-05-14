@@ -10,7 +10,7 @@ func LoadRoutes(app *gin.Engine, pingController rest.PingController, userControl
 	group := app.Group("/crm/core/v1")
 
 	// miscellaneous
-	group.GET("/ping", pingController.Pong)
+	app.GET("/ping", pingController.Pong)
 
 	// user
 	group.POST("/users", userController.CreateUser)

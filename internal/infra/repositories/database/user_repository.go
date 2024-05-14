@@ -12,7 +12,7 @@ type userDatabase struct {
 	client *sqlx.DB
 }
 
-func NewUserDatabase(client *sqlx.DB) domain.UserRepository {
+func NewUserRepository(client *sqlx.DB) domain.UserRepository {
 	return &userDatabase{
 		client: client,
 	}
@@ -45,7 +45,7 @@ func (db *userDatabase) GetByID(ctx context.Context, userID string) (*domain.Use
 	return nil, nil
 }
 
-func (db *userDatabase) Search(ctx context.Context, filters map[string]string) ([]domain.User, error) {
+func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) ([]domain.User, error) {
 	return nil, nil
 }
 

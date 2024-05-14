@@ -11,7 +11,7 @@ type providerDatabase struct {
 	client *sqlx.DB
 }
 
-func NewProviderDatabase(client *sqlx.DB) domain.ProviderRepository {
+func NewProviderRepository(client *sqlx.DB) domain.ProviderRepository {
 	return &providerDatabase{
 		client: client,
 	}

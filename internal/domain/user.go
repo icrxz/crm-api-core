@@ -8,23 +8,23 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user User) (string, error)
 	GetByID(ctx context.Context, userID string) (*User, error)
-	Search(ctx context.Context, filters map[string]string) ([]User, error)
+	Search(ctx context.Context, filters UserFilters) ([]User, error)
 	Update(ctx context.Context, userToUpdate User) error
 	Delete(ctx context.Context, userID string) error
 }
 
 type User struct {
-	UserID    string
-	Name      string
-	Email     string
-	Role      UserRole
-	Region    int
-	Password  string
-	Orders    []Order
-	CreatedBy string
-	CreatedAt time.Time
-	UpdatedBy string
-	UpdatedAt time.Time
+	UserID    string    `json:"user_id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Role      UserRole  `json:"role"`
+	Region    int       `json:"region"`
+	Password  string    `json:"password"`
+	Orders    []Order   `json:"orders"`
+	CreatedBy string    `json:"created_by"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedBy string    `json:"updated_by"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type UserFilters struct {
