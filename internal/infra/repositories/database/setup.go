@@ -1,12 +1,65 @@
 package database
 
-import "github.com/jmoiron/sqlx"
+import (
+	"errors"
+	"fmt"
 
-func NewDatabase() (*sqlx.DB, error) {
-	sqlClient, err := sqlx.Connect("postgres", "user=postgres dbname=crm_users sslmode=disable")
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/icrxz/crm-api-core/internal/infra/config"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+)
+
+func NewDatabase(config config.Database) (*sqlx.DB, error) {
+	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		config.Host(),
+		config.Port,
+		config.Username,
+		config.Password(),
+		config.Schema,
+	)
+
+	sqlClient, err := sqlx.Open(config.Driver, connectionString)
+	if err != nil {
+		return nil, err
+	}
+
+	sqlClient.SetMaxOpenConns(config.MaxOpenConns)
+	sqlClient.SetMaxIdleConns(config.MaxIdleConns)
+	sqlClient.SetConnMaxLifetime(config.ConnMaxLifetime)
+
+	if err = sqlClient.Ping(); err != nil {
+		sqlClient.Close()
+		return nil, err
+	}
+
+	err = runMigrations(sqlClient)
 	if err != nil {
 		return nil, err
 	}
 
 	return sqlClient, nil
+}
+
+func runMigrations(client *sqlx.DB) error {
+	driver, err := postgres.WithInstance(client.DB, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+
+	migration, err := migrate.NewWithDatabaseInstance("file:///app/migrations", "postgres", driver)
+	if err != nil {
+		return err
+	}
+
+	err = migration.Up()
+	if err != nil {
+		if !errors.Is(err, migrate.ErrNoChange) {
+			return err
+		}
+	}
+
+	return nil
 }
