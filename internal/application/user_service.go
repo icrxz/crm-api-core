@@ -28,16 +28,24 @@ func (us *userService) Create(ctx context.Context, user domain.User) (string, er
 	return us.userRepository.Create(ctx, user)
 }
 
-func (us *userService) GetByID(ctx context.Context, id string) (*domain.User, error) {
-	return us.userRepository.GetByID(ctx, id)
+func (us *userService) GetByID(ctx context.Context, userID string) (*domain.User, error) {
+	if userID == "" {
+		return nil, domain.NewValidationError("userID cannot be empty", nil)
+	}
+
+	return us.userRepository.GetByID(ctx, userID)
 }
 
 func (us *userService) Update(ctx context.Context, user domain.User) error {
 	return us.userRepository.Update(ctx, user)
 }
 
-func (us *userService) Delete(ctx context.Context, id string) error {
-	return us.userRepository.Delete(ctx, id)
+func (us *userService) Delete(ctx context.Context, userID string) error {
+	if userID == "" {
+		return domain.NewValidationError("userID cannot be empty", nil)
+	}
+
+	return us.userRepository.Delete(ctx, userID)
 }
 
 func (us *userService) Search(ctx context.Context, filters domain.UserFilters) ([]domain.User, error) {

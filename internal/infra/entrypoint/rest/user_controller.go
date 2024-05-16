@@ -17,14 +17,20 @@ func NewUserController(userService application.UserService) UserController {
 }
 
 func (c *UserController) CreateUser(ctx *gin.Context) {
-	var user *domain.User
-	err := ctx.BindJSON(&user)
+	var userDTO *CreateUserDTO
+	err := ctx.BindJSON(&userDTO)
 	if err != nil {
 		ctx.Error(err)
 		return
 	}
 
-	userID, err := c.userService.Create(ctx, *user)
+	user, err := mapCreateUserDTOToUser(*userDTO)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	userID, err := c.userService.Create(ctx.Request.Context(), user)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -34,10 +40,16 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 }
 
 func (c *UserController) UpdateUser(ctx *gin.Context) {
+	userID := ctx.Param("userID")
+	if userID == "" {
+		ctx.Error(domain.NewValidationError("param userID cannot be empty", nil))
+		return
+	}
+
 	var user *domain.User
 	ctx.BindJSON(&user)
 
-	err := c.userService.Update(ctx, *user)
+	err := c.userService.Update(ctx.Request.Context(), *user)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -47,21 +59,31 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 }
 
 func (c *UserController) GetUser(ctx *gin.Context) {
-	userID := ctx.Param("user_id")
+	userID := ctx.Param("userID")
+	if userID == "" {
+		ctx.Error(domain.NewValidationError("param userID cannot be empty", nil))
+		return
+	}
 
-	user, err := c.userService.GetByID(ctx, userID)
+	user, err := c.userService.GetByID(ctx.Request.Context(), userID)
 	if err != nil {
 		ctx.Error(err)
 		return
 	}
 
-	ctx.JSON(200, user)
+	userDTO := mapUserToUserDTO(*user)
+
+	ctx.JSON(200, userDTO)
 }
 
 func (c *UserController) DeleteUser(ctx *gin.Context) {
-	userID := ctx.Param("user_id")
+	userID := ctx.Param("userID")
+	if userID == "" {
+		ctx.Error(domain.NewValidationError("param userID cannot be empty", nil))
+		return
+	}
 
-	err := c.userService.Delete(ctx, userID)
+	err := c.userService.Delete(ctx.Request.Context(), userID)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -71,18 +93,41 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 }
 
 func (c *UserController) SearchUser(ctx *gin.Context) {
-	var filters domain.UserFilters
-	err := ctx.BindQuery(&filters)
+	userFilters := parseQueryToUserFilters(ctx)
+
+	users, err := c.userService.Search(ctx.Request.Context(), userFilters)
 	if err != nil {
 		ctx.Error(err)
 		return
 	}
 
-	users, err := c.userService.Search(ctx, filters)
-	if err != nil {
-		ctx.Error(err)
-		return
+	userDTOs := mapUsersToUserDTOs(users)
+
+	ctx.JSON(200, userDTOs)
+}
+
+func parseQueryToUserFilters(c *gin.Context) domain.UserFilters {
+	filters := domain.UserFilters{}
+
+	if emails := c.QueryArray("email"); len(emails) > 0 {
+		filters.Email = emails
 	}
 
-	ctx.JSON(200, users)
+	if firstNames := c.QueryArray("first_name"); len(firstNames) > 0 {
+		filters.FirstName = firstNames
+	}
+
+	if userIDs := c.QueryArray("user_id"); len(userIDs) > 0 {
+		filters.UserID = userIDs
+	}
+
+	if regions := c.QueryArray("region"); len(regions) > 0 {
+		filters.Region = regions
+	}
+
+	if roles := c.QueryArray("role"); len(roles) > 0 {
+		filters.Role = roles
+	}
+
+	return filters
 }

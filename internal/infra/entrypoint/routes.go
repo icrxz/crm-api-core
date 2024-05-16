@@ -7,7 +7,7 @@ import (
 )
 
 func LoadRoutes(app *gin.Engine, pingController rest.PingController, userController rest.UserController, webMessageController rest.WebMessageController) {
-	group := app.Group("/crm/core/v1")
+	group := app.Group("/crm/core/api/v1")
 
 	// miscellaneous
 	app.GET("/ping", pingController.Pong)

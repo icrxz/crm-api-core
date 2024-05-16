@@ -16,6 +16,10 @@ func (e CustomError) Error() string {
 	return fmt.Sprintf("%s %s", e.messagePrefix, e.message)
 }
 
+func (e CustomError) Metadata() map[string]any {
+	return e.metadata
+}
+
 func (e CustomError) StatusCode() int {
 	return e.statusCode
 }
