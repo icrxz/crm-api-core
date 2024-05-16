@@ -8,7 +8,7 @@ type Transaction struct {
 	TransactionID string
 	Type          TransactionType
 	Value         float64
-	OrderID       string
+	CaseID        string
 	CreatedBy     string
 	CreatedAt     time.Time
 	UpdatedBy     string

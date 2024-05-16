@@ -7,6 +7,7 @@ import (
 )
 
 type CreateUserDTO struct {
+	Username  string          `json:"username"`
 	FirstName string          `json:"first_name"`
 	LastName  string          `json:"last_name"`
 	Email     string          `json:"email"`
@@ -18,6 +19,7 @@ type CreateUserDTO struct {
 
 type UserDTO struct {
 	UserID    string          `json:"user_id"`
+	Username  string          `json:"username"`
 	FirstName string          `json:"first_name"`
 	LastName  string          `json:"last_name"`
 	Email     string          `json:"email"`
@@ -36,6 +38,7 @@ func mapCreateUserDTOToUser(userDTO CreateUserDTO) (domain.User, error) {
 		userDTO.Email,
 		userDTO.Password,
 		userDTO.CreatedBy,
+		userDTO.Username,
 		userDTO.Role,
 		userDTO.Region,
 	)
@@ -49,6 +52,7 @@ func mapCreateUserDTOToUser(userDTO CreateUserDTO) (domain.User, error) {
 func mapUserToUserDTO(user domain.User) UserDTO {
 	return UserDTO{
 		UserID:    user.UserID,
+		Username:  user.Username,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,

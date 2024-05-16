@@ -13,24 +13,39 @@ type CustomerRepository interface {
 }
 
 type Customer struct {
-	CustomerID    string
-	FirstName     string
-	LastName      string
-	Document      string
-	Type          CustomerType
-	Address       Address
-	ContactNumber string
-	Email         string
-	Orders        []Order
-	CreatedBy     string
-	CreatedAt     time.Time
-	UpdatedBy     string
-	UpdatedAt     time.Time
+	CustomerID      string
+	OwnerID         string
+	FirstName       string
+	LastName        string
+	CompanyName     string
+	LegalName       string
+	Document        string
+	DocumentType    string
+	Type            EntityType
+	ShippingAddress Address
+	BillingAddress  Address
+	PersonalPhone   string
+	BusinessPhone   string
+	PersonalEmail   string
+	BusinessEmail   string
+	Cases           []Case
+	CreatedBy       string
+	CreatedAt       time.Time
+	UpdatedBy       string
+	UpdatedAt       time.Time
 }
 
-type CustomerType string
+type DocumentType string
 
 const (
-	NATURAL CustomerType = "Natural"
-	LEGAL   CustomerType = "Legal"
+	CPF  DocumentType = "CPF"
+	CNPJ DocumentType = "CNPJ"
+	RG   DocumentType = "RG"
+)
+
+type EntityType string
+
+const (
+	NATURAL EntityType = "Natural"
+	LEGAL   EntityType = "Legal"
 )

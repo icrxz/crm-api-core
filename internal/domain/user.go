@@ -18,13 +18,14 @@ type UserRepository interface {
 
 type User struct {
 	UserID    string
+	Username  string
 	FirstName string
 	LastName  string
 	Email     string
 	Role      UserRole
 	Region    int
 	Password  string
-	Orders    []Order
+	Cases     []Case
 	CreatedBy string
 	CreatedAt time.Time
 	UpdatedBy string
@@ -33,6 +34,7 @@ type User struct {
 
 type UserFilters struct {
 	UserID    []string
+	Username  []string
 	FirstName []string
 	Email     []string
 	Role      []string
@@ -46,7 +48,7 @@ const (
 	OPERATOR UserRole = "operator"
 )
 
-func NewUser(firstName, lastName, email, password, author string, role UserRole, region int) (User, error) {
+func NewUser(firstName, lastName, email, password, author, username string, role UserRole, region int) (User, error) {
 	now := time.Now().UTC()
 	userID, err := uuid.NewRandom()
 	if err != nil {
@@ -60,6 +62,7 @@ func NewUser(firstName, lastName, email, password, author string, role UserRole,
 
 	return User{
 		UserID:    userID.String(),
+		Username:  username,
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
