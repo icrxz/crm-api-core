@@ -55,7 +55,7 @@ func NewUser(firstName, lastName, email, password, author, username string, role
 		return User{}, err
 	}
 
-	userPassword, err := generatePassword(password)
+	userPassword, err := encryptPassword(password)
 	if err != nil {
 		return User{}, err
 	}
@@ -76,7 +76,7 @@ func NewUser(firstName, lastName, email, password, author, username string, role
 	}, nil
 }
 
-func generatePassword(password string) (string, error) {
+func encryptPassword(password string) (string, error) {
 	encryptedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err

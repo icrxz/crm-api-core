@@ -1,0 +1,27 @@
+package database
+
+import (
+	"fmt"
+	"strings"
+)
+
+func prepareInQuery[S comparable](filters []S, query []string, args []any, key string) ([]string, []any) {
+	if len(filters) > 0 {
+		parsedArray := make([]any, 0, len(filters))
+		for _, filter := range filters {
+			parsedArray = append(parsedArray, filter)
+		}
+
+		queryFormatted := fmt.Sprintf("%s IN (", key)
+		for i := len(args) + 1; i < len(args)+1+len(filters); i++ {
+			queryFormatted += fmt.Sprintf("$%d,", i)
+		}
+		queryFormatted = strings.TrimRight(queryFormatted, ",")
+		queryFormatted += ")"
+
+		query = append(query, queryFormatted)
+		args = append(args, parsedArray...)
+	}
+
+	return query, args
+}

@@ -93,7 +93,7 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 }
 
 func (c *UserController) SearchUser(ctx *gin.Context) {
-	userFilters := parseQueryToUserFilters(ctx)
+	userFilters := c.parseQueryToUserFilters(ctx)
 
 	users, err := c.userService.Search(ctx.Request.Context(), userFilters)
 	if err != nil {
@@ -106,26 +106,26 @@ func (c *UserController) SearchUser(ctx *gin.Context) {
 	ctx.JSON(200, userDTOs)
 }
 
-func parseQueryToUserFilters(c *gin.Context) domain.UserFilters {
+func (c *UserController) parseQueryToUserFilters(ctx *gin.Context) domain.UserFilters {
 	filters := domain.UserFilters{}
 
-	if emails := c.QueryArray("email"); len(emails) > 0 {
+	if emails := ctx.QueryArray("email"); len(emails) > 0 {
 		filters.Email = emails
 	}
 
-	if firstNames := c.QueryArray("first_name"); len(firstNames) > 0 {
+	if firstNames := ctx.QueryArray("first_name"); len(firstNames) > 0 {
 		filters.FirstName = firstNames
 	}
 
-	if userIDs := c.QueryArray("user_id"); len(userIDs) > 0 {
+	if userIDs := ctx.QueryArray("user_id"); len(userIDs) > 0 {
 		filters.UserID = userIDs
 	}
 
-	if regions := c.QueryArray("region"); len(regions) > 0 {
+	if regions := ctx.QueryArray("region"); len(regions) > 0 {
 		filters.Region = regions
 	}
 
-	if roles := c.QueryArray("role"); len(roles) > 0 {
+	if roles := ctx.QueryArray("role"); len(roles) > 0 {
 		filters.Role = roles
 	}
 
