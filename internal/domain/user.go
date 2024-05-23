@@ -17,19 +17,21 @@ type UserRepository interface {
 }
 
 type User struct {
-	UserID    string
-	Username  string
-	FirstName string
-	LastName  string
-	Email     string
-	Role      UserRole
-	Region    int
-	Password  string
-	Cases     []Case
-	CreatedBy string
-	CreatedAt time.Time
-	UpdatedBy string
-	UpdatedAt time.Time
+	UserID       string
+	Username     string
+	FirstName    string
+	LastName     string
+	Email        string
+	Role         UserRole
+	Region       int
+	Password     string
+	LastLoggedIP string
+	Active       bool
+	Cases        []Case
+	CreatedBy    string
+	CreatedAt    time.Time
+	UpdatedBy    string
+	UpdatedAt    time.Time
 }
 
 type UserFilters struct {
@@ -73,6 +75,7 @@ func NewUser(firstName, lastName, email, password, author, username string, role
 		CreatedAt: now,
 		UpdatedBy: author,
 		UpdatedAt: now,
+		Active:    true,
 	}, nil
 }
 
@@ -85,11 +88,7 @@ func encryptPassword(password string) (string, error) {
 	return string(encryptedPass), nil
 }
 
-func (u *User) ComparePassword(passwordInput string) error {
+func (u *User) ComparePassword(passwordInput string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(passwordInput))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err == nil
 }

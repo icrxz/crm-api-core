@@ -29,6 +29,7 @@ type UserDTO struct {
 	CreatedBy string          `json:"created_by"`
 	UpdatedAt time.Time       `json:"updated_at"`
 	UpdatedBy string          `json:"updated_by"`
+	Active    bool            `json:"active"`
 }
 
 func mapCreateUserDTOToUser(userDTO CreateUserDTO) (domain.User, error) {
@@ -62,6 +63,7 @@ func mapUserToUserDTO(user domain.User) UserDTO {
 		UpdatedAt: user.UpdatedAt,
 		UpdatedBy: user.UpdatedBy,
 		Region:    user.Region,
+		Active:    user.Active,
 	}
 }
 

@@ -13,33 +13,36 @@ type CaseRepository interface {
 }
 
 type Case struct {
-	CaseID       string
-	ContractorID string
-	CustomerID   string
-	PartnerID    string
-	OwnerID      string
-	Origin       string
-	Type         string
-	Subject      string
-	Priority     CasePriority
-	Transactions []Transaction
-	Comments     []Comment
-	Status       CaseStatus
-	DueDate      time.Time
-	CreatedBy    string
-	CreatedAt    time.Time
-	UpdatedBy    string
-	UpdatedAt    time.Time
+	CaseID        string
+	ContractorID  string
+	CustomerID    string
+	PartnerID     string
+	OwnerID       string
+	OriginChannel string
+	Type          string
+	Subject       string
+	Priority      CasePriority
+	Transactions  []Transaction
+	Comments      []Comment
+	Status        CaseStatus
+	DueDate       time.Time
+	CreatedBy     string
+	CreatedAt     time.Time
+	UpdatedBy     string
+	UpdatedAt     time.Time
 }
 
 type CaseStatus string
 
 const (
-	PENDING   CaseStatus = "Pending"
-	PROGRESS  CaseStatus = "Progress"
-	HOLD      CaseStatus = "Hold"
-	COMPLETED CaseStatus = "Completed"
-	REJECTED  CaseStatus = "Rejected"
+	NEW             CaseStatus = "New"
+	CUSTOMER_INFO   CaseStatus = "CustomerInfo"
+	WAITING_PARTNER CaseStatus = "WaitingPartner"
+	ONGOING         CaseStatus = "Ongoing"
+	REPORT          CaseStatus = "Report"
+	PAYMENT         CaseStatus = "Payment"
+	CLOSED          CaseStatus = "Closed"
+	CANCELED        CaseStatus = "Canceled"
 )
 
 type CasePriority string

@@ -7,6 +7,7 @@ import (
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/infra/config"
 	"github.com/icrxz/crm-api-core/internal/infra/entrypoint"
+	"github.com/icrxz/crm-api-core/internal/infra/entrypoint/middleware"
 	"github.com/icrxz/crm-api-core/internal/infra/entrypoint/rest"
 	"github.com/icrxz/crm-api-core/internal/infra/repository/database"
 )
@@ -40,7 +41,7 @@ func RunApp() error {
 	partnerService := application.NewPartnerService(partnerRepository)
 	customerService := application.NewCustomerService(customerRepository)
 	contractorService := application.NewContractorService(contractorRepository)
-	authService := application.NewAuthService(userRepository)
+	authService := application.NewAuthService(userRepository, appConfig.SecretJWTKey)
 
 	// controllers
 	pingController := rest.NewPingController()
@@ -51,10 +52,13 @@ func RunApp() error {
 	webMessageController := rest.NewWebMessageController()
 	authController := rest.NewAuthController(authService)
 
+	// middlewares
+	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
+
 	router := gin.Default()
 	router.Use(entrypoint.CustomErrorEncoder())
 
-	entrypoint.LoadRoutes(router, pingController, userController, webMessageController, partnerController, customerController, contractorController, authController)
+	entrypoint.LoadRoutes(router, pingController, userController, webMessageController, partnerController, customerController, contractorController, authController, authMiddleware)
 
 	return router.Run()
 }
