@@ -43,11 +43,23 @@ type UserFilters struct {
 	Region    []string
 }
 
+type UserUpdate struct {
+	FirstName    *string
+	LastName     *string
+	Email        *string
+	Role         *UserRole
+	Region       *int
+	Password     *string
+	LastLoggedIP *string
+	Active       *bool
+}
+
 type UserRole string
 
 const (
-	ADMIN    UserRole = "admin"
-	OPERATOR UserRole = "operator"
+	THAVANNA_ADMIN UserRole = "thavanna_admin"
+	ADMIN          UserRole = "admin"
+	OPERATOR       UserRole = "operator"
 )
 
 func NewUser(firstName, lastName, email, password, author, username string, role UserRole, region int) (User, error) {
@@ -91,4 +103,40 @@ func encryptPassword(password string) (string, error) {
 func (u *User) ComparePassword(passwordInput string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(passwordInput))
 	return err == nil
+}
+
+func (u *User) MergeUpdate(userUpdate UserUpdate, author string) {
+	u.UpdatedAt = time.Now().UTC()
+
+	if author != "" {
+		u.UpdatedBy = author
+	}
+
+	if userUpdate.Active != nil {
+		u.Active = *userUpdate.Active
+	}
+
+	if userUpdate.Email != nil {
+		u.Email = *userUpdate.Email
+	}
+
+	if userUpdate.FirstName != nil {
+		u.FirstName = *userUpdate.FirstName
+	}
+
+	if userUpdate.LastName != nil {
+		u.LastName = *userUpdate.LastName
+	}
+
+	if userUpdate.LastLoggedIP != nil {
+		u.LastLoggedIP = *userUpdate.LastLoggedIP
+	}
+
+	if userUpdate.Region != nil {
+		u.Region = *userUpdate.Region
+	}
+
+	if userUpdate.Role != nil {
+		u.Role = *userUpdate.Role
+	}
 }

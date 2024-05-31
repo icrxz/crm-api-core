@@ -41,7 +41,7 @@ func RunApp() error {
 	partnerService := application.NewPartnerService(partnerRepository)
 	customerService := application.NewCustomerService(customerRepository)
 	contractorService := application.NewContractorService(contractorRepository)
-	authService := application.NewAuthService(userRepository, appConfig.SecretJWTKey)
+	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 
 	// controllers
 	pingController := rest.NewPingController()

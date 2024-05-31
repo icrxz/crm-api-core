@@ -39,7 +39,7 @@ func (db Database) Password() string {
 	return os.Getenv(db.PasswordEnv)
 }
 
-func (db AppConfig) Password() string {
+func (db AppConfig) SecretKey() string {
 	return os.Getenv(db.SecretJWTKey)
 }
 

@@ -19,13 +19,15 @@ func LoadRoutes(
 	authMiddleware middleware.AuthenticationMiddleware,
 ) {
 	authGroup := app.Group("/crm/core/api/v1")
-	publicGroup := authGroup.Group("")
+	authGroup.Use(authMiddleware.Authenticate())
+
+	publicGroup := app.Group("/crm/core/api/v1")
 
 	// miscellaneous
 	app.GET("/ping", pingController.Pong)
 
 	// user
-	authGroup.POST("/users", userController.CreateUser)
+	publicGroup.POST("/users", userController.CreateUser)
 	authGroup.GET("/users", userController.SearchUser)
 	authGroup.GET("/users/:userID", userController.GetUser)
 	authGroup.PUT("/users/:userID", userController.UpdateUser)
@@ -58,6 +60,4 @@ func LoadRoutes(
 
 	// webMessage
 	publicGroup.POST("/web/message", webMessageController.ReceiveMessage)
-
-	authGroup.Use(authMiddleware.Authenticate())
 }

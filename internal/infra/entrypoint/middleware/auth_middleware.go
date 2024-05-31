@@ -46,7 +46,7 @@ func (a *AuthenticationMiddleware) Authenticate() gin.HandlerFunc {
 		clientIP := ctx.ClientIP()
 		err = a.authService.VerifyUserSession(ctx.Request.Context(), userID, clientIP)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid authentication token"})
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			ctx.Abort()
 			return
 		}

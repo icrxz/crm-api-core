@@ -26,7 +26,10 @@ func (db *userDatabase) Create(ctx context.Context, user domain.User) (string, e
 
 	_, err := db.client.NamedExecContext(
 		ctx,
-		"INSERT INTO users (user_id, first_name, last_name, email, password, role, created_at, created_by, updated_at, updated_by) VALUES (:user_id, :first_name, :last_name, :email, :password, :role, :created_at, :created_by, :updated_at, :updated_by)",
+		"INSERT INTO users "+
+			"(user_id, username, first_name, last_name, email, password, role, created_at, created_by, updated_at, updated_by, active, region, last_logged_ip) "+
+			"VALUES "+
+			"(:user_id, :username, :first_name, :last_name, :email, :password, :role, :created_at, :created_by, :updated_at, :updated_by, :active, :region, :last_logged_ip)",
 		userDTO,
 	)
 	if err != nil {
@@ -75,6 +78,27 @@ func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) 
 }
 
 func (db *userDatabase) Update(ctx context.Context, userToUpdate domain.User) error {
+	userDTO := mapUserToUserDTO(userToUpdate)
+
+	_, err := db.client.NamedExecContext(
+		ctx,
+		"UPDATE users "+
+			"SET first_name = :first_name, "+
+			"last_name = :last_name, "+
+			"email = :email, "+
+			"role = :role, "+
+			"updated_at = :updated_at, "+
+			"updated_by = updated_by, "+
+			"active = :active, "+
+			"region = :region, "+
+			"last_logged_ip = :last_logged_ip "+
+			"WHERE user_id = :user_id",
+		userDTO,
+	)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
