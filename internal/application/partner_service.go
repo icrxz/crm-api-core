@@ -13,7 +13,7 @@ type partnerService struct {
 type PartnerService interface {
 	Create(ctx context.Context, partner domain.Partner) (string, error)
 	GetByID(ctx context.Context, partnerID string) (*domain.Partner, error)
-	Update(ctx context.Context, partner domain.Partner) error
+	Update(ctx context.Context, partnerID string, editPartner domain.EditPartner) error
 	Delete(ctx context.Context, partnerID string) error
 	Search(ctx context.Context, filters domain.PartnerFilters) ([]domain.Partner, error)
 }
@@ -36,8 +36,19 @@ func (s *partnerService) GetByID(ctx context.Context, partnerID string) (*domain
 	return s.partnerRepository.GetByID(ctx, partnerID)
 }
 
-func (s *partnerService) Update(ctx context.Context, partner domain.Partner) error {
-	return s.partnerRepository.Update(ctx, partner)
+func (s *partnerService) Update(ctx context.Context, partnerID string, editPartner domain.EditPartner) error {
+	if partnerID == "" {
+		return domain.NewValidationError("partnerID cannot be empty", nil)
+	}
+
+	partner, err := s.partnerRepository.GetByID(ctx, partnerID)
+	if err != nil {
+		return err
+	}
+
+	partner.MergeUpdate(editPartner)
+
+	return s.partnerRepository.Update(ctx, *partner)
 }
 
 func (s *partnerService) Delete(ctx context.Context, partnerID string) error {

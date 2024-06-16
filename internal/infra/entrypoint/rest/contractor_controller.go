@@ -4,6 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
+	"net/http"
+	"strconv"
 )
 
 type ContractorController struct {
@@ -40,7 +42,27 @@ func (c *ContractorController) CreateContractor(ctx *gin.Context) {
 }
 
 func (c *ContractorController) UpdateContractor(ctx *gin.Context) {
-	c.contractorService.Update(ctx.Request.Context(), domain.Contractor{})
+	contractorID := ctx.Param("contractorID")
+	if contractorID == "" {
+		ctx.Error(domain.NewValidationError("param contractorID cannot be empty", nil))
+		return
+	}
+
+	var updateContractorDTO *UpdateContractorDTO
+	err := ctx.BindJSON(&updateContractorDTO)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	updateContractor := mapUpdateContractorDTOToUpdateContractor(*updateContractorDTO)
+
+	if err = c.contractorService.Update(ctx.Request.Context(), contractorID, updateContractor); err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
 }
 
 func (c *ContractorController) GetContractor(ctx *gin.Context) {
@@ -58,7 +80,7 @@ func (c *ContractorController) GetContractor(ctx *gin.Context) {
 
 	contractorDTO := mapContractorToContractorDTO(*contractor)
 
-	ctx.JSON(200, contractorDTO)
+	ctx.JSON(http.StatusOK, contractorDTO)
 }
 
 func (c *ContractorController) SearchContractors(ctx *gin.Context) {
@@ -72,7 +94,7 @@ func (c *ContractorController) SearchContractors(ctx *gin.Context) {
 
 	contractorDTOs := mapContractorsToContractorDTOs(contractors)
 
-	ctx.JSON(200, contractorDTOs)
+	ctx.JSON(http.StatusOK, contractorDTOs)
 }
 
 func (c *ContractorController) DeleteContractor(ctx *gin.Context) {
@@ -88,7 +110,7 @@ func (c *ContractorController) DeleteContractor(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(204, nil)
+	ctx.JSON(http.StatusNoContent, nil)
 }
 
 func (c *ContractorController) parseQueryToFilters(ctx *gin.Context) domain.ContractorFilters {
@@ -104,6 +126,14 @@ func (c *ContractorController) parseQueryToFilters(ctx *gin.Context) domain.Cont
 
 	if companyNames := ctx.QueryArray("company_name"); len(companyNames) > 0 {
 		filters.CompanyName = companyNames
+	}
+
+	if active := ctx.Query("active"); active != "" {
+		activeBool, err := strconv.ParseBool(active)
+		if err != nil {
+			return filters
+		}
+		filters.Active = &activeBool
 	}
 
 	return filters

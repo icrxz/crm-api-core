@@ -29,11 +29,12 @@ type CustomerDTO struct {
 	BusinessPhone   string    `db:"business_phone"`
 	PersonalEmail   string    `db:"personal_email"`
 	BusinessEmail   string    `db:"business_email"`
-	OwnerID         string    `db:"owner_id"`
+	OwnerID         *string   `db:"owner_id"`
 	CreatedBy       string    `db:"created_by"`
 	CreatedAt       time.Time `db:"created_at"`
 	UpdatedBy       string    `db:"updated_by"`
 	UpdatedAt       time.Time `db:"updated_at"`
+	Active          bool      `db:"active"`
 }
 
 func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
@@ -56,7 +57,7 @@ func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
 		BillingState:    customer.BillingAddress.State,
 		BillingZipCode:  customer.BillingAddress.ZipCode,
 		BillingCountry:  customer.BillingAddress.Country,
-		OwnerID:         customer.OwnerID,
+		OwnerID:         &customer.OwnerID,
 		PersonalPhone:   customer.PersonalContact.PhoneNumber,
 		BusinessPhone:   customer.BusinessContact.PhoneNumber,
 		PersonalEmail:   customer.PersonalContact.Email,
@@ -65,10 +66,16 @@ func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
 		CreatedAt:       customer.CreatedAt,
 		UpdatedBy:       customer.UpdatedBy,
 		UpdatedAt:       customer.UpdatedAt,
+		Active:          customer.Active,
 	}
 }
 
 func mapCustomerDTOToCustomer(customerDTO CustomerDTO) domain.Customer {
+	var ownerID string
+	if customerDTO.OwnerID != nil {
+		ownerID = *customerDTO.OwnerID
+	}
+
 	return domain.Customer{
 		CustomerID:   customerDTO.CustomerID,
 		FirstName:    customerDTO.FirstName,
@@ -92,7 +99,7 @@ func mapCustomerDTOToCustomer(customerDTO CustomerDTO) domain.Customer {
 			ZipCode: customerDTO.BillingZipCode,
 			Country: customerDTO.BillingCountry,
 		},
-		OwnerID: customerDTO.OwnerID,
+		OwnerID: ownerID,
 		PersonalContact: domain.Contact{
 			PhoneNumber: customerDTO.PersonalPhone,
 			Email:       customerDTO.PersonalEmail,
@@ -105,6 +112,7 @@ func mapCustomerDTOToCustomer(customerDTO CustomerDTO) domain.Customer {
 		CreatedAt: customerDTO.CreatedAt,
 		UpdatedBy: customerDTO.UpdatedBy,
 		UpdatedAt: customerDTO.UpdatedAt,
+		Active:    customerDTO.Active,
 	}
 }
 

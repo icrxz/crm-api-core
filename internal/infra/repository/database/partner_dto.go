@@ -34,6 +34,7 @@ type PartnerDTO struct {
 	CreatedAt       time.Time `db:"created_at"`
 	UpdatedBy       string    `db:"updated_by"`
 	UpdatedAt       time.Time `db:"updated_at"`
+	Active          bool      `db:"active"`
 }
 
 func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
@@ -65,6 +66,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		CreatedAt:       partner.CreatedAt,
 		UpdatedBy:       partner.UpdatedBy,
 		UpdatedAt:       partner.UpdatedAt,
+		Active:          partner.Active,
 	}
 }
 
@@ -105,6 +107,7 @@ func mapPartnerDTOToPartner(partnerDTO PartnerDTO) domain.Partner {
 		CreatedAt: partnerDTO.CreatedAt,
 		UpdatedBy: partnerDTO.UpdatedBy,
 		UpdatedAt: partnerDTO.UpdatedAt,
+		Active:    partnerDTO.Active,
 	}
 }
 

@@ -26,6 +26,16 @@ type ContractorDTO struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedBy       string     `json:"updated_by"`
 	UpdatedAt       time.Time  `json:"updated_at"`
+	Active          bool       `json:"active"`
+}
+
+type UpdateContractorDTO struct {
+	CompanyName     *string     `json:"company_name"`
+	LegalName       *string     `json:"legal_name"`
+	Document        *string     `json:"document"`
+	DocumentType    *string     `json:"document_type"`
+	BusinessContact *ContactDTO `json:"business_contact"`
+	UpdatedBy       string      `json:"updated_by"`
 }
 
 func mapContractorToContractorDTO(contractor domain.Contractor) ContractorDTO {
@@ -40,6 +50,7 @@ func mapContractorToContractorDTO(contractor domain.Contractor) ContractorDTO {
 		CreatedAt:       contractor.CreatedAt,
 		UpdatedBy:       contractor.UpdatedBy,
 		UpdatedAt:       contractor.UpdatedAt,
+		Active:          contractor.Active,
 	}
 }
 
@@ -67,4 +78,27 @@ func mapContractorsToContractorDTOs(contractors []domain.Contractor) []Contracto
 	}
 
 	return contractorDTOs
+}
+
+func mapUpdateContractorDTOToUpdateContractor(updateContractorDTO UpdateContractorDTO) domain.UpdateContractor {
+	var parsedDocumentType *domain.DocumentType
+	if updateContractorDTO.DocumentType != nil {
+		documentType := domain.DocumentType(*updateContractorDTO.DocumentType)
+		parsedDocumentType = &documentType
+	}
+
+	var parsedBusinessContact *domain.Contact
+	if updateContractorDTO.BusinessContact != nil {
+		businessContact := mapContactDTOToContact(*updateContractorDTO.BusinessContact)
+		parsedBusinessContact = &businessContact
+	}
+
+	return domain.UpdateContractor{
+		CompanyName:     updateContractorDTO.CompanyName,
+		LegalName:       updateContractorDTO.LegalName,
+		Document:        updateContractorDTO.Document,
+		DocumentType:    parsedDocumentType,
+		BusinessContact: parsedBusinessContact,
+		UpdatedBy:       updateContractorDTO.UpdatedBy,
+	}
 }

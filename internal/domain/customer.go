@@ -34,6 +34,7 @@ type Customer struct {
 	CreatedAt       time.Time
 	UpdatedBy       string
 	UpdatedAt       time.Time
+	Active          bool
 }
 
 type DocumentType string
@@ -56,6 +57,7 @@ type CustomerFilters struct {
 	OwnerID      []string
 	CustomerType []string
 	Document     []string
+	Active       bool
 }
 
 func NewCustomer(firstName, lastName, companyName, legalName, document, documentType, author string, personalContact, businessContact Contact, shippingAddress, billingAddress Address, region int) (Customer, error) {
@@ -90,5 +92,65 @@ func NewCustomer(firstName, lastName, companyName, legalName, document, document
 		CreatedBy:       author,
 		UpdatedAt:       now,
 		UpdatedBy:       author,
+		Active:          true,
 	}, nil
+}
+
+type UpdateCustomer struct {
+	FirstName       *string
+	LastName        *string
+	CompanyName     *string
+	LegalName       *string
+	Document        *string
+	DocumentType    *string
+	ShippingAddress *Address
+	BillingAddress  *Address
+	BusinessContact *Contact
+	PersonalContact *Contact
+	UpdatedBy       string
+}
+
+func (c *Customer) MergeUpdate(updateCustomer UpdateCustomer) {
+	c.UpdatedBy = updateCustomer.UpdatedBy
+	c.UpdatedAt = time.Now().UTC()
+
+	if updateCustomer.FirstName != nil {
+		c.FirstName = *updateCustomer.FirstName
+	}
+
+	if updateCustomer.LastName != nil {
+		c.LastName = *updateCustomer.LastName
+	}
+
+	if updateCustomer.CompanyName != nil {
+		c.CompanyName = *updateCustomer.CompanyName
+	}
+
+	if updateCustomer.LegalName != nil {
+		c.LegalName = *updateCustomer.LegalName
+	}
+
+	if updateCustomer.Document != nil {
+		c.Document = *updateCustomer.Document
+	}
+
+	if updateCustomer.DocumentType != nil {
+		c.DocumentType = DocumentType(*updateCustomer.DocumentType)
+	}
+
+	if updateCustomer.ShippingAddress != nil {
+		c.ShippingAddress = *updateCustomer.ShippingAddress
+	}
+
+	if updateCustomer.BillingAddress != nil {
+		c.BillingAddress = *updateCustomer.BillingAddress
+	}
+
+	if updateCustomer.BusinessContact != nil {
+		c.BusinessContact = *updateCustomer.BusinessContact
+	}
+
+	if updateCustomer.PersonalContact != nil {
+		c.PersonalContact = *updateCustomer.PersonalContact
+	}
 }

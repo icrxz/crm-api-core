@@ -18,6 +18,7 @@ type ContractorDTO struct {
 	CreatedAt     time.Time `db:"created_at"`
 	UpdatedBy     string    `db:"updated_by"`
 	UpdatedAt     time.Time `db:"updated_at"`
+	Active        bool      `db:"active"`
 }
 
 func mapContractorToContractorDTO(contractor domain.Contractor) ContractorDTO {
@@ -33,6 +34,7 @@ func mapContractorToContractorDTO(contractor domain.Contractor) ContractorDTO {
 		CreatedAt:     contractor.CreatedAt,
 		UpdatedBy:     contractor.UpdatedBy,
 		UpdatedAt:     contractor.UpdatedAt,
+		Active:        contractor.Active,
 	}
 }
 
@@ -51,6 +53,7 @@ func mapContractorDTOToContractor(contractorDTO ContractorDTO) domain.Contractor
 		CreatedAt: contractorDTO.CreatedAt,
 		UpdatedBy: contractorDTO.UpdatedBy,
 		UpdatedAt: contractorDTO.UpdatedAt,
+		Active:    contractorDTO.Active,
 	}
 }
 

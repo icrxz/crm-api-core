@@ -13,7 +13,7 @@ type customerService struct {
 type CustomerService interface {
 	Create(ctx context.Context, customer domain.Customer) (string, error)
 	GetByID(ctx context.Context, customerID string) (*domain.Customer, error)
-	Update(ctx context.Context, customer domain.Customer) error
+	Update(ctx context.Context, customerID string, updatedCustomer domain.UpdateCustomer) error
 	Delete(ctx context.Context, customerID string) error
 	Search(ctx context.Context, filters domain.CustomerFilters) ([]domain.Customer, error)
 }
@@ -48,6 +48,17 @@ func (s *customerService) Search(ctx context.Context, filters domain.CustomerFil
 	return s.customerRepository.Search(ctx, filters)
 }
 
-func (s *customerService) Update(ctx context.Context, customer domain.Customer) error {
-	return s.customerRepository.Update(ctx, customer)
+func (s *customerService) Update(ctx context.Context, customerID string, updatedCustomer domain.UpdateCustomer) error {
+	if customerID == "" {
+		return domain.NewValidationError("customerID cannot be empty", nil)
+	}
+
+	customer, err := s.GetByID(ctx, customerID)
+	if err != nil {
+		return err
+	}
+
+	customer.MergeUpdate(updatedCustomer)
+
+	return s.customerRepository.Update(ctx, *customer)
 }

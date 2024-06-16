@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
+	"net/http"
 )
 
 type CustomerController struct {
@@ -72,7 +73,28 @@ func (c *CustomerController) SearchCustomers(ctx *gin.Context) {
 }
 
 func (c *CustomerController) UpdateCustomer(ctx *gin.Context) {
-	c.customerService.Update(ctx.Request.Context(), domain.Customer{})
+	customerID := ctx.Param("customerID")
+	if customerID == "" {
+		ctx.Error(domain.NewValidationError("param customerID cannot be empty", nil))
+		return
+	}
+
+	var updateCustomerDTO *UpdateCustomerDTO
+	err := ctx.BindJSON(&updateCustomerDTO)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	updateCustomer := mapUpdateCustomerDTOToUpdateCustomer(*updateCustomerDTO)
+
+	err = c.customerService.Update(ctx.Request.Context(), customerID, updateCustomer)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
 }
 
 func (c *CustomerController) DeleteCustomer(ctx *gin.Context) {

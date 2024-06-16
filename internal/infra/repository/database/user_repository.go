@@ -103,7 +103,11 @@ func (db *userDatabase) Update(ctx context.Context, userToUpdate domain.User) er
 }
 
 func (db *userDatabase) Delete(ctx context.Context, userID string) error {
-	_, err := db.client.ExecContext(ctx, "DELETE FROM users WHERE user_id = $1", userID)
+	if userID == "" {
+		return domain.NewValidationError("userID cannot be empty", nil)
+	}
+
+	_, err := db.client.ExecContext(ctx, "UPDATE users SET active = false WHERE user_id = $1", userID)
 	if err != nil {
 		return err
 	}

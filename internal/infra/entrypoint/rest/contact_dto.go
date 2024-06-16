@@ -10,7 +10,7 @@ type ContactDTO struct {
 func mapContactDTOToContact(contactDTO ContactDTO) domain.Contact {
 	return domain.Contact{
 		PhoneNumber: contactDTO.PhoneNumber,
-		Email:       contactDTO.PhoneNumber,
+		Email:       contactDTO.Email,
 	}
 }
 

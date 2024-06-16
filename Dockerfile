@@ -17,4 +17,4 @@ ENTRYPOINT ["/server"]
 
 FROM builder AS dev
 
-RUN go install github.com/cosmtrek/air@latest
+RUN go install github.com/air-verse/air@latest

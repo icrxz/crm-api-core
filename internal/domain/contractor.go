@@ -28,12 +28,49 @@ type Contractor struct {
 	CreatedAt       time.Time
 	UpdatedBy       string
 	UpdatedAt       time.Time
+	Active          bool
+}
+
+type UpdateContractor struct {
+	CompanyName     *string
+	LegalName       *string
+	Document        *string
+	DocumentType    *DocumentType
+	BusinessContact *Contact
+	UpdatedBy       string
+}
+
+func (c *Contractor) MergeUpdate(newContractor UpdateContractor) {
+	now := time.Now().UTC()
+	c.UpdatedAt = now
+	c.UpdatedBy = newContractor.UpdatedBy
+
+	if newContractor.CompanyName != nil {
+		c.CompanyName = *newContractor.CompanyName
+	}
+
+	if newContractor.LegalName != nil {
+		c.LegalName = *newContractor.LegalName
+	}
+
+	if newContractor.Document != nil {
+		c.Document = *newContractor.Document
+	}
+
+	if newContractor.DocumentType != nil {
+		c.DocumentType = *newContractor.DocumentType
+	}
+
+	if newContractor.BusinessContact != nil {
+		c.BusinessContact = *newContractor.BusinessContact
+	}
 }
 
 type ContractorFilters struct {
 	ContractorID []string
 	CompanyName  []string
 	Document     []string
+	Active       *bool
 }
 
 func NewContractor(legalName, companyName, document, author string, businessContact Contact, platformTemplate ContractorPlatformTemplate) (Contractor, error) {
@@ -56,5 +93,6 @@ func NewContractor(legalName, companyName, document, author string, businessCont
 		CreatedAt:       now,
 		UpdatedBy:       author,
 		UpdatedAt:       now,
+		Active:          true,
 	}, nil
 }

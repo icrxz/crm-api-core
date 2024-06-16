@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
+	"net/http"
 )
 
 type PartnerController struct {
@@ -36,7 +37,7 @@ func (c *PartnerController) CreatePartner(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(201, gin.H{"partner_id": partnerID})
+	ctx.JSON(http.StatusCreated, gin.H{"partner_id": partnerID})
 }
 
 func (c *PartnerController) GetPartner(ctx *gin.Context) {
@@ -54,7 +55,7 @@ func (c *PartnerController) GetPartner(ctx *gin.Context) {
 
 	partnerDTO := mapPartnerToPartnerDTO(*partner)
 
-	ctx.JSON(200, partnerDTO)
+	ctx.JSON(http.StatusOK, partnerDTO)
 }
 
 func (c *PartnerController) SearchPartners(ctx *gin.Context) {
@@ -68,11 +69,32 @@ func (c *PartnerController) SearchPartners(ctx *gin.Context) {
 
 	partnerDTOs := mapPartnersToPartnerDTOs(partners)
 
-	ctx.JSON(200, partnerDTOs)
+	ctx.JSON(http.StatusOK, partnerDTOs)
 }
 
 func (c *PartnerController) UpdatePartner(ctx *gin.Context) {
-	c.partnerService.Update(ctx.Request.Context(), domain.Partner{})
+	partnerID := ctx.Param("partnerID")
+	if partnerID == "" {
+		ctx.Error(domain.NewValidationError("param partnerID cannot be empty", nil))
+		return
+	}
+
+	var editPartnerDTO *EditPartnerDTO
+	err := ctx.BindJSON(&editPartnerDTO)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	editPartner := mapEditPartnerDTOToEditPartner(*editPartnerDTO)
+
+	err = c.partnerService.Update(ctx.Request.Context(), partnerID, editPartner)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
 }
 
 func (c *PartnerController) DeletePartner(ctx *gin.Context) {
@@ -88,7 +110,7 @@ func (c *PartnerController) DeletePartner(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(204, nil)
+	ctx.JSON(http.StatusNoContent, nil)
 }
 
 func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) domain.PartnerFilters {
