@@ -37,6 +37,7 @@ func RunApp() error {
 	contractorRepository := database.NewContractorRepository(sqlDB)
 	caseRepository := database.NewCaseRepository(sqlDB)
 	productRepository := database.NewProductRepository(sqlDB)
+	commentRepository := database.NewCommentRepository(sqlDB)
 
 	// services
 	userService := application.NewUserService(userRepository)
@@ -46,6 +47,7 @@ func RunApp() error {
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
 	caseService := application.NewCaseService(customerService, caseRepository, productService)
+	commentService := application.NewCommentService(commentRepository)
 
 	// controllers
 	pingController := rest.NewPingController()
@@ -57,6 +59,7 @@ func RunApp() error {
 	authController := rest.NewAuthController(authService)
 	caseController := rest.NewCaseController(caseService)
 	productController := rest.NewProductController(productService)
+	commentContoller := rest.NewCommentController(commentService)
 
 	// middlewares
 	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
@@ -76,6 +79,7 @@ func RunApp() error {
 		authMiddleware,
 		caseController,
 		productController,
+		commentContoller,
 	)
 
 	return router.Run()

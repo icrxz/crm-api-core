@@ -19,6 +19,7 @@ func LoadRoutes(
 	authMiddleware middleware.AuthenticationMiddleware,
 	caseController rest.CaseController,
 	productController rest.ProductController,
+	commentController rest.CommentController,
 ) {
 	authGroup := app.Group("/crm/core/api/v1")
 	authGroup.Use(authMiddleware.Authenticate())
@@ -70,4 +71,8 @@ func LoadRoutes(
 
 	// products
 	authGroup.GET("/products/:productID", productController.GetProductByID)
+
+	// comments
+	authGroup.GET("/comments/:commentID", commentController.GetByID)
+	authGroup.GET("/cases/comments/:caseID", commentController.GetByCaseID)
 }

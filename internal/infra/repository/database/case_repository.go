@@ -39,6 +39,10 @@ func (r *caseRepository) Create(ctx context.Context, crmCase domain.Case) (strin
 }
 
 func (r *caseRepository) GetByID(ctx context.Context, caseID string) (*domain.Case, error) {
+	if caseID == "" {
+		return nil, domain.NewValidationError("caseID is required", nil)
+	}
+
 	var crmCaseDTO CaseDTO
 	err := r.client.GetContext(ctx, &crmCaseDTO, "SELECT * FROM cases WHERE case_id=$1", caseID)
 	if err != nil {
