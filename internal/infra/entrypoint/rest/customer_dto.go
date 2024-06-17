@@ -18,7 +18,6 @@ type CreateCustomerDTO struct {
 	BillingAddress  AddressDTO `json:"billing"`
 	PersonalContact ContactDTO `json:"personal_contact"`
 	BusinessContact ContactDTO `json:"business_contact"`
-	Region          int        `json:"region"`
 	CreatedBy       string     `json:"created_by"`
 }
 
@@ -40,6 +39,7 @@ type CustomerDTO struct {
 	UpdatedBy       string     `json:"updated_by"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 	Active          bool       `json:"active"`
+	Region          int        `json:"region"`
 }
 
 type UpdateCustomerDTO struct {
@@ -54,7 +54,6 @@ type UpdateCustomerDTO struct {
 	BillingAddress  *AddressDTO `json:"billing"`
 	PersonalContact *ContactDTO `json:"personal_contact"`
 	BusinessContact *ContactDTO `json:"business_contact"`
-	Region          *int        `json:"region"`
 	UpdatedBy       string      `json:"updated_by"`
 }
 
@@ -76,6 +75,7 @@ func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
 		UpdatedBy:       customer.UpdatedBy,
 		UpdatedAt:       customer.UpdatedAt,
 		Active:          customer.Active,
+		Region:          customer.Region,
 	}
 }
 
@@ -92,7 +92,6 @@ func mapCreateCustomerDTOToCustomer(customerDTO CreateCustomerDTO) (domain.Custo
 		mapContactDTOToContact(customerDTO.BusinessContact),
 		mapAddressDTOToAddress(customerDTO.ShippingAddress),
 		mapAddressDTOToAddress(customerDTO.BillingAddress),
-		customerDTO.Region,
 	)
 }
 

@@ -35,6 +35,7 @@ type Customer struct {
 	UpdatedBy       string
 	UpdatedAt       time.Time
 	Active          bool
+	Region          int
 }
 
 type DocumentType string
@@ -60,7 +61,7 @@ type CustomerFilters struct {
 	Active       bool
 }
 
-func NewCustomer(firstName, lastName, companyName, legalName, document, documentType, author string, personalContact, businessContact Contact, shippingAddress, billingAddress Address, region int) (Customer, error) {
+func NewCustomer(firstName, lastName, companyName, legalName, document, documentType, author string, personalContact, businessContact Contact, shippingAddress, billingAddress Address) (Customer, error) {
 	now := time.Now().UTC()
 
 	customerID, err := uuid.NewUUID()
@@ -74,6 +75,8 @@ func NewCustomer(firstName, lastName, companyName, legalName, document, document
 	} else {
 		customerType = LEGAL
 	}
+
+	region := regions[shippingAddress.State]
 
 	return Customer{
 		CustomerID:      customerID.String(),
@@ -93,6 +96,7 @@ func NewCustomer(firstName, lastName, companyName, legalName, document, document
 		UpdatedAt:       now,
 		UpdatedBy:       author,
 		Active:          true,
+		Region:          region,
 	}, nil
 }
 
@@ -140,6 +144,7 @@ func (c *Customer) MergeUpdate(updateCustomer UpdateCustomer) {
 
 	if updateCustomer.ShippingAddress != nil {
 		c.ShippingAddress = *updateCustomer.ShippingAddress
+		c.Region = regions[updateCustomer.ShippingAddress.State]
 	}
 
 	if updateCustomer.BillingAddress != nil {

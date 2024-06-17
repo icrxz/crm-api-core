@@ -18,7 +18,6 @@ type CreatePartnerDTO struct {
 	BillingAddress  AddressDTO `json:"billing"`
 	PersonalContact ContactDTO `json:"personal_contact"`
 	BusinessContact ContactDTO `json:"business_contact"`
-	Region          int        `json:"region"`
 	CreatedBy       string     `json:"created_by"`
 }
 
@@ -96,7 +95,6 @@ func mapCreatePartnerDTOToPartner(partnerDTO CreatePartnerDTO) (domain.Partner, 
 		mapContactDTOToContact(partnerDTO.BusinessContact),
 		mapAddressDTOToAddress(partnerDTO.ShippingAddress),
 		mapAddressDTOToAddress(partnerDTO.BillingAddress),
-		partnerDTO.Region,
 	)
 }
 

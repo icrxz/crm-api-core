@@ -49,7 +49,6 @@ type EditPartner struct {
 	BillingAddress  *Address
 	BusinessContact *Contact
 	PersonalContact *Contact
-	Region          *int
 	Active          *bool
 	UpdatedBy       string
 }
@@ -62,7 +61,7 @@ type PartnerFilters struct {
 	Active      *bool
 }
 
-func NewPartner(firstName, lastName, companyName, legalName, document, documentType, author string, personalContact, businessContact Contact, shippingAddress, billingAddress Address, region int) (Partner, error) {
+func NewPartner(firstName, lastName, companyName, legalName, document, documentType, author string, personalContact, businessContact Contact, shippingAddress, billingAddress Address) (Partner, error) {
 	now := time.Now().UTC()
 
 	partnerID, err := uuid.NewUUID()
@@ -76,6 +75,8 @@ func NewPartner(firstName, lastName, companyName, legalName, document, documentT
 	} else {
 		partnerType = LEGAL
 	}
+
+	region := regions[shippingAddress.State]
 
 	return Partner{
 		PartnerID:       partnerID.String(),
@@ -129,6 +130,7 @@ func (p *Partner) MergeUpdate(updatePartner EditPartner) {
 
 	if updatePartner.ShippingAddress != nil {
 		p.ShippingAddress = *updatePartner.ShippingAddress
+		p.Region = regions[updatePartner.ShippingAddress.State]
 	}
 
 	if updatePartner.BillingAddress != nil {
@@ -141,10 +143,6 @@ func (p *Partner) MergeUpdate(updatePartner EditPartner) {
 
 	if updatePartner.PersonalContact != nil {
 		p.PersonalContact = *updatePartner.PersonalContact
-	}
-
-	if updatePartner.Region != nil {
-		p.Region = *updatePartner.Region
 	}
 
 	if updatePartner.Active != nil {

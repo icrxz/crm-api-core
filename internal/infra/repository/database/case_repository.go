@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"github.com/jmoiron/sqlx"
-	"strconv"
 	"strings"
 )
 
@@ -24,24 +23,19 @@ func NewCaseRepository(client *sqlx.DB) domain.CaseRepository {
 func (r *caseRepository) Create(ctx context.Context, crmCase domain.Case) (string, error) {
 	crmCaseDTO := mapCaseToCaseDTO(crmCase)
 
-	result, err := r.client.NamedExecContext(
+	_, err := r.client.NamedExecContext(
 		ctx,
 		"INSERT INTO cases "+
-			"(case_id, contractor_id, customer_id, partner_id, owner_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at) "+
+			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region) "+
 			"VALUES "+
-			"(:case_id, :contractor_id, :customer_id, :partner_id, :owner_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at)",
+			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region)",
 		crmCaseDTO,
 	)
 	if err != nil {
 		return "", err
 	}
 
-	caseID, err := result.LastInsertId()
-	if err != nil {
-		return "", err
-	}
-
-	return strconv.FormatInt(caseID, 10), nil
+	return crmCase.CaseID, nil
 }
 
 func (r *caseRepository) GetByID(ctx context.Context, caseID string) (*domain.Case, error) {
@@ -58,9 +52,16 @@ func (r *caseRepository) GetByID(ctx context.Context, caseID string) (*domain.Ca
 	return &crmCase, nil
 }
 
-func (r *caseRepository) Search(ctx context.Context) ([]domain.Case, error) {
+func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters) ([]domain.Case, error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
+
+	whereQuery, whereArgs = prepareInQuery(filters.ContractorID, whereQuery, whereArgs, "contractor_id")
+	whereQuery, whereArgs = prepareInQuery(filters.OwnerID, whereQuery, whereArgs, "owner_id")
+	whereQuery, whereArgs = prepareInQuery(filters.CustomerID, whereQuery, whereArgs, "customer_id")
+	whereQuery, whereArgs = prepareInQuery(filters.PartnerID, whereQuery, whereArgs, "partner_id")
+	whereQuery, whereArgs = prepareInQuery(filters.Status, whereQuery, whereArgs, "status")
+	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "region")
 
 	query := fmt.Sprintf("SELECT * FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
 
@@ -92,7 +93,8 @@ func (r *caseRepository) Update(ctx context.Context, crmCase domain.Case) error 
 			"status = :status, "+
 			"due_date = :due_date, "+
 			"updated_by = :updated_by, "+
-			"updated_at = :updated_at "+
+			"updated_at = :updated_at, "+
+			"closed_at = :closed_at "+
 			"WHERE case_id = :case_id",
 		crmCaseDTO,
 	)

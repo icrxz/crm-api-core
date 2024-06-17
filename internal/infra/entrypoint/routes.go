@@ -17,6 +17,8 @@ func LoadRoutes(
 	contractorController rest.ContractorController,
 	authController rest.AuthController,
 	authMiddleware middleware.AuthenticationMiddleware,
+	caseController rest.CaseController,
+	productController rest.ProductController,
 ) {
 	authGroup := app.Group("/crm/core/api/v1")
 	authGroup.Use(authMiddleware.Authenticate())
@@ -60,4 +62,12 @@ func LoadRoutes(
 
 	// webMessage
 	publicGroup.POST("/web/message", webMessageController.ReceiveMessage)
+
+	// cases
+	authGroup.POST("/cases", caseController.CreateCase)
+	authGroup.GET("/cases/:caseID", caseController.GetCase)
+	authGroup.GET("/cases", caseController.SearchCases)
+
+	// products
+	authGroup.GET("/products/:productID", productController.GetProductByID)
 }

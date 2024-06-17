@@ -35,6 +35,8 @@ func RunApp() error {
 	partnerRepository := database.NewPartnerRepository(sqlDB)
 	customerRepository := database.NewCustomerRepository(sqlDB)
 	contractorRepository := database.NewContractorRepository(sqlDB)
+	caseRepository := database.NewCaseRepository(sqlDB)
+	productRepository := database.NewProductRepository(sqlDB)
 
 	// services
 	userService := application.NewUserService(userRepository)
@@ -42,6 +44,8 @@ func RunApp() error {
 	customerService := application.NewCustomerService(customerRepository)
 	contractorService := application.NewContractorService(contractorRepository)
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
+	productService := application.NewProductService(productRepository)
+	caseService := application.NewCaseService(customerService, caseRepository, productService)
 
 	// controllers
 	pingController := rest.NewPingController()
@@ -51,6 +55,8 @@ func RunApp() error {
 	contractorController := rest.NewContractorController(contractorService)
 	webMessageController := rest.NewWebMessageController()
 	authController := rest.NewAuthController(authService)
+	caseController := rest.NewCaseController(caseService)
+	productController := rest.NewProductController(productService)
 
 	// middlewares
 	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
@@ -58,7 +64,19 @@ func RunApp() error {
 	router := gin.Default()
 	router.Use(entrypoint.CustomErrorEncoder())
 
-	entrypoint.LoadRoutes(router, pingController, userController, webMessageController, partnerController, customerController, contractorController, authController, authMiddleware)
+	entrypoint.LoadRoutes(
+		router,
+		pingController,
+		userController,
+		webMessageController,
+		partnerController,
+		customerController,
+		contractorController,
+		authController,
+		authMiddleware,
+		caseController,
+		productController,
+	)
 
 	return router.Run()
 }
