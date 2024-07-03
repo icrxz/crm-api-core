@@ -71,7 +71,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		DocumentType:    string(partner.DocumentType),
 		ShippingAddress: mapAddressToAddressDTO(partner.ShippingAddress),
 		BillingAddress:  mapAddressToAddressDTO(partner.BillingAddress),
-		Region:          partner.Region,
+		Region:          partner.GetRegion(),
 		PersonalContact: mapContactToContactDTO(partner.PersonalContact),
 		BusinessContact: mapContactToContactDTO(partner.BusinessContact),
 		CreatedBy:       partner.CreatedBy,

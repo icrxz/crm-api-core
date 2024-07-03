@@ -35,7 +35,6 @@ type Customer struct {
 	UpdatedBy       string
 	UpdatedAt       time.Time
 	Active          bool
-	Region          int
 }
 
 type DocumentType string
@@ -76,8 +75,6 @@ func NewCustomer(firstName, lastName, companyName, legalName, document, document
 		customerType = LEGAL
 	}
 
-	region := regions[shippingAddress.State]
-
 	return Customer{
 		CustomerID:      customerID.String(),
 		Type:            customerType,
@@ -96,7 +93,6 @@ func NewCustomer(firstName, lastName, companyName, legalName, document, document
 		UpdatedAt:       now,
 		UpdatedBy:       author,
 		Active:          true,
-		Region:          region,
 	}, nil
 }
 
@@ -144,7 +140,6 @@ func (c *Customer) MergeUpdate(updateCustomer UpdateCustomer) {
 
 	if updateCustomer.ShippingAddress != nil {
 		c.ShippingAddress = *updateCustomer.ShippingAddress
-		c.Region = regions[updateCustomer.ShippingAddress.State]
 	}
 
 	if updateCustomer.BillingAddress != nil {
@@ -158,4 +153,8 @@ func (c *Customer) MergeUpdate(updateCustomer UpdateCustomer) {
 	if updateCustomer.PersonalContact != nil {
 		c.PersonalContact = *updateCustomer.PersonalContact
 	}
+}
+
+func (c *Customer) GetRegion() int {
+	return regions[c.ShippingAddress.State]
 }

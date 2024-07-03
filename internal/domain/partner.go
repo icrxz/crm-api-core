@@ -28,7 +28,6 @@ type Partner struct {
 	BillingAddress  Address
 	BusinessContact Contact
 	PersonalContact Contact
-	Region          int
 	Cases           []Case
 	CreatedBy       string
 	CreatedAt       time.Time
@@ -55,7 +54,7 @@ type EditPartner struct {
 
 type PartnerFilters struct {
 	PartnerID   []string
-	Region      []string
+	State       []string
 	Document    []string
 	PartnerType []string
 	Active      *bool
@@ -76,8 +75,6 @@ func NewPartner(firstName, lastName, companyName, legalName, document, documentT
 		partnerType = LEGAL
 	}
 
-	region := regions[shippingAddress.State]
-
 	return Partner{
 		PartnerID:       partnerID.String(),
 		FirstName:       firstName,
@@ -91,7 +88,6 @@ func NewPartner(firstName, lastName, companyName, legalName, document, documentT
 		BillingAddress:  billingAddress,
 		PersonalContact: personalContact,
 		BusinessContact: businessContact,
-		Region:          region,
 		CreatedAt:       now,
 		CreatedBy:       author,
 		UpdatedAt:       now,
@@ -130,7 +126,6 @@ func (p *Partner) MergeUpdate(updatePartner EditPartner) {
 
 	if updatePartner.ShippingAddress != nil {
 		p.ShippingAddress = *updatePartner.ShippingAddress
-		p.Region = regions[updatePartner.ShippingAddress.State]
 	}
 
 	if updatePartner.BillingAddress != nil {
@@ -148,4 +143,8 @@ func (p *Partner) MergeUpdate(updatePartner EditPartner) {
 	if updatePartner.Active != nil {
 		p.Active = *updatePartner.Active
 	}
+}
+
+func (p *Partner) GetRegion() int {
+	return regions[p.ShippingAddress.State]
 }

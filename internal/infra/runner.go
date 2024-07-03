@@ -38,6 +38,7 @@ func RunApp() error {
 	caseRepository := database.NewCaseRepository(sqlDB)
 	productRepository := database.NewProductRepository(sqlDB)
 	commentRepository := database.NewCommentRepository(sqlDB)
+	transactionRepository := database.NewTransactionRepository(sqlDB)
 
 	// services
 	userService := application.NewUserService(userRepository)
@@ -46,8 +47,11 @@ func RunApp() error {
 	contractorService := application.NewContractorService(contractorRepository)
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
-	caseService := application.NewCaseService(customerService, caseRepository, productService)
+	caseService := application.NewCaseService(customerService, caseRepository, productService, userService)
 	commentService := application.NewCommentService(commentRepository)
+	transactionService := application.NewTransactionService(transactionRepository)
+	reportService := application.NewReportService(appConfig.ReportFolder, caseService, productService, customerService, commentService, partnerService)
+	caseActionService := application.NewCaseActionService(caseRepository, commentService, reportService)
 
 	// controllers
 	pingController := rest.NewPingController()
@@ -59,7 +63,9 @@ func RunApp() error {
 	authController := rest.NewAuthController(authService)
 	caseController := rest.NewCaseController(caseService)
 	productController := rest.NewProductController(productService)
-	commentContoller := rest.NewCommentController(commentService)
+	commentController := rest.NewCommentController(commentService)
+	transactionController := rest.NewTransactionController(transactionService)
+	caseActionController := rest.NewCaseActionController(caseActionService)
 
 	// middlewares
 	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
@@ -79,7 +85,9 @@ func RunApp() error {
 		authMiddleware,
 		caseController,
 		productController,
-		commentContoller,
+		commentController,
+		transactionController,
+		caseActionController,
 	)
 
 	return router.Run()

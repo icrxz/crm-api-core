@@ -1,8 +1,9 @@
 package database
 
 import (
-	"github.com/icrxz/crm-api-core/internal/domain"
 	"time"
+
+	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
 type ProductDTO struct {

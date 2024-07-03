@@ -27,9 +27,9 @@ func (db *partnerRepository) Create(ctx context.Context, partner domain.Partner)
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO partners "+
-			"(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, region, created_at, created_by, updated_at, updated_by, active) "+
+			"(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active) "+
 			"VALUES "+
-			"(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :region, :created_at, :created_by, :updated_at, :updated_by, :active)",
+			"(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active)",
 		partnerDTO,
 	)
 	if err != nil {
@@ -74,7 +74,7 @@ func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerF
 	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "document")
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerType, whereQuery, whereArgs, "partner_type")
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerID, whereQuery, whereArgs, "partner_id")
-	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "region")
+	whereQuery, whereArgs = prepareInQuery(filters.State, whereQuery, whereArgs, "shipping_state")
 	if filters.Active != nil {
 		whereQuery = append(whereQuery, fmt.Sprintf("active = $%d", len(whereArgs)+1))
 		whereArgs = append(whereArgs, filters.Active)
@@ -121,7 +121,6 @@ func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner)
 			"business_phone = :business_phone, "+
 			"personal_email = :personal_email, "+
 			"business_email = :business_email, "+
-			"region = :region, "+
 			"updated_at = :updated_at, "+
 			"updated_by = :updated_by, "+
 			"active = :active "+

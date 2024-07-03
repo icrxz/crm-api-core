@@ -11,7 +11,9 @@ type CaseController struct {
 	caseService application.CaseService
 }
 
-func NewCaseController(caseService application.CaseService) CaseController {
+func NewCaseController(
+	caseService application.CaseService,
+) CaseController {
 	return CaseController{
 		caseService: caseService,
 	}

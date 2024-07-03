@@ -67,3 +67,7 @@ func NewUnauthorizedError(message string) error {
 		statusCode:    http.StatusUnauthorized,
 	}
 }
+
+func (e CustomError) IsNotFound() bool {
+	return e.statusCode == http.StatusNotFound
+}

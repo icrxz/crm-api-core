@@ -1,8 +1,9 @@
 package database
 
 import (
-	"github.com/icrxz/crm-api-core/internal/domain"
 	"time"
+
+	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
 type CaseDTO struct {
@@ -25,17 +26,26 @@ type CaseDTO struct {
 	ProductID         string     `db:"product_id"`
 	Region            int        `db:"region"`
 	ClosedAt          *time.Time `db:"closed_at"`
-	CaseClosedAt      *time.Time `db:"case_closed_at"`
-	CaseClosedBy      *string    `db:"case_closed_by"`
+	TargetDate        *time.Time `db:"target_date"`
 }
 
 func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
+	var partnerID *string
+	if crmCase.PartnerID != "" {
+		partnerID = &crmCase.PartnerID
+	}
+
+	var ownerID *string
+	if crmCase.OwnerID != "" {
+		ownerID = &crmCase.OwnerID
+	}
+
 	return CaseDTO{
 		CaseID:            crmCase.CaseID,
 		ContractorID:      crmCase.ContractorID,
 		CustomerID:        crmCase.CustomerID,
-		PartnerID:         &crmCase.PartnerID,
-		OwnerID:           &crmCase.OwnerID,
+		PartnerID:         partnerID,
+		OwnerID:           ownerID,
 		OriginChannel:     crmCase.OriginChannel,
 		Type:              crmCase.Type,
 		Subject:           crmCase.Subject,
@@ -49,6 +59,8 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		ExternalReference: crmCase.ExternalReference,
 		Region:            crmCase.Region,
 		ProductID:         crmCase.ProductID,
+		TargetDate:        crmCase.TargetDate,
+		ClosedAt:          crmCase.ClosedAt,
 	}
 }
 
@@ -83,6 +95,7 @@ func mapCaseDTOToCase(crmCaseDTO CaseDTO) domain.Case {
 		Region:            crmCaseDTO.Region,
 		ProductID:         crmCaseDTO.ProductID,
 		ClosedAt:          crmCaseDTO.ClosedAt,
+		TargetDate:        crmCaseDTO.TargetDate,
 	}
 }
 

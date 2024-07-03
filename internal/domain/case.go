@@ -2,8 +2,9 @@ package domain
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type CaseRepository interface {
@@ -40,6 +41,7 @@ type Case struct {
 	ProductID         string
 	ClosedAt          *time.Time
 	ExternalReference string
+	TargetDate        *time.Time
 }
 
 type CaseFilters struct {
@@ -51,6 +53,15 @@ type CaseFilters struct {
 	Region       []string
 }
 
+type CaseUpdate struct {
+	Status     *CaseStatus
+	PartnerID  *string
+	OwnerID    *string
+	TargetDate *time.Time
+	ClosedAt   *time.Time
+	UpdatedBy  string
+}
+
 type CaseStatus string
 
 const (
@@ -60,6 +71,7 @@ const (
 	ONGOING         CaseStatus = "Ongoing"
 	REPORT          CaseStatus = "Report"
 	PAYMENT         CaseStatus = "Payment"
+	RECEIPT         CaseStatus = "Receipt"
 	CLOSED          CaseStatus = "Closed"
 	CANCELED        CaseStatus = "Canceled"
 )
@@ -105,4 +117,29 @@ func NewCase(
 		UpdatedBy:         author,
 		ExternalReference: externalReference,
 	}, nil
+}
+
+func (c *Case) MergeUpdate(updateCase CaseUpdate) {
+	c.UpdatedAt = time.Now().UTC()
+	c.UpdatedBy = updateCase.UpdatedBy
+
+	if updateCase.Status != nil {
+		c.Status = *updateCase.Status
+	}
+
+	if updateCase.OwnerID != nil {
+		c.OwnerID = *updateCase.OwnerID
+	}
+
+	if updateCase.PartnerID != nil {
+		c.PartnerID = *updateCase.PartnerID
+	}
+
+	if updateCase.TargetDate != nil {
+		c.TargetDate = updateCase.TargetDate
+	}
+
+	if updateCase.ClosedAt != nil {
+		c.ClosedAt = updateCase.ClosedAt
+	}
 }

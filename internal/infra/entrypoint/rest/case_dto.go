@@ -22,6 +22,29 @@ type CreateCaseDTO struct {
 	SerialNumber       string    `json:"serial_number"`
 }
 
+type CaseDTO struct {
+	CaseID            string              `json:"case_id"`
+	ContractorID      string              `json:"contractor_id"`
+	CustomerID        string              `json:"customer_id"`
+	PartnerID         string              `json:"partner_id"`
+	OwnerID           string              `json:"owner_id"`
+	OriginChannel     string              `json:"origin_channel"`
+	Type              string              `json:"type"`
+	Subject           string              `json:"subject"`
+	Priority          domain.CasePriority `json:"priority"`
+	Status            domain.CaseStatus   `json:"status"`
+	DueDate           time.Time           `json:"due_date"`
+	CreatedBy         string              `json:"created_by"`
+	CreatedAt         time.Time           `json:"created_at"`
+	UpdatedBy         string              `json:"updated_by"`
+	UpdatedAt         time.Time           `json:"updated_at"`
+	Region            int                 `json:"region"`
+	ExternalReference string              `json:"external_reference"`
+	ProductID         string              `json:"product_id"`
+	ClosedAt          *time.Time          `json:"closed_at"`
+	TargetDate        *time.Time          `json:"target_date"`
+}
+
 func mapCreateCaseDTOToCreateCase(createCaseDTO CreateCaseDTO) (domain.CreateCase, error) {
 	crmCase, err := domain.NewCase(
 		createCaseDTO.ContractorID,
@@ -56,28 +79,6 @@ func mapCreateCaseDTOToCreateCase(createCaseDTO CreateCaseDTO) (domain.CreateCas
 	}, nil
 }
 
-type CaseDTO struct {
-	CaseID            string              `json:"case_id"`
-	ContractorID      string              `json:"contractor_id"`
-	CustomerID        string              `json:"customer_id"`
-	PartnerID         string              `json:"partner_id"`
-	OwnerID           string              `json:"owner_id"`
-	OriginChannel     string              `json:"origin_channel"`
-	Type              string              `json:"type"`
-	Subject           string              `json:"subject"`
-	Priority          domain.CasePriority `json:"priority"`
-	Status            domain.CaseStatus   `json:"status"`
-	DueDate           time.Time           `json:"due_date"`
-	CreatedBy         string              `json:"created_by"`
-	CreatedAt         time.Time           `json:"created_at"`
-	UpdatedBy         string              `json:"updated_by"`
-	UpdatedAt         time.Time           `json:"updated_at"`
-	Region            int                 `json:"region"`
-	ExternalReference string              `json:"external_reference"`
-	ProductID         string              `json:"product_id"`
-	ClosedAt          *time.Time          `json:"closed_at"`
-}
-
 func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 	return CaseDTO{
 		CaseID:            crmCase.CaseID,
@@ -99,6 +100,7 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		ExternalReference: crmCase.ExternalReference,
 		ProductID:         crmCase.ProductID,
 		ClosedAt:          crmCase.ClosedAt,
+		TargetDate:        crmCase.TargetDate,
 	}
 }
 

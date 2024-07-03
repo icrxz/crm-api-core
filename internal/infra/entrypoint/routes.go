@@ -2,7 +2,6 @@ package entrypoint
 
 import (
 	"github.com/gin-gonic/gin"
-
 	"github.com/icrxz/crm-api-core/internal/infra/entrypoint/middleware"
 	"github.com/icrxz/crm-api-core/internal/infra/entrypoint/rest"
 )
@@ -20,6 +19,8 @@ func LoadRoutes(
 	caseController rest.CaseController,
 	productController rest.ProductController,
 	commentController rest.CommentController,
+	transactionController rest.TransactionController,
+	caseActionController rest.CaseActionController,
 ) {
 	authGroup := app.Group("/crm/core/api/v1")
 	authGroup.Use(authMiddleware.Authenticate())
@@ -74,5 +75,18 @@ func LoadRoutes(
 
 	// comments
 	authGroup.GET("/comments/:commentID", commentController.GetByID)
-	authGroup.GET("/cases/comments/:caseID", commentController.GetByCaseID)
+	authGroup.POST("/cases/:caseID/comments", commentController.CreateComment)
+	authGroup.GET("/cases/:caseID/comments", commentController.GetByCaseID)
+
+	// transactions
+	authGroup.POST("/cases/:caseID/transactions", transactionController.CreateTransaction)
+	authGroup.GET("/transactions/:transactionID", transactionController.GetTransaction)
+	authGroup.PUT("/transactions/:transactionID", transactionController.UpdateTransaction)
+	authGroup.GET("/transactions", transactionController.SearchTransactions)
+
+	// case actions
+	authGroup.PATCH("/cases/:caseID/owner", caseActionController.ChangeOwner)
+	authGroup.PATCH("/cases/:caseID/status", caseActionController.ChangeStatus)
+	authGroup.PATCH("/cases/:caseID/partner", caseActionController.ChangePartner)
+	authGroup.GET("/cases/:caseID/report", caseActionController.DownloadReport)
 }

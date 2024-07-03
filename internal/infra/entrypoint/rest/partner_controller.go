@@ -128,8 +128,13 @@ func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) domain.Partner
 		filters.PartnerID = partnerIDs
 	}
 
-	if regions := ctx.QueryArray("region"); len(regions) > 0 {
-		filters.Region = regions
+	if states := ctx.QueryArray("state"); len(states) > 0 {
+		filters.State = states
+	}
+
+	if active := ctx.Query("active"); active != "" {
+		isActive := active == "true"
+		filters.Active = &isActive
 	}
 
 	return filters

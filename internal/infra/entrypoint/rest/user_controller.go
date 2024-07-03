@@ -129,5 +129,10 @@ func (c *UserController) parseQueryToUserFilters(ctx *gin.Context) domain.UserFi
 		filters.Role = roles
 	}
 
+	if active := ctx.Query("active"); active != "" {
+		activeBool := active == "true"
+		filters.Active = &activeBool
+	}
+
 	return filters
 }

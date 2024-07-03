@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"github.com/jmoiron/sqlx"
-	"strings"
 )
 
 type caseRepository struct {
@@ -26,9 +27,9 @@ func (r *caseRepository) Create(ctx context.Context, crmCase domain.Case) (strin
 	_, err := r.client.NamedExecContext(
 		ctx,
 		"INSERT INTO cases "+
-			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region) "+
+			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id) "+
 			"VALUES "+
-			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region)",
+			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id)",
 		crmCaseDTO,
 	)
 	if err != nil {
@@ -98,7 +99,8 @@ func (r *caseRepository) Update(ctx context.Context, crmCase domain.Case) error 
 			"due_date = :due_date, "+
 			"updated_by = :updated_by, "+
 			"updated_at = :updated_at, "+
-			"closed_at = :closed_at "+
+			"closed_at = :closed_at, "+
+			"target_date = :target_date "+
 			"WHERE case_id = :case_id",
 		crmCaseDTO,
 	)

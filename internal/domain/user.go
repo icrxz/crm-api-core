@@ -41,6 +41,7 @@ type UserFilters struct {
 	Email     []string
 	Role      []string
 	Region    []string
+	Active    *bool
 }
 
 type UserUpdate struct {

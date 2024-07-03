@@ -63,6 +63,11 @@ func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) 
 	whereQuery, whereArgs = prepareInQuery(filters.Role, whereQuery, whereArgs, "role")
 	whereQuery, whereArgs = prepareInQuery(filters.UserID, whereQuery, whereArgs, "user_id")
 	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "region")
+	whereQuery, whereArgs = prepareInQuery(filters.Username, whereQuery, whereArgs, "username")
+	if filters.Active != nil {
+		whereQuery = append(whereQuery, fmt.Sprintf("active = $%d", len(whereArgs)+1))
+		whereArgs = append(whereArgs, filters.Active)
+	}
 
 	query := fmt.Sprintf("SELECT * FROM users WHERE %s", strings.Join(whereQuery, " AND "))
 

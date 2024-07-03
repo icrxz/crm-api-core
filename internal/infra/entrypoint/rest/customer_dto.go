@@ -75,7 +75,7 @@ func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
 		UpdatedBy:       customer.UpdatedBy,
 		UpdatedAt:       customer.UpdatedAt,
 		Active:          customer.Active,
-		Region:          customer.Region,
+		Region:          customer.GetRegion(),
 	}
 }
 

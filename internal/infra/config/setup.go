@@ -15,6 +15,7 @@ const (
 type AppConfig struct {
 	Database     Database `properties:"database"`
 	SecretJWTKey string   `properties:"jwtKeyEnv"`
+	ReportFolder string   `properties:"reportFolder,default=resources/reports"`
 }
 
 type Database struct {

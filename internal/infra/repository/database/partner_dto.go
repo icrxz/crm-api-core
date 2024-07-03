@@ -57,7 +57,6 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		BillingState:    partner.BillingAddress.State,
 		BillingZipCode:  partner.BillingAddress.ZipCode,
 		BillingCountry:  partner.BillingAddress.Country,
-		Region:          partner.Region,
 		PersonalPhone:   partner.PersonalContact.PhoneNumber,
 		BusinessPhone:   partner.BusinessContact.PhoneNumber,
 		PersonalEmail:   partner.PersonalContact.Email,
@@ -94,7 +93,6 @@ func mapPartnerDTOToPartner(partnerDTO PartnerDTO) domain.Partner {
 			ZipCode: partnerDTO.BillingZipCode,
 			Country: partnerDTO.BillingCountry,
 		},
-		Region: partnerDTO.Region,
 		PersonalContact: domain.Contact{
 			PhoneNumber: partnerDTO.PersonalPhone,
 			Email:       partnerDTO.PersonalEmail,
