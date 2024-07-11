@@ -1,21 +1,40 @@
 package rest
 
-import "github.com/icrxz/crm-api-core/internal/domain"
+import (
+	"time"
+
+	"github.com/icrxz/crm-api-core/internal/domain"
+)
 
 type AttachmentDTO struct {
-	AttachmentID  string `json:"attachment_id"`
-	FileExtension string `json:"file_extension"`
-	FileName      string `json:"file_name"`
-	AttachmentURL string `json:"url"`
+	AttachmentID  string    `json:"attachment_id"`
+	FileExtension string    `json:"file_extension"`
+	FileName      string    `json:"file_name"`
+	Key           string    `json:"key"`
+	Size          int       `json:"size"`
+	AttachmentURL string    `json:"url"`
+	CreatedBy     string    `json:"created_by"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
-func mapAttachmentDTOToAttachment(attachmentDTO AttachmentDTO) domain.Attachment {
-	return domain.Attachment{
-		AttachmentID:  attachmentDTO.AttachmentID,
-		FileExtension: attachmentDTO.FileExtension,
-		FileName:      attachmentDTO.FileName,
-		AttachmentURL: attachmentDTO.AttachmentURL,
-	}
+type CreateAttachmentDTO struct {
+	FileExtension string `json:"file_extension"`
+	FileName      string `json:"file_name"`
+	Key           string `json:"key"`
+	Size          int    `json:"size"`
+	AttachmentURL string `json:"url"`
+	CreatedBy     string `json:"created_by"`
+}
+
+func mapCreateAttachmentDTOToAttachment(createAttachmentDTO CreateAttachmentDTO) (domain.Attachment, error) {
+	return domain.NewAttachment(
+		createAttachmentDTO.FileName,
+		createAttachmentDTO.AttachmentURL,
+		createAttachmentDTO.FileExtension,
+		createAttachmentDTO.Key,
+		createAttachmentDTO.CreatedBy,
+		createAttachmentDTO.Size,
+	)
 }
 
 func mapAttachmentToAttachmentDTO(attachment domain.Attachment) AttachmentDTO {
@@ -23,7 +42,10 @@ func mapAttachmentToAttachmentDTO(attachment domain.Attachment) AttachmentDTO {
 		AttachmentID:  attachment.AttachmentID,
 		FileExtension: attachment.FileExtension,
 		FileName:      attachment.FileName,
+		Size:          attachment.Size,
 		AttachmentURL: attachment.AttachmentURL,
+		CreatedBy:     attachment.CreatedBy,
+		CreatedAt:     attachment.CreatedAt,
 	}
 }
 
@@ -35,10 +57,15 @@ func mapAttachmentsToAttachmentDTOs(attachments []domain.Attachment) []Attachmen
 	return attachmentDTOs
 }
 
-func mapAttachmentDTOsToAttachments(attachmentDTOs []AttachmentDTO) []domain.Attachment {
+func mapCreateAttachmentDTOsToAttachments(attachmentDTOs []CreateAttachmentDTO) ([]domain.Attachment, error) {
 	var attachments []domain.Attachment
 	for _, attachmentDTO := range attachmentDTOs {
-		attachments = append(attachments, mapAttachmentDTOToAttachment(attachmentDTO))
+		attachment, err := mapCreateAttachmentDTOToAttachment(attachmentDTO)
+		if err != nil {
+			return nil, err
+		}
+
+		attachments = append(attachments, attachment)
 	}
-	return attachments
+	return attachments, nil
 }

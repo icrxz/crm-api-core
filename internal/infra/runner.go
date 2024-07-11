@@ -39,6 +39,7 @@ func RunApp() error {
 	productRepository := database.NewProductRepository(sqlDB)
 	commentRepository := database.NewCommentRepository(sqlDB)
 	transactionRepository := database.NewTransactionRepository(sqlDB)
+	attachmentRepository := database.NewAttachmentRepository(sqlDB)
 
 	// services
 	userService := application.NewUserService(userRepository)
@@ -48,7 +49,7 @@ func RunApp() error {
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
 	caseService := application.NewCaseService(customerService, caseRepository, productService, userService)
-	commentService := application.NewCommentService(commentRepository)
+	commentService := application.NewCommentService(commentRepository, attachmentRepository)
 	transactionService := application.NewTransactionService(transactionRepository)
 	reportService := application.NewReportService(appConfig.ReportFolder, caseService, productService, customerService, commentService, partnerService)
 	caseActionService := application.NewCaseActionService(caseRepository, commentService, reportService)

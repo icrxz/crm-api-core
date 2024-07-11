@@ -113,7 +113,7 @@ func (c *caseActionService) createChangeStatusComment(ctx context.Context, caseI
 		commentType = domain.REJECTION
 	}
 
-	newComment, err := domain.NewComment(caseID, *newStatus.Content, newStatus.UpdatedBy, commentType)
+	newComment, err := domain.NewComment(caseID, *newStatus.Content, newStatus.UpdatedBy, commentType, newStatus.Attachments)
 	if err != nil {
 		return err
 	}

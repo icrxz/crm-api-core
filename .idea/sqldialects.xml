@@ -2,6 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/migrations/000001_users.up.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/migrations/000010_add_entities_active_status.down.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/migrations/000013_add_attrs_to_case.up.sql" dialect="PostgreSQL" />
     <file url="PROJECT" dialect="PostgreSQL" />
   </component>

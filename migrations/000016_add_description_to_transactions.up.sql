@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS transactions
+    ADD COLUMN IF NOT EXISTS description TEXT;

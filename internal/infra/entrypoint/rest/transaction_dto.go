@@ -7,9 +7,10 @@ import (
 )
 
 type CreateTransactionDTO struct {
-	Type      domain.TransactionType `json:"type"`
-	Value     float64                `json:"value"`
-	CreatedBy string                 `json:"created_by"`
+	Type        domain.TransactionType `json:"type"`
+	Value       float64                `json:"value"`
+	CreatedBy   string                 `json:"created_by"`
+	Description string                 `json:"description"`
 }
 
 type TransactionDTO struct {
@@ -23,6 +24,7 @@ type TransactionDTO struct {
 	CreatedAt     time.Time                `json:"created_at"`
 	UpdatedBy     string                   `json:"updated_by"`
 	UpdatedAt     time.Time                `json:"updated_at"`
+	Description   string                   `json:"description"`
 }
 
 type TransactionUpdateDTO struct {
@@ -38,6 +40,7 @@ func mapCreateTransactionDTOToTransaction(transactionDTO CreateTransactionDTO, c
 		transactionDTO.Value,
 		caseID,
 		transactionDTO.CreatedBy,
+		transactionDTO.Description,
 	)
 }
 
@@ -53,6 +56,7 @@ func mapTransactionToTransactionDTO(transaction domain.Transaction) TransactionD
 		CreatedAt:     transaction.CreatedAt,
 		UpdatedBy:     transaction.UpdatedBy,
 		UpdatedAt:     transaction.UpdatedAt,
+		Description:   transaction.Description,
 	}
 }
 

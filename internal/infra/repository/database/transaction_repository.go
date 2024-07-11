@@ -27,9 +27,9 @@ func (r *transactionRepository) CreateTransaction(ctx context.Context, transacti
 	_, err := r.client.NamedExecContext(
 		ctx,
 		"INSERT INTO transactions "+
-			"(transaction_id, case_id, type, value, status, attachment_id, created_at, updated_at, created_by, updated_by) "+
+			"(transaction_id, case_id, type, amount, status, attachment_id, created_at, updated_at, created_by, updated_by, description) "+
 			"VALUES "+
-			"(:transaction_id, :case_id, :type, :value, :status, :attachment_id, :created_at, :updated_at, :created_by, :updated_by)",
+			"(:transaction_id, :case_id, :type, :amount, :status, :attachment_id, :created_at, :updated_at, :created_by, :updated_by, :description)",
 		transactionDTO,
 	)
 	if err != nil {
@@ -63,9 +63,10 @@ func (r *transactionRepository) UpdateTransaction(ctx context.Context, transacti
 		ctx,
 		"UPDATE transactions SET "+
 			"type = :type, "+
-			"value = :value, "+
+			"amount = :amount, "+
 			"status = :status, "+
 			"attachment_id = :attachment_id, "+
+			"description = :description, "+
 			"updated_at = :updated_at, "+
 			"updated_by = :updated_by "+
 			"WHERE transaction_id = :transaction_id",
@@ -86,7 +87,7 @@ func (r *transactionRepository) SearchTransactions(ctx context.Context, filters 
 	whereQuery, whereArgs = prepareInQuery(filters.Status, whereQuery, whereArgs, "status")
 	whereQuery, whereArgs = prepareInQuery(filters.CaseIDs, whereQuery, whereArgs, "case_id")
 
-	query := fmt.Sprintf("SELECT * FROM partners WHERE %s", strings.Join(whereQuery, " AND "))
+	query := fmt.Sprintf("SELECT * FROM transactions WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundTransactions []TransactionDTO
 	err := r.client.SelectContext(ctx, &foundTransactions, query, whereArgs...)

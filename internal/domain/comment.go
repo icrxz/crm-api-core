@@ -13,20 +13,12 @@ type CommentRepository interface {
 	GetByCaseID(ctx context.Context, caseID string) ([]Comment, error)
 }
 
-type Attachment struct {
-	AttachmentID  string
-	FileName      string
-	AttachmentURL string
-	FileExtension string
-	CreatedAt     time.Time
-}
-
 type Comment struct {
 	CommentID   string
 	CaseID      string
 	Content     string
 	CommentType CommentType
-	Attachment  []Attachment
+	Attachments []Attachment
 	CreatedBy   string
 	CreatedAt   time.Time
 	UpdatedBy   string
@@ -47,6 +39,7 @@ func NewComment(
 	content string,
 	createdBy string,
 	commentType CommentType,
+	attachments []Attachment,
 ) (Comment, error) {
 	now := time.Now().UTC()
 	commentID, err := uuid.NewUUID()
@@ -63,5 +56,6 @@ func NewComment(
 		UpdatedBy:   createdBy,
 		CreatedAt:   now,
 		UpdatedAt:   now,
+		Attachments: attachments,
 	}, nil
 }

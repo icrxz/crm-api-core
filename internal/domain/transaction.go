@@ -25,6 +25,7 @@ type Transaction struct {
 	CreatedAt     time.Time
 	UpdatedBy     string
 	UpdatedAt     time.Time
+	Description   string
 }
 
 type TransactionUpdate struct {
@@ -60,6 +61,7 @@ func NewTransaction(
 	value float64,
 	caseID string,
 	createdBy string,
+	description string,
 ) (Transaction, error) {
 	now := time.Now().UTC()
 
@@ -78,6 +80,7 @@ func NewTransaction(
 		CreatedAt:     now,
 		UpdatedBy:     createdBy,
 		UpdatedAt:     now,
+		Description:   description,
 	}, nil
 }
 

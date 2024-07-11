@@ -46,7 +46,6 @@ func (c *CaseActionController) ChangeOwner(ctx *gin.Context) {
 }
 
 func (c *CaseActionController) ChangeStatus(ctx *gin.Context) {
-	fmt.Println("entrou na rota")
 	caseID := ctx.Param("caseID")
 	if caseID == "" {
 		ctx.Error(domain.NewValidationError("case_id is required", nil))
@@ -59,11 +58,14 @@ func (c *CaseActionController) ChangeStatus(ctx *gin.Context) {
 		return
 	}
 
-	changeStatus := mapChangeStatusDTOToChangeStatus(changeStatusDTO)
-
-	err := c.caseActionService.ChangeStatus(ctx.Request.Context(), caseID, changeStatus)
+	changeStatus, err := mapChangeStatusDTOToChangeStatus(changeStatusDTO)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		ctx.Error(err)
+		return
+	}
+
+	err = c.caseActionService.ChangeStatus(ctx.Request.Context(), caseID, changeStatus)
+	if err != nil {
 		ctx.Error(err)
 		return
 	}
