@@ -1,0 +1,6 @@
+ALTER TABLE IF EXISTS attachments
+    DROP COLUMN IF EXISTS created_by,
+    DROP COLUMN IF EXISTS key,
+    DROP COLUMN IF EXISTS size;
+
+DROP INDEX IF EXISTS idx_attachments_key;

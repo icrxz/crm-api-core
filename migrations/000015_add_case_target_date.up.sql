@@ -1,0 +1,4 @@
+ALTER TABLE IF EXISTS cases
+    ADD COLUMN IF NOT EXISTS target_date TIMESTAMP WITH TIME ZONE,
+    DROP COLUMN IF EXISTS case_closed_at,
+    DROP COLUMN IF EXISTS case_closed_by;

@@ -1,6 +1,7 @@
 package entrypoint
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,8 +24,9 @@ func CustomErrorEncoder() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 		for _, err := range c.Errors {
-			switch e := err.Err.(type) {
-			case *domain.CustomError:
+			var e *domain.CustomError
+			switch {
+			case errors.As(err.Err, &e):
 				c.AbortWithStatusJSON(e.StatusCode(), mapCustomErrorToErrorDTO(e))
 			default:
 				c.AbortWithStatusJSON(http.StatusInternalServerError, map[string]string{"message": "unexpected error"})

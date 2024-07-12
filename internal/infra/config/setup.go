@@ -13,7 +13,9 @@ const (
 )
 
 type AppConfig struct {
-	Database Database `properties:"database"`
+	Database     Database `properties:"database"`
+	SecretJWTKey string   `properties:"jwtKeyEnv"`
+	ReportFolder string   `properties:"reportFolder,default=resources/reports"`
 }
 
 type Database struct {
@@ -36,6 +38,10 @@ func (db Database) Host() string {
 
 func (db Database) Password() string {
 	return os.Getenv(db.PasswordEnv)
+}
+
+func (db AppConfig) SecretKey() string {
+	return os.Getenv(db.SecretJWTKey)
 }
 
 func AppPropertyFilename() string {

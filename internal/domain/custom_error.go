@@ -59,3 +59,15 @@ func NewConflictError(message string, metadata map[string]any) error {
 		metadata:      metadata,
 	}
 }
+
+func NewUnauthorizedError(message string) error {
+	return &CustomError{
+		messagePrefix: "Unauthorized error - Message:",
+		message:       message,
+		statusCode:    http.StatusUnauthorized,
+	}
+}
+
+func (e CustomError) IsNotFound() bool {
+	return e.statusCode == http.StatusNotFound
+}
