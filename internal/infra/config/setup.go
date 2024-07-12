@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -60,6 +61,8 @@ func Load() (*AppConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("configuracoes: %#v\n%s\n%s\n%s\n\n", config, config.Database.Host(), config.Database.Password(), config.SecretKey())
 
 	return config, nil
 }
