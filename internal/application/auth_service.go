@@ -116,9 +116,9 @@ func (a *authService) VerifyUserSession(ctx context.Context, userID, clientIP st
 	}
 	fmt.Println(user)
 
-	if user.LastLoggedIP != clientIP {
-		return domain.NewUnauthorizedError("client ip is different from the logged one, please login again!")
-	}
+	//if user.LastLoggedIP != clientIP {
+	//	return domain.NewUnauthorizedError("client ip is different from the logged one, please login again!")
+	//}
 
 	return nil
 }
