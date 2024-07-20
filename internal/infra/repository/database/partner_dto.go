@@ -66,6 +66,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		UpdatedBy:       partner.UpdatedBy,
 		UpdatedAt:       partner.UpdatedAt,
 		Active:          partner.Active,
+		Region:          partner.GetRegion(),
 	}
 }
 
