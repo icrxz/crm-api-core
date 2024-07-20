@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"github.com/icrxz/crm-api-core/internal/domain"
+	"slices"
 )
 
 type caseActionService struct {
@@ -95,7 +96,7 @@ func (c *caseActionService) GenerateReport(ctx context.Context, caseID string) (
 		return nil, "", err
 	}
 
-	if crmCase.Status != domain.REPORT {
+	if !slices.Contains([]domain.CaseStatus{domain.REPORT, domain.PAYMENT, domain.RECEIPT, domain.CLOSED}, crmCase.Status) {
 		return nil, "", domain.NewValidationError("case is not in status REPORT", map[string]any{"status": crmCase.Status})
 	}
 

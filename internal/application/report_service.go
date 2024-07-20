@@ -19,7 +19,7 @@ const (
 	timestampLayout      = "02_01_2006_15_04_05_0000"
 )
 
-var contractorsTemplates map[string]string = map[string]string{
+var contractorsTemplates = map[string]string{
 	"LuizaSeg":     "luizaseg_template.docx",
 	"Assurant":     "assurant_template.docx",
 	"Cardif":       "cardif_template.docx",
@@ -27,12 +27,13 @@ var contractorsTemplates map[string]string = map[string]string{
 }
 
 type reportService struct {
-	reportFolder    string
-	caseService     CaseService
-	productService  ProductService
-	customerService CustomerService
-	commentService  CommentService
-	partnerService  PartnerService
+	reportFolder      string
+	caseService       CaseService
+	productService    ProductService
+	customerService   CustomerService
+	commentService    CommentService
+	partnerService    PartnerService
+	contractorService ContractorService
 }
 
 type ReportService interface {
@@ -40,11 +41,12 @@ type ReportService interface {
 }
 
 type ReportData struct {
-	CrmCase  domain.Case
-	Customer domain.Customer
-	Product  domain.Product
-	Partner  domain.Partner
-	Comments []domain.Comment
+	CrmCase    domain.Case
+	Customer   domain.Customer
+	Product    domain.Product
+	Partner    domain.Partner
+	Contractor domain.Contractor
+	Comments   []domain.Comment
 }
 
 func NewReportService(
@@ -54,19 +56,20 @@ func NewReportService(
 	customerService CustomerService,
 	commentService CommentService,
 	partnerService PartnerService,
+	contractorService ContractorService,
 ) ReportService {
 	return &reportService{
-		reportFolder:    reportFolder,
-		caseService:     caseService,
-		productService:  productService,
-		customerService: customerService,
-		commentService:  commentService,
-		partnerService:  partnerService,
+		reportFolder:      reportFolder,
+		caseService:       caseService,
+		productService:    productService,
+		customerService:   customerService,
+		commentService:    commentService,
+		partnerService:    partnerService,
+		contractorService: contractorService,
 	}
 }
 
 func (s *reportService) GenerateReport(ctx context.Context, crmCase domain.Case) ([]byte, string, error) {
-	filename := contractorsTemplates[crmCase.ContractorID]
 	var memoryDoc bytes.Buffer
 
 	reportData, err := s.getReportData(ctx, crmCase)
@@ -74,12 +77,17 @@ func (s *reportService) GenerateReport(ctx context.Context, crmCase domain.Case)
 		return nil, "", err
 	}
 
+	filename, hasTemplate := contractorsTemplates[reportData.Contractor.CompanyName]
+	if !hasTemplate {
+		return nil, "", fmt.Errorf("no template found for contractor %s", reportData.Contractor.CompanyName)
+	}
+
 	err = s.readReportTemplate(*reportData, filename, &memoryDoc)
 	if err != nil {
 		return nil, "", err
 	}
 
-	return memoryDoc.Bytes(), fmt.Sprintf("luizaseg-%s-%s", crmCase.ExternalReference, time.Now().Format(timestampLayout)), nil
+	return memoryDoc.Bytes(), fmt.Sprintf("%s-%s-%s", reportData.Contractor.CompanyName, crmCase.ExternalReference, time.Now().Format(timestampLayout)), nil
 }
 
 func (s *reportService) getReportData(ctx context.Context, crmCase domain.Case) (*ReportData, error) {
@@ -121,6 +129,15 @@ func (s *reportService) getReportData(ctx context.Context, crmCase domain.Case) 
 			return err
 		}
 		reportData.Partner = *partner
+		return nil
+	})
+
+	wg.Go(func() error {
+		contractor, err := s.contractorService.GetByID(newCtx, crmCase.ContractorID)
+		if err != nil {
+			return err
+		}
+		reportData.Contractor = *contractor
 		return nil
 	})
 

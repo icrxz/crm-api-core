@@ -51,7 +51,15 @@ func RunApp() error {
 	caseService := application.NewCaseService(customerService, caseRepository, productService, userService)
 	commentService := application.NewCommentService(commentRepository, attachmentRepository)
 	transactionService := application.NewTransactionService(transactionRepository)
-	reportService := application.NewReportService(appConfig.ReportFolder, caseService, productService, customerService, commentService, partnerService)
+	reportService := application.NewReportService(
+		appConfig.ReportFolder,
+		caseService,
+		productService,
+		customerService,
+		commentService,
+		partnerService,
+		contractorService,
+	)
 	caseActionService := application.NewCaseActionService(caseRepository, commentService, reportService)
 
 	// controllers
