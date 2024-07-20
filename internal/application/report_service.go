@@ -19,6 +19,13 @@ const (
 	timestampLayout      = "02_01_2006_15_04_05_0000"
 )
 
+var contractorsTemplates map[string]string = map[string]string{
+	"LuizaSeg":     "luizaseg_template.docx",
+	"Assurant":     "assurant_template.docx",
+	"Cardif":       "cardif_template.docx",
+	"Ezze Seguros": "ezze_template.docx",
+}
+
 type reportService struct {
 	reportFolder    string
 	caseService     CaseService
@@ -59,7 +66,7 @@ func NewReportService(
 }
 
 func (s *reportService) GenerateReport(ctx context.Context, crmCase domain.Case) ([]byte, string, error) {
-	filename := "luizaseg_template.docx"
+	filename := contractorsTemplates[crmCase.ContractorID]
 	var memoryDoc bytes.Buffer
 
 	reportData, err := s.getReportData(ctx, crmCase)
@@ -141,6 +148,11 @@ func (s *reportService) readReportTemplate(reportData ReportData, filename strin
 	err = docEdit.Replace("$summary", reportData.CrmCase.Subject, -1)
 	err = docEdit.Replace("$partner", fmt.Sprintf("%s %s", reportData.Partner.FirstName, reportData.Partner.LastName), -1)
 	err = docEdit.Replace("$target_date", reportData.CrmCase.TargetDate.Format(dateReportLayout), -1)
+	err = docEdit.Replace("$document", ParseDocument(reportData.Customer.Document), -1)
+	err = docEdit.Replace("$address", reportData.Customer.ShippingAddress.Address, -1)
+	err = docEdit.Replace("$zip_code", reportData.Customer.ShippingAddress.ZipCode, -1)
+	err = docEdit.Replace("$product", reportData.Product.Name, -1)
+	err = docEdit.Replace("$serial_number", reportData.Product.SerialNumber, -1)
 
 	content := make([]string, 0)
 	comments := make([]string, 0)
