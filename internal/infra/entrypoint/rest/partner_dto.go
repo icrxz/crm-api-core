@@ -19,6 +19,7 @@ type CreatePartnerDTO struct {
 	PersonalContact ContactDTO `json:"personal_contact"`
 	BusinessContact ContactDTO `json:"business_contact"`
 	CreatedBy       string     `json:"created_by"`
+	Description     string     `json:"description"`
 }
 
 type PartnerDTO struct {
@@ -41,6 +42,7 @@ type PartnerDTO struct {
 	UpdatedBy       string     `json:"updated_by"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 	Active          bool       `json:"active"`
+	Description     string     `json:"description"`
 }
 
 type EditPartnerDTO struct {
@@ -57,6 +59,7 @@ type EditPartnerDTO struct {
 	BusinessContact *ContactDTO `json:"business_contact"`
 	Active          *bool       `json:"active"`
 	UpdatedBy       string      `json:"updated_by"`
+	Description     *string     `json:"description"`
 }
 
 func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
@@ -79,6 +82,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		UpdatedBy:       partner.UpdatedBy,
 		UpdatedAt:       partner.UpdatedAt,
 		Active:          partner.Active,
+		Description:     partner.Description,
 	}
 }
 
@@ -95,6 +99,7 @@ func mapCreatePartnerDTOToPartner(partnerDTO CreatePartnerDTO) (domain.Partner, 
 		mapContactDTOToContact(partnerDTO.BusinessContact),
 		mapAddressDTOToAddress(partnerDTO.ShippingAddress),
 		mapAddressDTOToAddress(partnerDTO.BillingAddress),
+		partnerDTO.Description,
 	)
 }
 
@@ -159,5 +164,6 @@ func mapEditPartnerDTOToEditPartner(editPartnerDTO EditPartnerDTO) domain.EditPa
 		BusinessContact: parsedBusinessContact,
 		Active:          editPartnerDTO.Active,
 		UpdatedBy:       editPartnerDTO.UpdatedBy,
+		Description:     editPartnerDTO.Description,
 	}
 }

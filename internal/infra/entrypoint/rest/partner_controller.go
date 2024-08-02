@@ -5,6 +5,7 @@ import (
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"net/http"
+	"strings"
 )
 
 type PartnerController struct {
@@ -111,6 +112,36 @@ func (c *PartnerController) DeletePartner(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusNoContent, nil)
+}
+
+func (c *PartnerController) CreateBatch(ctx *gin.Context) {
+	author := ctx.GetHeader("X-Author")
+	if author == "" {
+		ctx.Error(domain.NewValidationError("header X-Author cannot be empty", nil))
+		return
+	}
+
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	file, err := fileHeader.Open()
+	defer file.Close()
+
+	if !strings.Contains(fileHeader.Filename, ".csv") {
+		ctx.Error(domain.NewValidationError("file must be a csv", nil))
+		return
+	}
+
+	result, err := c.partnerService.CreateBatch(ctx, file, author)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"partner_ids": result})
 }
 
 func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) domain.PartnerFilters {

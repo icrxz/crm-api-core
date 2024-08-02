@@ -35,6 +35,7 @@ type PartnerDTO struct {
 	UpdatedBy       string    `db:"updated_by"`
 	UpdatedAt       time.Time `db:"updated_at"`
 	Active          bool      `db:"active"`
+	Description     *string   `db:"description"`
 }
 
 func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
@@ -67,10 +68,16 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		UpdatedAt:       partner.UpdatedAt,
 		Active:          partner.Active,
 		Region:          partner.GetRegion(),
+		Description:     &partner.Description,
 	}
 }
 
 func mapPartnerDTOToPartner(partnerDTO PartnerDTO) domain.Partner {
+	var descriptionString string
+	if partnerDTO.Description != nil {
+		descriptionString = *partnerDTO.Description
+	}
+
 	return domain.Partner{
 		PartnerID:    partnerDTO.PartnerID,
 		FirstName:    partnerDTO.FirstName,
@@ -102,11 +109,12 @@ func mapPartnerDTOToPartner(partnerDTO PartnerDTO) domain.Partner {
 			PhoneNumber: partnerDTO.BusinessPhone,
 			Email:       partnerDTO.BusinessEmail,
 		},
-		CreatedBy: partnerDTO.CreatedBy,
-		CreatedAt: partnerDTO.CreatedAt,
-		UpdatedBy: partnerDTO.UpdatedBy,
-		UpdatedAt: partnerDTO.UpdatedAt,
-		Active:    partnerDTO.Active,
+		CreatedBy:   partnerDTO.CreatedBy,
+		CreatedAt:   partnerDTO.CreatedAt,
+		UpdatedBy:   partnerDTO.UpdatedBy,
+		UpdatedAt:   partnerDTO.UpdatedAt,
+		Active:      partnerDTO.Active,
+		Description: descriptionString,
 	}
 }
 
@@ -118,4 +126,14 @@ func mapPartnerDTOsToPartners(partnerDTOs []PartnerDTO) []domain.Partner {
 	}
 
 	return partners
+}
+
+func mapPartnersToPartnerDTOs(partners []domain.Partner) []PartnerDTO {
+	partnerDTOs := make([]PartnerDTO, 0, len(partners))
+	for _, partner := range partners {
+		partnerDTO := mapPartnerToPartnerDTO(partner)
+		partnerDTOs = append(partnerDTOs, partnerDTO)
+	}
+
+	return partnerDTOs
 }

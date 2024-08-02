@@ -133,3 +133,50 @@ func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner)
 
 	return nil
 }
+
+func (db *partnerRepository) CreateBatch(ctx context.Context, partners []domain.Partner) ([]string, error) {
+	chunks := db.createChunks(partners, 100)
+	tx := db.client.MustBegin()
+
+	insertedIDs := make([]string, 0, len(partners))
+	for _, chunk := range chunks {
+		partnerDTOs := mapPartnersToPartnerDTOs(chunk)
+
+		query := `INSERT INTO partners (partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active) VALUES (:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active)`
+
+		_, err := tx.NamedExecContext(
+			ctx,
+			query,
+			partnerDTOs,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, partner := range partnerDTOs {
+			insertedIDs = append(insertedIDs, partner.PartnerID)
+		}
+	}
+
+	err := tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (db *partnerRepository) createChunks(slice []domain.Partner, size int) [][]domain.Partner {
+	var chunks [][]domain.Partner
+	for i := 0; i < len(slice); i += size {
+		end := i + size
+
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		chunks = append(chunks, slice[i:end])
+	}
+
+	return chunks
+}

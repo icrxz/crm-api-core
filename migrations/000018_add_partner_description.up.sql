@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS partners
+    ADD COLUMN description TEXT NULL;
