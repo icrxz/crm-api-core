@@ -10,7 +10,7 @@ import (
 type PartnerRepository interface {
 	Create(ctx context.Context, partner Partner) (string, error)
 	GetByID(ctx context.Context, partnerID string) (*Partner, error)
-	Search(ctx context.Context, filters PartnerFilters) ([]Partner, error)
+	Search(ctx context.Context, filters PartnerFilters) (PagingResult[Partner], error)
 	Update(ctx context.Context, partnerToUpdate Partner) error
 	Delete(ctx context.Context, partnerID string) error
 	CreateBatch(ctx context.Context, partners []Partner) ([]string, error)
@@ -61,6 +61,7 @@ type PartnerFilters struct {
 	Document    []string
 	PartnerType []string
 	Active      *bool
+	PagingFilter
 }
 
 func NewPartner(

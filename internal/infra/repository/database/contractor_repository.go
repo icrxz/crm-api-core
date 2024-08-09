@@ -68,9 +68,10 @@ func (db *contractorRepository) GetByID(ctx context.Context, contractorID string
 	return &contractor, nil
 }
 
-func (db *contractorRepository) Search(ctx context.Context, filters domain.ContractorFilters) ([]domain.Contractor, error) {
+func (db *contractorRepository) Search(ctx context.Context, filters domain.ContractorFilters) (domain.PagingResult[domain.Contractor], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
+	limitArgs := make([]any, 0, 2)
 
 	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "document")
 	whereQuery, whereArgs = prepareInQuery(filters.CompanyName, whereQuery, whereArgs, "company_name")
@@ -80,17 +81,36 @@ func (db *contractorRepository) Search(ctx context.Context, filters domain.Contr
 		whereArgs = append(whereArgs, strconv.FormatBool(*filters.Active))
 	}
 
-	query := fmt.Sprintf("SELECT * FROM contractors WHERE %s", strings.Join(whereQuery, " AND "))
+	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
+	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+
+	query := fmt.Sprintf("SELECT * FROM contractors WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM contractors WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundContractors []ContractorDTO
-	err := db.client.SelectContext(ctx, &foundContractors, query, whereArgs...)
+	err := db.client.SelectContext(ctx, &foundContractors, query, limitArgs...)
 	if err != nil {
-		return nil, err
+		return domain.PagingResult[domain.Contractor]{}, err
+	}
+
+	var countResult int
+	err = db.client.GetContext(ctx, &countResult, countQuery, whereArgs...)
+	if err != nil {
+		return domain.PagingResult[domain.Contractor]{}, err
 	}
 
 	contractors := mapContractorDTOsToContractors(foundContractors)
 
-	return contractors, nil
+	result := domain.PagingResult[domain.Contractor]{
+		Result: contractors,
+		Paging: domain.Paging{
+			Total:  countResult,
+			Limit:  filters.Limit,
+			Offset: filters.Offset,
+		},
+	}
+
+	return result, nil
 }
 
 func (db *contractorRepository) Update(ctx context.Context, contractor domain.Contractor) error {

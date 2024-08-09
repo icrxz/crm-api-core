@@ -10,7 +10,7 @@ import (
 type ContractorRepository interface {
 	Create(ctx context.Context, contractor Contractor) (string, error)
 	GetByID(ctx context.Context, contractorID string) (*Contractor, error)
-	Search(ctx context.Context, filters ContractorFilters) ([]Contractor, error)
+	Search(ctx context.Context, filters ContractorFilters) (PagingResult[Contractor], error)
 	Update(ctx context.Context, contractor Contractor) error
 	Delete(ctx context.Context, contractorID string) error
 }
@@ -71,6 +71,7 @@ type ContractorFilters struct {
 	CompanyName  []string
 	Document     []string
 	Active       *bool
+	PagingFilter
 }
 
 func NewContractor(legalName, companyName, document, author string, businessContact Contact, platformTemplate ContractorPlatformTemplate) (Contractor, error) {

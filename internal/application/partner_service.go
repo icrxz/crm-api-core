@@ -16,7 +16,7 @@ type PartnerService interface {
 	GetByID(ctx context.Context, partnerID string) (*domain.Partner, error)
 	Update(ctx context.Context, partnerID string, editPartner domain.EditPartner) error
 	Delete(ctx context.Context, partnerID string) error
-	Search(ctx context.Context, filters domain.PartnerFilters) ([]domain.Partner, error)
+	Search(ctx context.Context, filters domain.PartnerFilters) (domain.PagingResult[domain.Partner], error)
 	CreateBatch(ctx context.Context, file io.Reader, createdBy string) ([]string, error)
 }
 
@@ -61,7 +61,7 @@ func (s *partnerService) Delete(ctx context.Context, partnerID string) error {
 	return s.partnerRepository.Delete(ctx, partnerID)
 }
 
-func (s *partnerService) Search(ctx context.Context, filters domain.PartnerFilters) ([]domain.Partner, error) {
+func (s *partnerService) Search(ctx context.Context, filters domain.PartnerFilters) (domain.PagingResult[domain.Partner], error) {
 	return s.partnerRepository.Search(ctx, filters)
 }
 

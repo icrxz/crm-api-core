@@ -19,7 +19,7 @@ type caseService struct {
 type CaseService interface {
 	CreateCase(ctx context.Context, newCase domain.CreateCase) (string, error)
 	GetCaseByID(ctx context.Context, caseID string) (*domain.Case, error)
-	SearchCases(ctx context.Context, filters domain.CaseFilters) ([]domain.Case, error)
+	SearchCases(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.Case], error)
 }
 
 func NewCaseService(
@@ -72,7 +72,7 @@ func (c *caseService) GetCaseByID(ctx context.Context, caseID string) (*domain.C
 	return c.caseRepository.GetByID(ctx, caseID)
 }
 
-func (c *caseService) SearchCases(ctx context.Context, filters domain.CaseFilters) ([]domain.Case, error) {
+func (c *caseService) SearchCases(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.Case], error) {
 	return c.caseRepository.Search(ctx, filters)
 }
 

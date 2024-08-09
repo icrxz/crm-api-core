@@ -15,7 +15,7 @@ type CustomerService interface {
 	GetByID(ctx context.Context, customerID string) (*domain.Customer, error)
 	Update(ctx context.Context, customerID string, updatedCustomer domain.UpdateCustomer) error
 	Delete(ctx context.Context, customerID string) error
-	Search(ctx context.Context, filters domain.CustomerFilters) ([]domain.Customer, error)
+	Search(ctx context.Context, filters domain.CustomerFilters) (domain.PagingResult[domain.Customer], error)
 }
 
 func NewCustomerService(customerRepository domain.CustomerRepository) CustomerService {
@@ -44,7 +44,7 @@ func (s *customerService) GetByID(ctx context.Context, customerID string) (*doma
 	return s.customerRepository.GetByID(ctx, customerID)
 }
 
-func (s *customerService) Search(ctx context.Context, filters domain.CustomerFilters) ([]domain.Customer, error) {
+func (s *customerService) Search(ctx context.Context, filters domain.CustomerFilters) (domain.PagingResult[domain.Customer], error) {
 	return s.customerRepository.Search(ctx, filters)
 }
 

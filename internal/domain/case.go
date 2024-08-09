@@ -10,7 +10,7 @@ import (
 type CaseRepository interface {
 	Create(ctx context.Context, crmCase Case) (string, error)
 	GetByID(ctx context.Context, caseID string) (*Case, error)
-	Search(ctx context.Context, filters CaseFilters) ([]Case, error)
+	Search(ctx context.Context, filters CaseFilters) (PagingResult[Case], error)
 	Update(ctx context.Context, crmCase Case) error
 }
 
@@ -51,6 +51,7 @@ type CaseFilters struct {
 	CustomerID   []string
 	Status       []string
 	Region       []string
+	PagingFilter
 }
 
 type CaseUpdate struct {

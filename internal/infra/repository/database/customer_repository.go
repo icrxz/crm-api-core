@@ -54,25 +54,45 @@ func (db *customerRepository) GetByID(ctx context.Context, customerID string) (*
 	return &customer, nil
 }
 
-func (db *customerRepository) Search(ctx context.Context, filters domain.CustomerFilters) ([]domain.Customer, error) {
+func (db *customerRepository) Search(ctx context.Context, filters domain.CustomerFilters) (domain.PagingResult[domain.Customer], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
+	limitArgs := make([]any, 0, 2)
 
 	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "document")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerType, whereQuery, whereArgs, "customer_type")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerID, whereQuery, whereArgs, "customer_id")
 
-	query := fmt.Sprintf("SELECT * FROM customers WHERE %s", strings.Join(whereQuery, " AND "))
+	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
+	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+
+	query := fmt.Sprintf("SELECT * FROM customers WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundCustomers []CustomerDTO
-	err := db.client.SelectContext(ctx, &foundCustomers, query, whereArgs...)
+	err := db.client.SelectContext(ctx, &foundCustomers, query, limitArgs...)
 	if err != nil {
-		return nil, err
+		return domain.PagingResult[domain.Customer]{}, err
+	}
+
+	var countResult int
+	err = db.client.GetContext(ctx, &countResult, countQuery, whereArgs...)
+	if err != nil {
+		return domain.PagingResult[domain.Customer]{}, err
 	}
 
 	customers := mapCustomerDTOsToCustomers(foundCustomers)
 
-	return customers, nil
+	result := domain.PagingResult[domain.Customer]{
+		Result: customers,
+		Paging: domain.Paging{
+			Total:  countResult,
+			Limit:  filters.Limit,
+			Offset: filters.Offset,
+		},
+	}
+
+	return result, nil
 }
 
 func (db *customerRepository) Update(ctx context.Context, customer domain.Customer) error {

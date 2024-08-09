@@ -67,9 +67,10 @@ func (db *partnerRepository) GetByID(ctx context.Context, partnerID string) (*do
 	return &partner, nil
 }
 
-func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerFilters) ([]domain.Partner, error) {
+func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerFilters) (domain.PagingResult[domain.Partner], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
+	limitArgs := make([]any, 0, 2)
 
 	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "document")
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerType, whereQuery, whereArgs, "partner_type")
@@ -78,20 +79,38 @@ func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerF
 	if filters.Active != nil {
 		whereQuery = append(whereQuery, fmt.Sprintf("active = $%d", len(whereArgs)+1))
 		whereArgs = append(whereArgs, filters.Active)
-
 	}
 
-	query := fmt.Sprintf("SELECT * FROM partners WHERE %s", strings.Join(whereQuery, " AND "))
+	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
+	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+
+	query := fmt.Sprintf("SELECT * FROM partners WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM partners WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundPartners []PartnerDTO
-	err := db.client.SelectContext(ctx, &foundPartners, query, whereArgs...)
+	err := db.client.SelectContext(ctx, &foundPartners, query, limitArgs...)
 	if err != nil {
-		return nil, err
+		return domain.PagingResult[domain.Partner]{}, err
+	}
+
+	var countResult int
+	err = db.client.GetContext(ctx, &countResult, countQuery, whereArgs...)
+	if err != nil {
+		return domain.PagingResult[domain.Partner]{}, err
 	}
 
 	partners := mapPartnerDTOsToPartners(foundPartners)
 
-	return partners, nil
+	result := domain.PagingResult[domain.Partner]{
+		Result: partners,
+		Paging: domain.Paging{
+			Total:  countResult,
+			Limit:  filters.Limit,
+			Offset: filters.Offset,
+		},
+	}
+
+	return result, nil
 }
 
 func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner) error {

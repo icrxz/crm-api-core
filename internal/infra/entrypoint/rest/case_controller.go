@@ -5,6 +5,7 @@ import (
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"net/http"
+	"strconv"
 )
 
 type CaseController struct {
@@ -68,13 +69,18 @@ func (c *CaseController) SearchCases(ctx *gin.Context) {
 		return
 	}
 
-	caseDTOs := mapCasesToCaseDTOs(cases)
+	searchResult := mapSearchResultToSearchResultDTO(cases, mapCasesToCaseDTOs)
 
-	ctx.JSON(http.StatusOK, caseDTOs)
+	ctx.JSON(http.StatusOK, searchResult)
 }
 
 func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilters {
-	filters := domain.CaseFilters{}
+	filters := domain.CaseFilters{
+		PagingFilter: domain.PagingFilter{
+			Limit:  10,
+			Offset: 0,
+		},
+	}
 
 	if ownerIDs := ctx.QueryArray("owner_id"); len(ownerIDs) > 0 {
 		filters.OwnerID = ownerIDs
@@ -98,6 +104,20 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 
 	if region := ctx.QueryArray("region"); len(region) > 0 {
 		filters.Region = region
+	}
+
+	if limit := ctx.Query("limit"); limit != "" {
+		parsedLimit, err := strconv.Atoi(limit)
+		if err == nil {
+			filters.Limit = parsedLimit
+		}
+	}
+
+	if offset := ctx.Query("offset"); offset != "" {
+		parsedOffset, err := strconv.Atoi(offset)
+		if err == nil {
+			filters.Offset = parsedOffset
+		}
 	}
 
 	return filters

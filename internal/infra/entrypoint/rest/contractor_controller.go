@@ -92,9 +92,9 @@ func (c *ContractorController) SearchContractors(ctx *gin.Context) {
 		return
 	}
 
-	contractorDTOs := mapContractorsToContractorDTOs(contractors)
+	contractorResponse := mapSearchResultToSearchResultDTO(contractors, mapContractorsToContractorDTOs)
 
-	ctx.JSON(http.StatusOK, contractorDTOs)
+	ctx.JSON(http.StatusOK, contractorResponse)
 }
 
 func (c *ContractorController) DeleteContractor(ctx *gin.Context) {
@@ -114,7 +114,12 @@ func (c *ContractorController) DeleteContractor(ctx *gin.Context) {
 }
 
 func (c *ContractorController) parseQueryToFilters(ctx *gin.Context) domain.ContractorFilters {
-	filters := domain.ContractorFilters{}
+	filters := domain.ContractorFilters{
+		PagingFilter: domain.PagingFilter{
+			Limit:  10,
+			Offset: 0,
+		},
+	}
 
 	if documents := ctx.QueryArray("document"); len(documents) > 0 {
 		filters.Document = documents
@@ -134,6 +139,20 @@ func (c *ContractorController) parseQueryToFilters(ctx *gin.Context) domain.Cont
 			return filters
 		}
 		filters.Active = &activeBool
+	}
+
+	if limitParam := ctx.Query("limit"); limitParam != "" {
+		parsedLimit, err := strconv.Atoi(limitParam)
+		if err == nil {
+			filters.PagingFilter.Limit = parsedLimit
+		}
+	}
+
+	if offsetParam := ctx.Query("offset"); offsetParam != "" {
+		parsedOffset, err := strconv.Atoi(offsetParam)
+		if err == nil {
+			filters.PagingFilter.Offset = parsedOffset
+		}
 	}
 
 	return filters

@@ -10,3 +10,8 @@ type Paging struct {
 	Limit  int
 	Offset int
 }
+
+type PagingResult[T any] struct {
+	Result []T
+	Paging Paging
+}
