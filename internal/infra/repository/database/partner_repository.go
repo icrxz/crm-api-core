@@ -24,6 +24,8 @@ func NewPartnerRepository(client *sqlx.DB) domain.PartnerRepository {
 func (db *partnerRepository) Create(ctx context.Context, partner domain.Partner) (string, error) {
 	partnerDTO := mapPartnerToPartnerDTO(partner)
 
+	fmt.Println(partnerDTO)
+
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO partners "+

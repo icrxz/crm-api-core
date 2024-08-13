@@ -68,6 +68,7 @@ func LoadRoutes(
 	// cases
 	authGroup.POST("/cases", caseController.CreateCase)
 	authGroup.GET("/cases/:caseID", caseController.GetCase)
+	authGroup.PATCH("/cases/:caseID", caseController.UpdateCase)
 	authGroup.GET("/cases", caseController.SearchCases)
 
 	// products

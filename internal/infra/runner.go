@@ -9,6 +9,7 @@ import (
 	"github.com/icrxz/crm-api-core/internal/infra/entrypoint"
 	"github.com/icrxz/crm-api-core/internal/infra/entrypoint/middleware"
 	"github.com/icrxz/crm-api-core/internal/infra/entrypoint/rest"
+	"github.com/icrxz/crm-api-core/internal/infra/repository/bucket"
 	"github.com/icrxz/crm-api-core/internal/infra/repository/database"
 )
 
@@ -30,6 +31,14 @@ func RunApp() error {
 		panic(err)
 	}()
 
+	// bucket
+	s3Client, err := bucket.NewS3Bucket(context.Background())
+	if err != nil {
+		return err
+	}
+
+	attachmentBucket := bucket.NewAttachmentBucket(s3Client, "crm-core-attachments")
+
 	// repositories
 	userRepository := database.NewUserRepository(sqlDB)
 	partnerRepository := database.NewPartnerRepository(sqlDB)
@@ -49,7 +58,7 @@ func RunApp() error {
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
 	caseService := application.NewCaseService(customerService, caseRepository, productService, userService)
-	commentService := application.NewCommentService(commentRepository, attachmentRepository)
+	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket)
 	transactionService := application.NewTransactionService(transactionRepository)
 	reportService := application.NewReportService(
 		appConfig.ReportFolder,
@@ -59,6 +68,7 @@ func RunApp() error {
 		commentService,
 		partnerService,
 		contractorService,
+		attachmentBucket,
 	)
 	caseActionService := application.NewCaseActionService(caseRepository, commentService, reportService)
 

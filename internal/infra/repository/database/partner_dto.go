@@ -29,7 +29,7 @@ type PartnerDTO struct {
 	BusinessPhone   string    `db:"business_phone"`
 	PersonalEmail   string    `db:"personal_email"`
 	BusinessEmail   string    `db:"business_email"`
-	Region          int       `db:"region"`
+	Region          *int      `db:"region"`
 	CreatedBy       string    `db:"created_by"`
 	CreatedAt       time.Time `db:"created_at"`
 	UpdatedBy       string    `db:"updated_by"`
@@ -67,7 +67,6 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		UpdatedBy:       partner.UpdatedBy,
 		UpdatedAt:       partner.UpdatedAt,
 		Active:          partner.Active,
-		Region:          partner.GetRegion(),
 		Description:     &partner.Description,
 	}
 }

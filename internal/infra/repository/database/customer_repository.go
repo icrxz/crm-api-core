@@ -59,7 +59,7 @@ func (db *customerRepository) Search(ctx context.Context, filters domain.Custome
 	whereArgs := make([]any, 0)
 	limitArgs := make([]any, 0, 2)
 
-	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "document")
+	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "Document")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerType, whereQuery, whereArgs, "customer_type")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerID, whereQuery, whereArgs, "customer_id")
 
@@ -67,7 +67,7 @@ func (db *customerRepository) Search(ctx context.Context, filters domain.Custome
 	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
 
 	query := fmt.Sprintf("SELECT * FROM customers WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM customers WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundCustomers []CustomerDTO
 	err := db.client.SelectContext(ctx, &foundCustomers, query, limitArgs...)

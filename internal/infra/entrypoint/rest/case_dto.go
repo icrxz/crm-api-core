@@ -1,8 +1,9 @@
 package rest
 
 import (
-	"github.com/icrxz/crm-api-core/internal/domain"
 	"time"
+
+	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
 type CreateCaseDTO struct {
@@ -43,6 +44,11 @@ type CaseDTO struct {
 	ProductID         string              `json:"product_id"`
 	ClosedAt          *time.Time          `json:"closed_at"`
 	TargetDate        *time.Time          `json:"target_date"`
+}
+
+type UpdateCaseDTO struct {
+	TargetDate *time.Time `json:"target_date"`
+	UpdatedBy  string     `json:"updated_by" validate:"required"`
 }
 
 func mapCreateCaseDTOToCreateCase(createCaseDTO CreateCaseDTO) (domain.CreateCase, error) {
@@ -110,4 +116,11 @@ func mapCasesToCaseDTOs(crmCases []domain.Case) []CaseDTO {
 		crmCasesDTO[i] = mapCaseToCaseDTO(crmCase)
 	}
 	return crmCasesDTO
+}
+
+func mapUpdateCaseDTOToUpdateCase(dto UpdateCaseDTO) domain.CaseUpdate {
+	return domain.CaseUpdate{
+		TargetDate: dto.TargetDate,
+		UpdatedBy:  dto.UpdatedBy,
+	}
 }

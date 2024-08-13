@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
@@ -20,6 +19,7 @@ type CaseService interface {
 	CreateCase(ctx context.Context, newCase domain.CreateCase) (string, error)
 	GetCaseByID(ctx context.Context, caseID string) (*domain.Case, error)
 	SearchCases(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.Case], error)
+	UpdateCase(ctx context.Context, caseID string, newCase domain.CaseUpdate) error
 }
 
 func NewCaseService(
@@ -43,7 +43,6 @@ func (c *caseService) CreateCase(ctx context.Context, newCase domain.CreateCase)
 		return "", err
 	}
 	crmCase.Region = customer.GetRegion()
-	fmt.Printf("Region: %d\n", customer.GetRegion())
 
 	err = c.assignOwnerToNewCase(ctx, &crmCase)
 	if err != nil {
@@ -81,6 +80,7 @@ func (c *caseService) assignOwnerToNewCase(ctx context.Context, crmCase *domain.
 
 	user, err := c.userService.Search(ctx, domain.UserFilters{
 		Region: []string{regionStringified},
+		Role:   []string{string(domain.OPERATOR)},
 	})
 	if err != nil {
 		var customErr *domain.CustomError
@@ -95,4 +95,19 @@ func (c *caseService) assignOwnerToNewCase(ctx context.Context, crmCase *domain.
 	}
 
 	return nil
+}
+
+func (c *caseService) UpdateCase(ctx context.Context, caseID string, newCase domain.CaseUpdate) error {
+	if caseID == "" {
+		return domain.NewValidationError("case id cannot be empty", nil)
+	}
+
+	crmCase, err := c.caseRepository.GetByID(ctx, caseID)
+	if err != nil {
+		return err
+	}
+
+	crmCase.MergeUpdate(newCase)
+
+	return c.caseRepository.Update(ctx, *crmCase)
 }

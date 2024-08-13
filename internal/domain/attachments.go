@@ -14,6 +14,10 @@ type AttachmentRepository interface {
 	GetByCommentID(ctx context.Context, commentID string) ([]Attachment, error)
 }
 
+type AttachmentBucket interface {
+	Download(ctx context.Context, attachmentID string) ([]byte, error)
+}
+
 type Attachment struct {
 	AttachmentID  string
 	CommentID     string

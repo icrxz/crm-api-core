@@ -1,11 +1,12 @@
 package rest
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
-	"net/http"
-	"strconv"
 )
 
 type CaseController struct {
@@ -121,4 +122,28 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 	}
 
 	return filters
+}
+
+func (c *CaseController) UpdateCase(ctx *gin.Context) {
+	caseID := ctx.Param("caseID")
+	if caseID == "" {
+		ctx.Error(domain.NewValidationError("case_id is required", nil))
+		return
+	}
+
+	var updateCaseDTO *UpdateCaseDTO
+	if err := ctx.BindJSON(&updateCaseDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	caseUpdate := mapUpdateCaseDTOToUpdateCase(*updateCaseDTO)
+
+	err := c.caseService.UpdateCase(ctx.Request.Context(), caseID, caseUpdate)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
 }
