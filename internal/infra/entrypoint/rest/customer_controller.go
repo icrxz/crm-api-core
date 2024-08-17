@@ -5,6 +5,7 @@ import (
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"net/http"
+	"strconv"
 )
 
 type CustomerController struct {
@@ -67,9 +68,9 @@ func (c *CustomerController) SearchCustomers(ctx *gin.Context) {
 		return
 	}
 
-	customerDTOs := mapCustomersToCustomerDTOs(customers)
-
-	ctx.JSON(200, customerDTOs)
+	searchResult := mapSearchResultToSearchResultDTO(customers, mapCustomersToCustomerDTOs)
+	
+	ctx.JSON(200, searchResult)
 }
 
 func (c *CustomerController) UpdateCustomer(ctx *gin.Context) {
@@ -114,7 +115,12 @@ func (c *CustomerController) DeleteCustomer(ctx *gin.Context) {
 }
 
 func (c *CustomerController) parseQueryToFilters(ctx *gin.Context) domain.CustomerFilters {
-	filters := domain.CustomerFilters{}
+	filters := domain.CustomerFilters{
+		PagingFilter: domain.PagingFilter{
+			Limit:  10,
+			Offset: 0,
+		},
+	}
 
 	if documents := ctx.QueryArray("document"); len(documents) > 0 {
 		filters.Document = documents
@@ -130,6 +136,20 @@ func (c *CustomerController) parseQueryToFilters(ctx *gin.Context) domain.Custom
 
 	if customerTypes := ctx.QueryArray("type"); len(customerTypes) > 0 {
 		filters.CustomerType = customerTypes
+	}
+
+	if limit := ctx.Query("limit"); limit != "" {
+		parsedLimit, err := strconv.Atoi(limit)
+		if err == nil {
+			filters.Limit = parsedLimit
+		}
+	}
+
+	if offset := ctx.Query("offset"); offset != "" {
+		parsedOffset, err := strconv.Atoi(offset)
+		if err == nil {
+			filters.Offset = parsedOffset
+		}
 	}
 
 	return filters

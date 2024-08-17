@@ -43,6 +43,7 @@ func LoadRoutes(
 	authGroup.GET("/partners/:partnerID", partnerController.GetPartner)
 	authGroup.PUT("/partners/:partnerID", partnerController.UpdatePartner)
 	authGroup.DELETE("/partners/:partnerID", partnerController.DeletePartner)
+	authGroup.POST("/partners/batch", partnerController.CreateBatch)
 
 	// customers
 	authGroup.POST("/customers", customerController.CreateCustomer)
@@ -68,6 +69,7 @@ func LoadRoutes(
 	// cases
 	authGroup.POST("/cases", caseController.CreateCase)
 	authGroup.GET("/cases/:caseID", caseController.GetCase)
+	authGroup.PATCH("/cases/:caseID", caseController.UpdateCase)
 	authGroup.GET("/cases", caseController.SearchCases)
 
 	// products

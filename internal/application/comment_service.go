@@ -2,12 +2,14 @@ package application
 
 import (
 	"context"
+
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
 type commentService struct {
 	commentRepository    domain.CommentRepository
 	attachmentRepository domain.AttachmentRepository
+	attachmentBucket     domain.AttachmentBucket
 }
 
 type CommentService interface {
@@ -16,10 +18,15 @@ type CommentService interface {
 	GetByCaseID(ctx context.Context, caseID string) ([]domain.Comment, error)
 }
 
-func NewCommentService(commentRepository domain.CommentRepository, attachmentRepository domain.AttachmentRepository) CommentService {
+func NewCommentService(
+	commentRepository domain.CommentRepository,
+	attachmentRepository domain.AttachmentRepository,
+	attachmentBucket domain.AttachmentBucket,
+) CommentService {
 	return &commentService{
 		commentRepository:    commentRepository,
 		attachmentRepository: attachmentRepository,
+		attachmentBucket:     attachmentBucket,
 	}
 }
 

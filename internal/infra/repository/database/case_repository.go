@@ -57,9 +57,10 @@ func (r *caseRepository) GetByID(ctx context.Context, caseID string) (*domain.Ca
 	return &crmCase, nil
 }
 
-func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters) ([]domain.Case, error) {
+func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.Case], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
+	limitArgs := make([]any, 0, 2)
 
 	whereQuery, whereArgs = prepareInQuery(filters.ContractorID, whereQuery, whereArgs, "contractor_id")
 	whereQuery, whereArgs = prepareInQuery(filters.OwnerID, whereQuery, whereArgs, "owner_id")
@@ -68,17 +69,36 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereQuery, whereArgs = prepareInQuery(filters.Status, whereQuery, whereArgs, "status")
 	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "region")
 
-	query := fmt.Sprintf("SELECT * FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
+	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
+	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+
+	query := fmt.Sprintf("SELECT * FROM cases WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundCases []CaseDTO
-	err := r.client.SelectContext(ctx, &foundCases, query, whereArgs...)
+	err := r.client.SelectContext(ctx, &foundCases, query, limitArgs...)
 	if err != nil {
-		return nil, err
+		return domain.PagingResult[domain.Case]{}, err
+	}
+
+	var countResult int
+	err = r.client.GetContext(ctx, &countResult, countQuery, whereArgs...)
+	if err != nil {
+		return domain.PagingResult[domain.Case]{}, err
 	}
 
 	crmCases := mapCaseDTOsToCases(foundCases)
 
-	return crmCases, nil
+	result := domain.PagingResult[domain.Case]{
+		Result: crmCases,
+		Paging: domain.Paging{
+			Total:  countResult,
+			Limit:  filters.Limit,
+			Offset: filters.Offset,
+		},
+	}
+
+	return result, nil
 }
 
 func (r *caseRepository) Update(ctx context.Context, crmCase domain.Case) error {

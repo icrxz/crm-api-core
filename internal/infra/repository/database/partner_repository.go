@@ -27,9 +27,9 @@ func (db *partnerRepository) Create(ctx context.Context, partner domain.Partner)
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO partners "+
-			"(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active) "+
+			"(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description) "+
 			"VALUES "+
-			"(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active)",
+			"(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description)",
 		partnerDTO,
 	)
 	if err != nil {
@@ -67,9 +67,10 @@ func (db *partnerRepository) GetByID(ctx context.Context, partnerID string) (*do
 	return &partner, nil
 }
 
-func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerFilters) ([]domain.Partner, error) {
+func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerFilters) (domain.PagingResult[domain.Partner], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
+	limitArgs := make([]any, 0, 2)
 
 	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "document")
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerType, whereQuery, whereArgs, "partner_type")
@@ -78,20 +79,38 @@ func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerF
 	if filters.Active != nil {
 		whereQuery = append(whereQuery, fmt.Sprintf("active = $%d", len(whereArgs)+1))
 		whereArgs = append(whereArgs, filters.Active)
-
 	}
 
-	query := fmt.Sprintf("SELECT * FROM partners WHERE %s", strings.Join(whereQuery, " AND "))
+	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
+	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+
+	query := fmt.Sprintf("SELECT * FROM partners WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM partners WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundPartners []PartnerDTO
-	err := db.client.SelectContext(ctx, &foundPartners, query, whereArgs...)
+	err := db.client.SelectContext(ctx, &foundPartners, query, limitArgs...)
 	if err != nil {
-		return nil, err
+		return domain.PagingResult[domain.Partner]{}, err
+	}
+
+	var countResult int
+	err = db.client.GetContext(ctx, &countResult, countQuery, whereArgs...)
+	if err != nil {
+		return domain.PagingResult[domain.Partner]{}, err
 	}
 
 	partners := mapPartnerDTOsToPartners(foundPartners)
 
-	return partners, nil
+	result := domain.PagingResult[domain.Partner]{
+		Result: partners,
+		Paging: domain.Paging{
+			Total:  countResult,
+			Limit:  filters.Limit,
+			Offset: filters.Offset,
+		},
+	}
+
+	return result, nil
 }
 
 func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner) error {
@@ -123,7 +142,8 @@ func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner)
 			"business_email = :business_email, "+
 			"updated_at = :updated_at, "+
 			"updated_by = :updated_by, "+
-			"active = :active "+
+			"active = :active, "+
+			"description = :description "+
 			"WHERE partner_id = :partner_id",
 		partnerDTO,
 	)
@@ -132,4 +152,51 @@ func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner)
 	}
 
 	return nil
+}
+
+func (db *partnerRepository) CreateBatch(ctx context.Context, partners []domain.Partner) ([]string, error) {
+	chunks := db.createChunks(partners, 100)
+	tx := db.client.MustBegin()
+
+	insertedIDs := make([]string, 0, len(partners))
+	for _, chunk := range chunks {
+		partnerDTOs := mapPartnersToPartnerDTOs(chunk)
+
+		query := `INSERT INTO partners (partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description) VALUES (:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description)`
+
+		_, err := tx.NamedExecContext(
+			ctx,
+			query,
+			partnerDTOs,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, partner := range partnerDTOs {
+			insertedIDs = append(insertedIDs, partner.PartnerID)
+		}
+	}
+
+	err := tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return insertedIDs, nil
+}
+
+func (db *partnerRepository) createChunks(slice []domain.Partner, size int) [][]domain.Partner {
+	var chunks [][]domain.Partner
+	for i := 0; i < len(slice); i += size {
+		end := i + size
+
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		chunks = append(chunks, slice[i:end])
+	}
+
+	return chunks
 }

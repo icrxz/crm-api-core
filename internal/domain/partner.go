@@ -10,9 +10,10 @@ import (
 type PartnerRepository interface {
 	Create(ctx context.Context, partner Partner) (string, error)
 	GetByID(ctx context.Context, partnerID string) (*Partner, error)
-	Search(ctx context.Context, filters PartnerFilters) ([]Partner, error)
+	Search(ctx context.Context, filters PartnerFilters) (PagingResult[Partner], error)
 	Update(ctx context.Context, partnerToUpdate Partner) error
 	Delete(ctx context.Context, partnerID string) error
+	CreateBatch(ctx context.Context, partners []Partner) ([]string, error)
 }
 
 type Partner struct {
@@ -21,7 +22,7 @@ type Partner struct {
 	LastName        string
 	CompanyName     string
 	LegalName       string
-	PartnerType     EntityType
+	PartnerType     string
 	Document        string
 	DocumentType    DocumentType
 	ShippingAddress Address
@@ -34,6 +35,7 @@ type Partner struct {
 	UpdatedBy       string
 	UpdatedAt       time.Time
 	Active          bool
+	Description     string
 }
 
 type EditPartner struct {
@@ -50,6 +52,7 @@ type EditPartner struct {
 	PersonalContact *Contact
 	Active          *bool
 	UpdatedBy       string
+	Description     *string
 }
 
 type PartnerFilters struct {
@@ -58,21 +61,29 @@ type PartnerFilters struct {
 	Document    []string
 	PartnerType []string
 	Active      *bool
+	PagingFilter
 }
 
-func NewPartner(firstName, lastName, companyName, legalName, document, documentType, author string, personalContact, businessContact Contact, shippingAddress, billingAddress Address) (Partner, error) {
+func NewPartner(
+	firstName,
+	lastName,
+	companyName,
+	legalName,
+	document,
+	documentType,
+	author string,
+	personalContact,
+	businessContact Contact,
+	shippingAddress,
+	billingAddress Address,
+	description,
+	partnerType string,
+) (Partner, error) {
 	now := time.Now().UTC()
 
 	partnerID, err := uuid.NewUUID()
 	if err != nil {
 		return Partner{}, err
-	}
-
-	var partnerType EntityType
-	if firstName != "" {
-		partnerType = NATURAL
-	} else {
-		partnerType = LEGAL
 	}
 
 	return Partner{
@@ -93,6 +104,7 @@ func NewPartner(firstName, lastName, companyName, legalName, document, documentT
 		UpdatedAt:       now,
 		UpdatedBy:       author,
 		Active:          true,
+		Description:     description,
 	}, nil
 }
 
@@ -142,6 +154,10 @@ func (p *Partner) MergeUpdate(updatePartner EditPartner) {
 
 	if updatePartner.Active != nil {
 		p.Active = *updatePartner.Active
+	}
+
+	if updatePartner.Description != nil {
+		p.Description = *updatePartner.Description
 	}
 }
 

@@ -29,12 +29,13 @@ type PartnerDTO struct {
 	BusinessPhone   string    `db:"business_phone"`
 	PersonalEmail   string    `db:"personal_email"`
 	BusinessEmail   string    `db:"business_email"`
-	Region          int       `db:"region"`
+	Region          *int      `db:"region"`
 	CreatedBy       string    `db:"created_by"`
 	CreatedAt       time.Time `db:"created_at"`
 	UpdatedBy       string    `db:"updated_by"`
 	UpdatedAt       time.Time `db:"updated_at"`
 	Active          bool      `db:"active"`
+	Description     *string   `db:"description"`
 }
 
 func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
@@ -44,7 +45,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		LastName:        partner.LastName,
 		CompanyName:     partner.CompanyName,
 		LegalName:       partner.LegalName,
-		PartnerType:     string(partner.PartnerType),
+		PartnerType:     partner.PartnerType,
 		Document:        partner.Document,
 		DocumentType:    string(partner.DocumentType),
 		ShippingAddress: partner.ShippingAddress.Address,
@@ -66,18 +67,23 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		UpdatedBy:       partner.UpdatedBy,
 		UpdatedAt:       partner.UpdatedAt,
 		Active:          partner.Active,
-		Region:          partner.GetRegion(),
+		Description:     &partner.Description,
 	}
 }
 
 func mapPartnerDTOToPartner(partnerDTO PartnerDTO) domain.Partner {
+	var descriptionString string
+	if partnerDTO.Description != nil {
+		descriptionString = *partnerDTO.Description
+	}
+
 	return domain.Partner{
 		PartnerID:    partnerDTO.PartnerID,
 		FirstName:    partnerDTO.FirstName,
 		LastName:     partnerDTO.LastName,
 		CompanyName:  partnerDTO.CompanyName,
 		LegalName:    partnerDTO.LegalName,
-		PartnerType:  domain.EntityType(partnerDTO.PartnerType),
+		PartnerType:  partnerDTO.PartnerType,
 		Document:     partnerDTO.Document,
 		DocumentType: domain.DocumentType(partnerDTO.DocumentType),
 		ShippingAddress: domain.Address{
@@ -102,11 +108,12 @@ func mapPartnerDTOToPartner(partnerDTO PartnerDTO) domain.Partner {
 			PhoneNumber: partnerDTO.BusinessPhone,
 			Email:       partnerDTO.BusinessEmail,
 		},
-		CreatedBy: partnerDTO.CreatedBy,
-		CreatedAt: partnerDTO.CreatedAt,
-		UpdatedBy: partnerDTO.UpdatedBy,
-		UpdatedAt: partnerDTO.UpdatedAt,
-		Active:    partnerDTO.Active,
+		CreatedBy:   partnerDTO.CreatedBy,
+		CreatedAt:   partnerDTO.CreatedAt,
+		UpdatedBy:   partnerDTO.UpdatedBy,
+		UpdatedAt:   partnerDTO.UpdatedAt,
+		Active:      partnerDTO.Active,
+		Description: descriptionString,
 	}
 }
 
@@ -118,4 +125,14 @@ func mapPartnerDTOsToPartners(partnerDTOs []PartnerDTO) []domain.Partner {
 	}
 
 	return partners
+}
+
+func mapPartnersToPartnerDTOs(partners []domain.Partner) []PartnerDTO {
+	partnerDTOs := make([]PartnerDTO, 0, len(partners))
+	for _, partner := range partners {
+		partnerDTO := mapPartnerToPartnerDTO(partner)
+		partnerDTOs = append(partnerDTOs, partnerDTO)
+	}
+
+	return partnerDTOs
 }

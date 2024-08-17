@@ -26,6 +26,11 @@ var contractorsTemplates = map[string]string{
 	"Ezze Seguros": "ezze_template.docx",
 }
 
+type ContentWithAttachment struct {
+	Content    string
+	Attachment [][]byte
+}
+
 type reportService struct {
 	reportFolder      string
 	caseService       CaseService
@@ -34,6 +39,7 @@ type reportService struct {
 	commentService    CommentService
 	partnerService    PartnerService
 	contractorService ContractorService
+	attachmentBucket  domain.AttachmentBucket
 }
 
 type ReportService interface {
@@ -57,6 +63,7 @@ func NewReportService(
 	commentService CommentService,
 	partnerService PartnerService,
 	contractorService ContractorService,
+	attachmentBucket domain.AttachmentBucket,
 ) ReportService {
 	return &reportService{
 		reportFolder:      reportFolder,
@@ -66,6 +73,7 @@ func NewReportService(
 		commentService:    commentService,
 		partnerService:    partnerService,
 		contractorService: contractorService,
+		attachmentBucket:  attachmentBucket,
 	}
 }
 
@@ -82,7 +90,7 @@ func (s *reportService) GenerateReport(ctx context.Context, crmCase domain.Case)
 		return nil, "", fmt.Errorf("no template found for contractor %s", reportData.Contractor.CompanyName)
 	}
 
-	err = s.readReportTemplate(*reportData, filename, &memoryDoc)
+	err = s.readReportTemplate(ctx, *reportData, filename, &memoryDoc)
 	if err != nil {
 		return nil, "", err
 	}
@@ -148,7 +156,7 @@ func (s *reportService) getReportData(ctx context.Context, crmCase domain.Case) 
 	return reportData, nil
 }
 
-func (s *reportService) readReportTemplate(reportData ReportData, filename string, memDoc io.Writer) error {
+func (s *reportService) readReportTemplate(ctx context.Context, reportData ReportData, filename string, memDoc io.Writer) error {
 	filePath := fmt.Sprintf("%s/%s", s.reportFolder, filename)
 	file, err := docx.ReadDocxFile(filePath)
 	if err != nil {
@@ -159,35 +167,132 @@ func (s *reportService) readReportTemplate(reportData ReportData, filename strin
 	defer file.Close()
 
 	err = docEdit.Replace("$claim", reportData.CrmCase.ExternalReference, -1)
+	if err != nil {
+		return err
+	}
+
 	err = docEdit.Replace("$actual_date", time.Now().Format(dateReportLayout), -1)
+	if err != nil {
+		return err
+	}
+
 	err = docEdit.Replace("$client", fmt.Sprintf("%s %s", reportData.Customer.FirstName, reportData.Customer.LastName), -1)
+	if err != nil {
+		return err
+	}
+
 	err = docEdit.Replace("$brand", reportData.Product.Brand, -1)
+	if err != nil {
+		return err
+	}
+
 	err = docEdit.Replace("$summary", reportData.CrmCase.Subject, -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$partner", fmt.Sprintf("%s %s", reportData.Partner.FirstName, reportData.Partner.LastName), -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$target_date", reportData.CrmCase.TargetDate.Format(dateReportLayout), -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$document", ParseDocument(reportData.Customer.Document), -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$address", reportData.Customer.ShippingAddress.Address, -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$zip_code", reportData.Customer.ShippingAddress.ZipCode, -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$product", reportData.Product.Name, -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$serial_number", reportData.Product.SerialNumber, -1)
+	if err != nil {
+		return err
+	}
 
 	content := make([]string, 0)
+	contentAttachments := make([][]byte, 0)
 	comments := make([]string, 0)
+	commentsAttachments := make([][]byte, 0)
 	resolution := make([]string, 0)
+	resolutionAttachments := make([][]byte, 0)
 	for _, comment := range reportData.Comments {
 		switch comment.CommentType {
 		case domain.CONTENT:
+			contentAttachments, err = s.downloadFiles(ctx, comment.Attachments)
+			if err != nil {
+				return err
+			}
 			content = append(content, fmt.Sprintf("%s - %s", comment.CreatedAt.Format(dateTimeReportLayout), comment.Content))
 		case domain.RESOLUTION:
+			resolutionAttachments, err = s.downloadFiles(ctx, comment.Attachments)
+			if err != nil {
+				return err
+			}
 			resolution = append(resolution, fmt.Sprintf("%s - %s", comment.CreatedAt.Format(dateTimeReportLayout), comment.Content))
 		case domain.COMMENT:
+			commentsAttachments, err = s.downloadFiles(ctx, comment.Attachments)
+			if err != nil {
+				return err
+			}
 			comments = append(comments, fmt.Sprintf("%s - %s", comment.CreatedAt.Format(dateTimeReportLayout), comment.Content))
 		}
 	}
 
-	err = docEdit.Replace("$content", strings.Join(content, "&#xA;"), -1)
-	err = docEdit.Replace("$comments", strings.Join(comments, "&#xA;"), -1)
-	err = docEdit.Replace("$resolution", strings.Join(resolution, "&#xA;"), -1)
+	err = docEdit.Replace("$content", strings.Join(content, "\r\n"), -1)
+	if err != nil {
+		return err
+	}
+	if len(contentAttachments) > 0 {
+		err = docEdit.Replace("$image_content", string(contentAttachments[0]), -1)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = docEdit.Replace("$comments", strings.Join(comments, "\r\n"), -1)
+	if err != nil {
+		return err
+	}
+	if len(commentsAttachments) > 0 {
+		err = docEdit.Replace("$image_comment", string(commentsAttachments[0]), -1)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = docEdit.Replace("$resolution", strings.Join(resolution, "\r\n"), -1)
+	if err != nil {
+		return err
+	}
+	if len(resolutionAttachments) > 0 {
+		err = docEdit.Replace("$image_resolution", string(resolutionAttachments[0]), -1)
+		if err != nil {
+			return err
+		}
+	}
 
 	return docEdit.Write(memDoc)
+}
+
+func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attachment) ([][]byte, error) {
+	downloadedFiles := make([][]byte, 0)
+	for _, attachment := range files {
+		file, err := s.attachmentBucket.Download(ctx, attachment.Key)
+		if err != nil {
+			return nil, err
+		}
+		downloadedFiles = append(downloadedFiles, file)
+	}
+
+	return downloadedFiles, nil
 }

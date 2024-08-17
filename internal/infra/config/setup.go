@@ -13,9 +13,10 @@ const (
 )
 
 type AppConfig struct {
-	Database     Database `properties:"database"`
-	SecretJWTKey string   `properties:"jwtKeyEnv"`
-	ReportFolder string   `properties:"reportFolder,default=resources/reports"`
+	Database          Database `properties:"database"`
+	SecretJWTKey      string   `properties:"jwtKeyEnv"`
+	ReportFolder      string   `properties:"reportFolder,default=resources/reports"`
+	AttachmentsBucket Bucket   `properties:"attachmentBucket"`
 }
 
 type Database struct {
@@ -32,6 +33,14 @@ type Database struct {
 	ConnMaxLifetime time.Duration `properties:"connMaxLifetime,default=10m"`
 }
 
+type Bucket struct {
+	Name            string        `properties:"name"`
+	Region          string        `properties:"region"`
+	Timeout         time.Duration `properties:"timeout"`
+	AWSKeyIDEnv     string        `properties:"awsKeyIdEnv"`
+	AWSSecretKeyEnv string        `properties:"awsSecretKeyEnv"`
+}
+
 func (db Database) Host() string {
 	return os.Getenv(db.HostEnv)
 }
@@ -42,6 +51,14 @@ func (db Database) Password() string {
 
 func (db AppConfig) SecretKey() string {
 	return os.Getenv(db.SecretJWTKey)
+}
+
+func (b Bucket) AWSKeyID() string {
+	return os.Getenv(b.AWSKeyIDEnv)
+}
+
+func (b Bucket) AWSSecretKey() string {
+	return os.Getenv(b.AWSSecretKeyEnv)
 }
 
 func AppPropertyFilename() string {

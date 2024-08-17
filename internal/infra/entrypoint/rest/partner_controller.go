@@ -1,10 +1,13 @@
 package rest
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type PartnerController struct {
@@ -59,7 +62,11 @@ func (c *PartnerController) GetPartner(ctx *gin.Context) {
 }
 
 func (c *PartnerController) SearchPartners(ctx *gin.Context) {
-	filters := c.parseQueryToFilters(ctx)
+	filters, err := c.parseQueryToFilters(ctx)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
 
 	partners, err := c.partnerService.Search(ctx.Request.Context(), filters)
 	if err != nil {
@@ -67,9 +74,9 @@ func (c *PartnerController) SearchPartners(ctx *gin.Context) {
 		return
 	}
 
-	partnerDTOs := mapPartnersToPartnerDTOs(partners)
+	searchResult := mapSearchResultToSearchResultDTO(partners, mapPartnersToPartnerDTOs)
 
-	ctx.JSON(http.StatusOK, partnerDTOs)
+	ctx.JSON(http.StatusOK, searchResult)
 }
 
 func (c *PartnerController) UpdatePartner(ctx *gin.Context) {
@@ -113,8 +120,43 @@ func (c *PartnerController) DeletePartner(ctx *gin.Context) {
 	ctx.JSON(http.StatusNoContent, nil)
 }
 
-func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) domain.PartnerFilters {
-	filters := domain.PartnerFilters{}
+func (c *PartnerController) CreateBatch(ctx *gin.Context) {
+	author := ctx.GetHeader("X-Author")
+	if author == "" {
+		ctx.Error(domain.NewValidationError("header X-Author cannot be empty", nil))
+		return
+	}
+
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	file, err := fileHeader.Open()
+	defer file.Close()
+
+	if !strings.Contains(fileHeader.Filename, ".csv") {
+		ctx.Error(domain.NewValidationError("file must be a csv", nil))
+		return
+	}
+
+	result, err := c.partnerService.CreateBatch(ctx, file, author)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"partner_ids": result})
+}
+
+func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) (domain.PartnerFilters, error) {
+	filters := domain.PartnerFilters{
+		PagingFilter: domain.PagingFilter{
+			Limit:  10,
+			Offset: 0,
+		},
+	}
 
 	if documents := ctx.QueryArray("document"); len(documents) > 0 {
 		filters.Document = documents
@@ -137,5 +179,28 @@ func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) domain.Partner
 		filters.Active = &isActive
 	}
 
-	return filters
+	validationErr := make([]error, 0)
+	if limitParam := ctx.Query("limit"); limitParam != "" {
+		parsedLimit, err := strconv.Atoi(limitParam)
+		if err != nil {
+			validationErr = append(validationErr, domain.NewValidationError("limit must be a number", nil))
+		} else {
+			filters.PagingFilter.Limit = parsedLimit
+		}
+	}
+
+	if offsetParam := ctx.Query("offset"); offsetParam != "" {
+		parsedOffset, err := strconv.Atoi(offsetParam)
+		if err != nil {
+			validationErr = append(validationErr, domain.NewValidationError("offset must be a number", nil))
+		} else {
+			filters.PagingFilter.Offset = parsedOffset
+		}
+	}
+
+	if len(validationErr) > 0 {
+		return domain.PartnerFilters{}, errors.Join(validationErr...)
+	}
+
+	return filters, nil
 }

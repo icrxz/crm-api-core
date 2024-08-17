@@ -15,7 +15,7 @@ type ContractorService interface {
 	GetByID(ctx context.Context, contractorID string) (*domain.Contractor, error)
 	Update(ctx context.Context, contractorID string, contractor domain.UpdateContractor) error
 	Delete(ctx context.Context, contractorID string) error
-	Search(ctx context.Context, filters domain.ContractorFilters) ([]domain.Contractor, error)
+	Search(ctx context.Context, filters domain.ContractorFilters) (domain.PagingResult[domain.Contractor], error)
 }
 
 func NewContractorService(contractorRepository domain.ContractorRepository) ContractorService {
@@ -44,7 +44,7 @@ func (s *contractorService) GetByID(ctx context.Context, contractorID string) (*
 	return s.contractorRepository.GetByID(ctx, contractorID)
 }
 
-func (s *contractorService) Search(ctx context.Context, filters domain.ContractorFilters) ([]domain.Contractor, error) {
+func (s *contractorService) Search(ctx context.Context, filters domain.ContractorFilters) (domain.PagingResult[domain.Contractor], error) {
 	return s.contractorRepository.Search(ctx, filters)
 }
 

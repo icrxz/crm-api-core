@@ -16,6 +16,7 @@ func mapAddressDTOToAddress(addressDTO AddressDTO) domain.Address {
 		State:   addressDTO.State,
 		City:    addressDTO.City,
 		Country: addressDTO.Country,
+		ZipCode: addressDTO.ZipCode,
 	}
 }
 
@@ -25,5 +26,6 @@ func mapAddressToAddressDTO(address domain.Address) AddressDTO {
 		State:   address.State,
 		City:    address.City,
 		Country: address.Country,
+		ZipCode: address.ZipCode,
 	}
 }

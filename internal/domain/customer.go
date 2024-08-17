@@ -10,7 +10,7 @@ import (
 type CustomerRepository interface {
 	Create(ctx context.Context, customer Customer) (string, error)
 	GetByID(ctx context.Context, customerID string) (*Customer, error)
-	Search(ctx context.Context, filters CustomerFilters) ([]Customer, error)
+	Search(ctx context.Context, filters CustomerFilters) (PagingResult[Customer], error)
 	Update(ctx context.Context, customer Customer) error
 	Delete(ctx context.Context, customerID string) error
 }
@@ -58,6 +58,7 @@ type CustomerFilters struct {
 	CustomerType []string
 	Document     []string
 	Active       bool
+	PagingFilter
 }
 
 func NewCustomer(firstName, lastName, companyName, legalName, document, documentType, author string, personalContact, businessContact Contact, shippingAddress, billingAddress Address) (Customer, error) {

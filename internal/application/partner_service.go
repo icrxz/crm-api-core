@@ -2,6 +2,9 @@ package application
 
 import (
 	"context"
+	"encoding/csv"
+	"io"
+	"strings"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
@@ -15,7 +18,8 @@ type PartnerService interface {
 	GetByID(ctx context.Context, partnerID string) (*domain.Partner, error)
 	Update(ctx context.Context, partnerID string, editPartner domain.EditPartner) error
 	Delete(ctx context.Context, partnerID string) error
-	Search(ctx context.Context, filters domain.PartnerFilters) ([]domain.Partner, error)
+	Search(ctx context.Context, filters domain.PartnerFilters) (domain.PagingResult[domain.Partner], error)
+	CreateBatch(ctx context.Context, file io.Reader, createdBy string) ([]string, error)
 }
 
 func NewPartnerService(partnerRepository domain.PartnerRepository) PartnerService {
@@ -59,6 +63,108 @@ func (s *partnerService) Delete(ctx context.Context, partnerID string) error {
 	return s.partnerRepository.Delete(ctx, partnerID)
 }
 
-func (s *partnerService) Search(ctx context.Context, filters domain.PartnerFilters) ([]domain.Partner, error) {
+func (s *partnerService) Search(ctx context.Context, filters domain.PartnerFilters) (domain.PagingResult[domain.Partner], error) {
 	return s.partnerRepository.Search(ctx, filters)
+}
+
+func (s *partnerService) CreateBatch(ctx context.Context, file io.Reader, createdBy string) ([]string, error) {
+	fileCSV := csv.NewReader(file)
+
+	partnersRows, err := s.readCSV(fileCSV)
+	if err != nil {
+		return nil, err
+	}
+
+	columnsIndex := s.getColumnHeadersIndex(partnersRows[0])
+	partners, err := s.buildPartner(partnersRows[1:], columnsIndex, createdBy)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.partnerRepository.CreateBatch(ctx, partners)
+}
+
+func (s *partnerService) readCSV(fileCSV *csv.Reader) ([][]string, error) {
+	csvRows := make([][]string, 0)
+
+	for {
+		row, err := fileCSV.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		csvRows = append(csvRows, row)
+	}
+
+	return csvRows, nil
+}
+
+func (s *partnerService) buildPartner(csvRows [][]string, columnsIndex map[string]int, author string) ([]domain.Partner, error) {
+	partners := make([]domain.Partner, 0, len(csvRows))
+
+	for _, row := range csvRows {
+		phone := row[columnsIndex["Telefone"]]
+		if strings.TrimSpace(phone) != "" {
+			phone = strings.ReplaceAll(phone, "(", "")
+			phone = strings.ReplaceAll(phone, ")", "")
+			phone = "(55) +" + phone
+		}
+
+		personalContact := domain.Contact{
+			PhoneNumber: phone,
+		}
+
+		shippingAddress := domain.Address{
+			City:    row[columnsIndex["Cidade"]],
+			State:   row[columnsIndex["Estado"]],
+			Country: "brazil",
+		}
+
+		document := row[columnsIndex["Documento"]]
+		document = strings.ReplaceAll(document, ".", "")
+		document = strings.ReplaceAll(document, "-", "")
+		document = strings.ReplaceAll(document, "/", "")
+
+		documentType := ""
+		if len(document) == 11 {
+			documentType = "CPF"
+		} else if len(document) == 14 {
+			documentType = "CNPJ"
+		}
+
+		description := row[columnsIndex["Observacoes"]]
+
+		newPartner, err := domain.NewPartner(
+			row[columnsIndex["Nome"]],
+			row[columnsIndex["Sobrenome"]],
+			"",
+			"",
+			document,
+			documentType,
+			author,
+			personalContact,
+			domain.Contact{},
+			shippingAddress,
+			domain.Address{},
+			description,
+			row[columnsIndex["Tipo"]],
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		partners = append(partners, newPartner)
+	}
+	return partners, nil
+}
+
+func (s *partnerService) getColumnHeadersIndex(header []string) map[string]int {
+	columnsIndex := make(map[string]int)
+	for i, column := range header {
+		columnsIndex[column] = i
+	}
+	return columnsIndex
 }
