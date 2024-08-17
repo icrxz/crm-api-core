@@ -43,6 +43,7 @@ func LoadRoutes(
 	authGroup.GET("/partners/:partnerID", partnerController.GetPartner)
 	authGroup.PUT("/partners/:partnerID", partnerController.UpdatePartner)
 	authGroup.DELETE("/partners/:partnerID", partnerController.DeletePartner)
+	authGroup.POST("/partners/batch", partnerController.CreateBatch)
 
 	// customers
 	authGroup.POST("/customers", customerController.CreateCustomer)

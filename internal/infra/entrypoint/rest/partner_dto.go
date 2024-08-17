@@ -100,6 +100,7 @@ func mapCreatePartnerDTOToPartner(partnerDTO CreatePartnerDTO) (domain.Partner, 
 		mapAddressDTOToAddress(partnerDTO.ShippingAddress),
 		mapAddressDTOToAddress(partnerDTO.BillingAddress),
 		partnerDTO.Description,
+		partnerDTO.PartnerType,
 	)
 }
 

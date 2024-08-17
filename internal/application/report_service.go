@@ -167,17 +167,57 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 	defer file.Close()
 
 	err = docEdit.Replace("$claim", reportData.CrmCase.ExternalReference, -1)
+	if err != nil {
+		return err
+	}
+
 	err = docEdit.Replace("$actual_date", time.Now().Format(dateReportLayout), -1)
+	if err != nil {
+		return err
+	}
+
 	err = docEdit.Replace("$client", fmt.Sprintf("%s %s", reportData.Customer.FirstName, reportData.Customer.LastName), -1)
+	if err != nil {
+		return err
+	}
+
 	err = docEdit.Replace("$brand", reportData.Product.Brand, -1)
+	if err != nil {
+		return err
+	}
+
 	err = docEdit.Replace("$summary", reportData.CrmCase.Subject, -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$partner", fmt.Sprintf("%s %s", reportData.Partner.FirstName, reportData.Partner.LastName), -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$target_date", reportData.CrmCase.TargetDate.Format(dateReportLayout), -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$document", ParseDocument(reportData.Customer.Document), -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$address", reportData.Customer.ShippingAddress.Address, -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$zip_code", reportData.Customer.ShippingAddress.ZipCode, -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$product", reportData.Product.Name, -1)
+	if err != nil {
+		return err
+	}
 	err = docEdit.Replace("$serial_number", reportData.Product.SerialNumber, -1)
+	if err != nil {
+		return err
+	}
 
 	content := make([]string, 0)
 	contentAttachments := make([][]byte, 0)
@@ -209,24 +249,50 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 	}
 
 	err = docEdit.Replace("$content", strings.Join(content, "\r\n"), -1)
-	err = docEdit.Replace("$content_image", string(contentAttachments[0]), -1)
+	if err != nil {
+		return err
+	}
+	if len(contentAttachments) > 0 {
+		err = docEdit.Replace("$image_content", string(contentAttachments[0]), -1)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = docEdit.Replace("$comments", strings.Join(comments, "\r\n"), -1)
-	err = docEdit.Replace("$comments_image", string(commentsAttachments[0]), -1)
+	if err != nil {
+		return err
+	}
+	if len(commentsAttachments) > 0 {
+		err = docEdit.Replace("$image_comment", string(commentsAttachments[0]), -1)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = docEdit.Replace("$resolution", strings.Join(resolution, "\r\n"), -1)
-	err = docEdit.Replace("$resolution_image", string(resolutionAttachments[0]), -1)
+	if err != nil {
+		return err
+	}
+	if len(resolutionAttachments) > 0 {
+		err = docEdit.Replace("$image_resolution", string(resolutionAttachments[0]), -1)
+		if err != nil {
+			return err
+		}
+	}
 
 	return docEdit.Write(memDoc)
 }
 
 func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attachment) ([][]byte, error) {
 	downloadedFiles := make([][]byte, 0)
-	// for _, attachment := range files {
-	// 	file, err := s.attachmentBucket.Download(ctx, attachment.AttachmentURL)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	downloadedFiles = append(downloadedFiles, file)
-	// }
+	for _, attachment := range files {
+		file, err := s.attachmentBucket.Download(ctx, attachment.Key)
+		if err != nil {
+			return nil, err
+		}
+		downloadedFiles = append(downloadedFiles, file)
+	}
 
 	return downloadedFiles, nil
 }

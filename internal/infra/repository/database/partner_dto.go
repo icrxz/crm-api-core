@@ -45,7 +45,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		LastName:        partner.LastName,
 		CompanyName:     partner.CompanyName,
 		LegalName:       partner.LegalName,
-		PartnerType:     string(partner.PartnerType),
+		PartnerType:     partner.PartnerType,
 		Document:        partner.Document,
 		DocumentType:    string(partner.DocumentType),
 		ShippingAddress: partner.ShippingAddress.Address,
@@ -83,7 +83,7 @@ func mapPartnerDTOToPartner(partnerDTO PartnerDTO) domain.Partner {
 		LastName:     partnerDTO.LastName,
 		CompanyName:  partnerDTO.CompanyName,
 		LegalName:    partnerDTO.LegalName,
-		PartnerType:  domain.EntityType(partnerDTO.PartnerType),
+		PartnerType:  partnerDTO.PartnerType,
 		Document:     partnerDTO.Document,
 		DocumentType: domain.DocumentType(partnerDTO.DocumentType),
 		ShippingAddress: domain.Address{

@@ -32,12 +32,12 @@ func RunApp() error {
 	}()
 
 	// bucket
-	s3Client, err := bucket.NewS3Bucket(context.Background())
+	s3Client, err := bucket.NewS3Bucket(context.Background(), appConfig.AttachmentsBucket)
 	if err != nil {
 		return err
 	}
 
-	attachmentBucket := bucket.NewAttachmentBucket(s3Client, "crm-core-attachments")
+	attachmentBucket := bucket.NewAttachmentBucket(s3Client, appConfig.AttachmentsBucket.Name)
 
 	// repositories
 	userRepository := database.NewUserRepository(sqlDB)

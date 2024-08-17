@@ -3,8 +3,10 @@ package application
 import (
 	"context"
 	"encoding/csv"
-	"github.com/icrxz/crm-api-core/internal/domain"
 	"io"
+	"strings"
+
+	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
 type partnerService struct {
@@ -104,30 +106,51 @@ func (s *partnerService) buildPartner(csvRows [][]string, columnsIndex map[strin
 	partners := make([]domain.Partner, 0, len(csvRows))
 
 	for _, row := range csvRows {
+		phone := row[columnsIndex["Telefone"]]
+		if strings.TrimSpace(phone) != "" {
+			phone = strings.ReplaceAll(phone, "(", "")
+			phone = strings.ReplaceAll(phone, ")", "")
+			phone = "(55) +" + phone
+		}
+
 		personalContact := domain.Contact{
-			PhoneNumber: row[columnsIndex["telefone"]],
-			Email:       row[columnsIndex["email"]],
+			PhoneNumber: phone,
 		}
 
 		shippingAddress := domain.Address{
-			City:    row[columnsIndex["cidade"]],
-			State:   row[columnsIndex["estado"]],
-			Country: "Brasil",
+			City:    row[columnsIndex["Cidade"]],
+			State:   row[columnsIndex["Estado"]],
+			Country: "brazil",
 		}
 
+		document := row[columnsIndex["Documento"]]
+		document = strings.ReplaceAll(document, ".", "")
+		document = strings.ReplaceAll(document, "-", "")
+		document = strings.ReplaceAll(document, "/", "")
+
+		documentType := ""
+		if len(document) == 11 {
+			documentType = "CPF"
+		} else if len(document) == 14 {
+			documentType = "CNPJ"
+		}
+
+		description := row[columnsIndex["Observacoes"]]
+
 		newPartner, err := domain.NewPartner(
-			row[columnsIndex["nome"]],
-			row[columnsIndex["sobrenome"]],
+			row[columnsIndex["Nome"]],
+			row[columnsIndex["Sobrenome"]],
 			"",
 			"",
-			row[columnsIndex["documento"]],
-			"",
+			document,
+			documentType,
 			author,
 			personalContact,
 			domain.Contact{},
 			shippingAddress,
 			domain.Address{},
-			row[columnsIndex["observacoes"]],
+			description,
+			row[columnsIndex["Tipo"]],
 		)
 		if err != nil {
 			return nil, err

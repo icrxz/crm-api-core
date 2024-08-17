@@ -22,7 +22,7 @@ type Partner struct {
 	LastName        string
 	CompanyName     string
 	LegalName       string
-	PartnerType     EntityType
+	PartnerType     string
 	Document        string
 	DocumentType    DocumentType
 	ShippingAddress Address
@@ -76,20 +76,14 @@ func NewPartner(
 	businessContact Contact,
 	shippingAddress,
 	billingAddress Address,
-	description string,
+	description,
+	partnerType string,
 ) (Partner, error) {
 	now := time.Now().UTC()
 
 	partnerID, err := uuid.NewUUID()
 	if err != nil {
 		return Partner{}, err
-	}
-
-	var partnerType EntityType
-	if firstName != "" {
-		partnerType = NATURAL
-	} else {
-		partnerType = LEGAL
 	}
 
 	return Partner{

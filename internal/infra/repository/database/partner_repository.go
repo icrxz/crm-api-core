@@ -24,14 +24,12 @@ func NewPartnerRepository(client *sqlx.DB) domain.PartnerRepository {
 func (db *partnerRepository) Create(ctx context.Context, partner domain.Partner) (string, error) {
 	partnerDTO := mapPartnerToPartnerDTO(partner)
 
-	fmt.Println(partnerDTO)
-
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO partners "+
-			"(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active) "+
+			"(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description) "+
 			"VALUES "+
-			"(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active)",
+			"(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description)",
 		partnerDTO,
 	)
 	if err != nil {
@@ -144,7 +142,8 @@ func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner)
 			"business_email = :business_email, "+
 			"updated_at = :updated_at, "+
 			"updated_by = :updated_by, "+
-			"active = :active "+
+			"active = :active, "+
+			"description = :description "+
 			"WHERE partner_id = :partner_id",
 		partnerDTO,
 	)
@@ -163,7 +162,7 @@ func (db *partnerRepository) CreateBatch(ctx context.Context, partners []domain.
 	for _, chunk := range chunks {
 		partnerDTOs := mapPartnersToPartnerDTOs(chunk)
 
-		query := `INSERT INTO partners (partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active) VALUES (:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active)`
+		query := `INSERT INTO partners (partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description) VALUES (:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description)`
 
 		_, err := tx.NamedExecContext(
 			ctx,
@@ -184,7 +183,7 @@ func (db *partnerRepository) CreateBatch(ctx context.Context, partners []domain.
 		return nil, err
 	}
 
-	return nil, nil
+	return insertedIDs, nil
 }
 
 func (db *partnerRepository) createChunks(slice []domain.Partner, size int) [][]domain.Partner {
