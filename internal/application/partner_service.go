@@ -108,9 +108,7 @@ func (s *partnerService) buildPartner(csvRows [][]string, columnsIndex map[strin
 	for _, row := range csvRows {
 		phone := row[columnsIndex["Telefone"]]
 		if strings.TrimSpace(phone) != "" {
-			phone = strings.ReplaceAll(phone, "(", "")
-			phone = strings.ReplaceAll(phone, ")", "")
-			phone = "(55) +" + phone
+			phone = "+55 " + phone
 		}
 
 		personalContact := domain.Contact{
