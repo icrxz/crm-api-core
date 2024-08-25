@@ -15,7 +15,7 @@ type UserService interface {
 	GetByID(ctx context.Context, id string) (*domain.User, error)
 	Update(ctx context.Context, user domain.User) error
 	Delete(ctx context.Context, id string) error
-	Search(ctx context.Context, filters domain.UserFilters) ([]domain.User, error)
+	Search(ctx context.Context, filters domain.UserFilters) (domain.PagingResult[domain.User], error)
 }
 
 func NewUserService(userRepository domain.UserRepository) UserService {
@@ -48,6 +48,6 @@ func (us *userService) Delete(ctx context.Context, userID string) error {
 	return us.userRepository.Delete(ctx, userID)
 }
 
-func (us *userService) Search(ctx context.Context, filters domain.UserFilters) ([]domain.User, error) {
+func (us *userService) Search(ctx context.Context, filters domain.UserFilters) (domain.PagingResult[domain.User], error) {
 	return us.userRepository.Search(ctx, filters)
 }

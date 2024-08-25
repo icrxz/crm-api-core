@@ -8,10 +8,11 @@ type CredentialsDTO struct {
 }
 
 type AuthUserDTO struct {
-	UserID string `json:"user_id" validate:"required"`
-	Name   string `json:"name"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID   string `json:"user_id" validate:"required"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+	Username string `json:"username"`
 }
 
 type AuthResponseDTO struct {
@@ -23,10 +24,11 @@ func mapUserToAuthResponseDTO(token string, user domain.User) AuthResponseDTO {
 	return AuthResponseDTO{
 		Token: token,
 		User: AuthUserDTO{
-			UserID: user.UserID,
-			Name:   user.FirstName,
-			Email:  user.Email,
-			Role:   string(user.Role),
+			UserID:   user.UserID,
+			Name:     user.FirstName,
+			Email:    user.Email,
+			Role:     string(user.Role),
+			Username: user.Username,
 		},
 	}
 }

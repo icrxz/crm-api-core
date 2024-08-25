@@ -11,7 +11,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user User) (string, error)
 	GetByID(ctx context.Context, userID string) (*User, error)
-	Search(ctx context.Context, filters UserFilters) ([]User, error)
+	Search(ctx context.Context, filters UserFilters) (PagingResult[User], error)
 	Update(ctx context.Context, userToUpdate User) error
 	Delete(ctx context.Context, userID string) error
 }
@@ -42,6 +42,7 @@ type UserFilters struct {
 	Role      []string
 	Region    []string
 	Active    *bool
+	PagingFilter
 }
 
 type UserUpdate struct {

@@ -1,9 +1,11 @@
 package rest
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
+	"strconv"
 )
 
 type UserController struct {
@@ -93,7 +95,11 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 }
 
 func (c *UserController) SearchUser(ctx *gin.Context) {
-	userFilters := c.parseQueryToUserFilters(ctx)
+	userFilters, err := c.parseQueryToUserFilters(ctx)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
 
 	users, err := c.userService.Search(ctx.Request.Context(), userFilters)
 	if err != nil {
@@ -101,13 +107,18 @@ func (c *UserController) SearchUser(ctx *gin.Context) {
 		return
 	}
 
-	userDTOs := mapUsersToUserDTOs(users)
+	searchResult := mapSearchResultToSearchResultDTO(users, mapUsersToUserDTOs)
 
-	ctx.JSON(200, userDTOs)
+	ctx.JSON(200, searchResult)
 }
 
-func (c *UserController) parseQueryToUserFilters(ctx *gin.Context) domain.UserFilters {
-	filters := domain.UserFilters{}
+func (c *UserController) parseQueryToUserFilters(ctx *gin.Context) (domain.UserFilters, error) {
+	filters := domain.UserFilters{
+		PagingFilter: domain.PagingFilter{
+			Limit:  10,
+			Offset: 0,
+		},
+	}
 
 	if emails := ctx.QueryArray("email"); len(emails) > 0 {
 		filters.Email = emails
@@ -134,5 +145,28 @@ func (c *UserController) parseQueryToUserFilters(ctx *gin.Context) domain.UserFi
 		filters.Active = &activeBool
 	}
 
-	return filters
+	validationErr := make([]error, 0)
+	if limitParam := ctx.Query("limit"); limitParam != "" {
+		parsedLimit, err := strconv.Atoi(limitParam)
+		if err != nil {
+			validationErr = append(validationErr, domain.NewValidationError("limit must be a number", nil))
+		} else {
+			filters.PagingFilter.Limit = parsedLimit
+		}
+	}
+
+	if offsetParam := ctx.Query("offset"); offsetParam != "" {
+		parsedOffset, err := strconv.Atoi(offsetParam)
+		if err != nil {
+			validationErr = append(validationErr, domain.NewValidationError("offset must be a number", nil))
+		} else {
+			filters.PagingFilter.Offset = parsedOffset
+		}
+	}
+
+	if len(validationErr) > 0 {
+		return domain.UserFilters{}, errors.Join(validationErr...)
+	}
+
+	return filters, nil
 }

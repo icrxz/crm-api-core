@@ -38,12 +38,18 @@ func (a *authService) Login(ctx context.Context, email, password, clientIP strin
 		Email: []string{
 			email,
 		},
+		PagingFilter: domain.PagingFilter{
+			Limit:  1,
+			Offset: 0,
+		},
 	}
 
-	users, err := a.userRepository.Search(ctx, userEmailFilter)
+	searchResult, err := a.userRepository.Search(ctx, userEmailFilter)
 	if err != nil {
 		return "", nil, err
 	}
+
+	users := searchResult.Result
 
 	if len(users) <= 0 {
 		return "", nil, domain.NewValidationError("no user found", nil)

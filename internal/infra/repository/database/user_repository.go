@@ -54,9 +54,10 @@ func (db *userDatabase) GetByID(ctx context.Context, userID string) (*domain.Use
 	return &user, nil
 }
 
-func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) ([]domain.User, error) {
+func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) (domain.PagingResult[domain.User], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
+	limitArgs := make([]any, 0, 2)
 
 	whereQuery, whereArgs = prepareInQuery(filters.Email, whereQuery, whereArgs, "email")
 	whereQuery, whereArgs = prepareInQuery(filters.FirstName, whereQuery, whereArgs, "first_name")
@@ -69,17 +70,36 @@ func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) 
 		whereArgs = append(whereArgs, filters.Active)
 	}
 
-	query := fmt.Sprintf("SELECT * FROM users WHERE %s", strings.Join(whereQuery, " AND "))
+	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
+	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+
+	query := fmt.Sprintf("SELECT * FROM users WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM users WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundUsers []UserDTO
-	err := db.client.SelectContext(ctx, &foundUsers, query, whereArgs...)
+	err := db.client.SelectContext(ctx, &foundUsers, query, limitArgs...)
 	if err != nil {
-		return nil, err
+		return domain.PagingResult[domain.User]{}, err
+	}
+
+	var countResult int
+	err = db.client.GetContext(ctx, &countResult, countQuery, whereArgs...)
+	if err != nil {
+		return domain.PagingResult[domain.User]{}, err
 	}
 
 	users := mapUserDTOsToUsers(foundUsers)
 
-	return users, nil
+	result := domain.PagingResult[domain.User]{
+		Result: users,
+		Paging: domain.Paging{
+			Total:  countResult,
+			Limit:  filters.Limit,
+			Offset: filters.Offset,
+		},
+	}
+
+	return result, nil
 }
 
 func (db *userDatabase) Update(ctx context.Context, userToUpdate domain.User) error {
