@@ -155,7 +155,7 @@ func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner)
 }
 
 func (db *partnerRepository) CreateBatch(ctx context.Context, partners []domain.Partner) ([]string, error) {
-	chunks := db.createChunks(partners, 100)
+	chunks := createChunks(partners, 100)
 	tx := db.client.MustBegin()
 
 	insertedIDs := make([]string, 0, len(partners))
@@ -184,19 +184,4 @@ func (db *partnerRepository) CreateBatch(ctx context.Context, partners []domain.
 	}
 
 	return insertedIDs, nil
-}
-
-func (db *partnerRepository) createChunks(slice []domain.Partner, size int) [][]domain.Partner {
-	var chunks [][]domain.Partner
-	for i := 0; i < len(slice); i += size {
-		end := i + size
-
-		if end > len(slice) {
-			end = len(slice)
-		}
-
-		chunks = append(chunks, slice[i:end])
-	}
-
-	return chunks
 }

@@ -85,6 +85,7 @@ func LoadRoutes(
 	authGroup.GET("/transactions/:transactionID", transactionController.GetTransaction)
 	authGroup.PUT("/transactions/:transactionID", transactionController.UpdateTransaction)
 	authGroup.GET("/transactions", transactionController.SearchTransactions)
+	authGroup.POST("/cases/:caseID/transactions/batch", transactionController.CreateTransactionBatch)
 
 	// case actions
 	authGroup.PATCH("/cases/:caseID/owner", caseActionController.ChangeOwner)

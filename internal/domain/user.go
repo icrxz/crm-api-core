@@ -48,6 +48,7 @@ type UserFilters struct {
 type UserUpdate struct {
 	FirstName    *string
 	LastName     *string
+	Username     *string
 	Email        *string
 	Role         *UserRole
 	Region       *int
@@ -140,5 +141,9 @@ func (u *User) MergeUpdate(userUpdate UserUpdate, author string) {
 
 	if userUpdate.Role != nil {
 		u.Role = *userUpdate.Role
+	}
+
+	if userUpdate.Password != nil {
+		u.Password, _ = encryptPassword(*userUpdate.Password)
 	}
 }

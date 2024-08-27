@@ -2,10 +2,11 @@ package rest
 
 import (
 	"errors"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
-	"strconv"
 )
 
 type UserController struct {
@@ -48,10 +49,12 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	var user *domain.User
-	ctx.BindJSON(&user)
+	var userDTO *UpdateUserDTO
+	ctx.BindJSON(&userDTO)
 
-	err := c.userService.Update(ctx.Request.Context(), *user)
+	userUpdate := mapUpdateUserDTOToUserUpdate(*userDTO)
+
+	err := c.userService.Update(ctx.Request.Context(), userID, userDTO.UpdatedBy, userUpdate)
 	if err != nil {
 		ctx.Error(err)
 		return

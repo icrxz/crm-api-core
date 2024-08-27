@@ -25,3 +25,18 @@ func prepareInQuery[S comparable](filters []S, query []string, args []any, key s
 
 	return query, args
 }
+
+func createChunks[T any](slice []T, size int) [][]T {
+	var chunks [][]T
+	for i := 0; i < len(slice); i += size {
+		end := i + size
+
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		chunks = append(chunks, slice[i:end])
+	}
+
+	return chunks
+}

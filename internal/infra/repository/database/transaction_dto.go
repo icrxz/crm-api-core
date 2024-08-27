@@ -64,3 +64,11 @@ func mapTransactionDTOsToTransactions(transactionDTOs []TransactionDTO) []domain
 	}
 	return transactions
 }
+
+func mapTransactionsToTransactionsDTOs(transactions []domain.Transaction) []TransactionDTO {
+	transactionsDTOs := make([]TransactionDTO, 0, len(transactions))
+	for _, transaction := range transactions {
+		transactionsDTOs = append(transactionsDTOs, mapTransactionToTransactionDTO(transaction))
+	}
+	return transactionsDTOs
+}

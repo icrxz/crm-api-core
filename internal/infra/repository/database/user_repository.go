@@ -116,6 +116,7 @@ func (db *userDatabase) Update(ctx context.Context, userToUpdate domain.User) er
 			"updated_by = updated_by, "+
 			"active = :active, "+
 			"region = :region, "+
+			"password = :password, "+
 			"last_logged_ip = :last_logged_ip "+
 			"WHERE user_id = :user_id",
 		userDTO,
