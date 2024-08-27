@@ -17,6 +17,18 @@ type CreateUserDTO struct {
 	CreatedBy string          `json:"created_by"`
 }
 
+type UpdateUserDTO struct {
+	Username  *string          `json:"username"`
+	FirstName *string          `json:"first_name"`
+	LastName  *string          `json:"last_name"`
+	Email     *string          `json:"email"`
+	Role      *domain.UserRole `json:"role"`
+	Region    *int             `json:"region"`
+	Password  *string          `json:"password"`
+	Active    *bool            `json:"active"`
+	UpdatedBy string           `json:"created_by"`
+}
+
 type UserDTO struct {
 	UserID    string          `json:"user_id"`
 	Username  string          `json:"username"`
@@ -75,4 +87,17 @@ func mapUsersToUserDTOs(users []domain.User) []UserDTO {
 	}
 
 	return userDTOs
+}
+
+func mapUpdateUserDTOToUserUpdate(dto UpdateUserDTO) domain.UserUpdate {
+	return domain.UserUpdate{
+		FirstName: dto.FirstName,
+		LastName:  dto.LastName,
+		Username:  dto.Username,
+		Email:     dto.Email,
+		Role:      dto.Role,
+		Region:    dto.Region,
+		Password:  dto.Password,
+		Active:    dto.Active,
+	}
 }

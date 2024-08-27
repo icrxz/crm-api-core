@@ -12,6 +12,7 @@ type TransactionRepository interface {
 	GetTransaction(ctx context.Context, transactionID string) (Transaction, error)
 	UpdateTransaction(ctx context.Context, transaction Transaction) error
 	SearchTransactions(ctx context.Context, filters TransactionFilters) ([]Transaction, error)
+	CreateTransactionBatch(ctx context.Context, transaction []Transaction) ([]string, error)
 }
 
 type Transaction struct {

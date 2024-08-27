@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -190,98 +193,133 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 	if err != nil {
 		return err
 	}
+
 	err = docEdit.Replace("$partner", fmt.Sprintf("%s %s", reportData.Partner.FirstName, reportData.Partner.LastName), -1)
 	if err != nil {
 		return err
 	}
+
 	err = docEdit.Replace("$target_date", reportData.CrmCase.TargetDate.Format(dateReportLayout), -1)
 	if err != nil {
 		return err
 	}
+
 	err = docEdit.Replace("$document", ParseDocument(reportData.Customer.Document), -1)
 	if err != nil {
 		return err
 	}
+
 	err = docEdit.Replace("$address", reportData.Customer.ShippingAddress.Address, -1)
 	if err != nil {
 		return err
 	}
+
 	err = docEdit.Replace("$zip_code", reportData.Customer.ShippingAddress.ZipCode, -1)
 	if err != nil {
 		return err
 	}
+
 	err = docEdit.Replace("$product", reportData.Product.Name, -1)
 	if err != nil {
 		return err
 	}
+
 	err = docEdit.Replace("$serial_number", reportData.Product.SerialNumber, -1)
 	if err != nil {
 		return err
 	}
 
-	content := make([]string, 0)
-	contentAttachments := make([][]byte, 0)
-	comments := make([]string, 0)
-	commentsAttachments := make([][]byte, 0)
+	err = docEdit.Replace("$model", reportData.Product.Model, -1)
+	if err != nil {
+		return err
+	}
+
+	serviceAttachments := make([][]byte, 0)
+	startAttachments := make([][]byte, 0)
 	resolution := make([]string, 0)
 	resolutionAttachments := make([][]byte, 0)
+
+	attachmentsVar := make([]string, 0)
+
 	for _, comment := range reportData.Comments {
 		switch comment.CommentType {
-		case domain.CONTENT:
-			contentAttachments, err = s.downloadFiles(ctx, comment.Attachments)
+		case domain.COMMENT:
+			serviceAttachments, err = s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
 				return err
 			}
-			content = append(content, fmt.Sprintf("%s - %s", comment.CreatedAt.Format(dateTimeReportLayout), comment.Content))
+			resolution = append(resolution, "Conteúdo - "+comment.Content)
+
+			for range serviceAttachments {
+				attachmentsVar = append(attachmentsVar, fmt.Sprintf("word/media/image_%d.png", len(attachmentsVar)))
+			}
 		case domain.RESOLUTION:
 			resolutionAttachments, err = s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
 				return err
 			}
-			resolution = append(resolution, fmt.Sprintf("%s - %s", comment.CreatedAt.Format(dateTimeReportLayout), comment.Content))
-		case domain.COMMENT:
-			commentsAttachments, err = s.downloadFiles(ctx, comment.Attachments)
+			//resolution = append(resolution, fmt.Sprintf("%s - %s", comment.CreatedAt.Format(dateTimeReportLayout), comment.Content))
+			resolution = append(resolution, "Conteúdo - "+comment.Content)
+
+			for range resolutionAttachments {
+				attachmentsVar = append(attachmentsVar, fmt.Sprintf("word/media/image_%d.png", len(attachmentsVar)))
+			}
+		case domain.CONTENT:
+			startAttachments, err = s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
 				return err
 			}
-			comments = append(comments, fmt.Sprintf("%s - %s", comment.CreatedAt.Format(dateTimeReportLayout), comment.Content))
+			resolution = append(resolution, "Conteúdo - "+comment.Content)
+
+			for range startAttachments {
+				attachmentsVar = append(attachmentsVar, fmt.Sprintf("word/media/image_%d.png", len(attachmentsVar)))
+			}
 		}
 	}
 
-	err = docEdit.Replace("$content", strings.Join(content, "\r\n"), -1)
+	imgAttachments := make([][]byte, 0, len(resolutionAttachments)+len(startAttachments)+len(serviceAttachments))
+	imgAttachments = append(imgAttachments, resolutionAttachments...)
+	imgAttachments = append(imgAttachments, startAttachments...)
+	imgAttachments = append(imgAttachments, serviceAttachments...)
+
+	err = docEdit.Replace("$resolution", strings.Join(resolution, " \r\n"), -1)
 	if err != nil {
 		return err
 	}
-	if len(contentAttachments) > 0 {
-		err = docEdit.Replace("$image_content", string(contentAttachments[0]), -1)
-		if err != nil {
-			return err
-		}
-	}
 
-	err = docEdit.Replace("$comments", strings.Join(comments, "\r\n"), -1)
+	fmt.Println("attachmentsVar", attachmentsVar)
+	err = docEdit.Replace("$attachments", strings.Join(attachmentsVar, " \r\n"), -1)
 	if err != nil {
 		return err
 	}
-	if len(commentsAttachments) > 0 {
-		err = docEdit.Replace("$image_comment", string(commentsAttachments[0]), -1)
-		if err != nil {
-			return err
-		}
-	}
 
-	err = docEdit.Replace("$resolution", strings.Join(resolution, "\r\n"), -1)
+	f, err := os.OpenFile("resources/tmp.docx", os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
-	if len(resolutionAttachments) > 0 {
-		err = docEdit.Replace("$image_resolution", string(resolutionAttachments[0]), -1)
-		if err != nil {
-			return err
-		}
+
+	err = docEdit.Write(f)
+	if err != nil {
+		return err
 	}
 
-	return docEdit.Write(memDoc)
+	imageFile, err := docx.ReadDocxFile("resources/tmp.docx")
+	if err != nil {
+		return err
+	}
+	f1 := imageFile.Editable()
+
+	err = s.replaceImages(f1, memDoc, imgAttachments)
+	if err != nil {
+		return err
+	}
+
+	// err = os.Remove("resources/tmp.docx")
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
 }
 
 func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attachment) ([][]byte, error) {
@@ -295,4 +333,64 @@ func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attach
 	}
 
 	return downloadedFiles, nil
+}
+
+func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachments [][]byte) error {
+	attachmentNames := make([]string, 0, len(attachments))
+
+	for idx, attachment := range attachments {
+		img, _, err := image.Decode(bytes.NewReader(attachment))
+		if err != nil {
+			return err
+		}
+
+		fileName := fmt.Sprintf("./resources/img%d.png", idx)
+		out, _ := os.Create(fileName)
+		attachmentNames = append(attachmentNames, fileName)
+
+		err = jpeg.Encode(out, img, nil)
+		if err != nil {
+			return err
+		}
+
+		err = out.Close()
+		if err != nil {
+			return err
+		}
+
+		// var buf bytes.Buffer
+		// if err = png.Encode(&buf, img); err != nil {
+		// 	return err
+		// }
+		// data := buf.Bytes()
+		// imgBase64 := base64.StdEncoding.EncodeToString(data)
+
+		// imgTag := fmt.Sprintf("<img src=\"%s\" alt=\"whatever\" />", fileName)
+		// imgTag := fmt.Sprintf("<img src=\"data:image/png;base64, %s\" alt=\"testImage\" />", imgBase64)
+
+		// err = doc.ReplaceImage(fmt.Sprintf("word/media/image_%d.png", idx), fileName)
+		// doc.ReplaceRaw(fmt.Sprintf("word/media/image1.png", idx), imgTag, -1)
+
+		err = doc.ReplaceImage("word/media/image1.png", fileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := doc.Write(memDoc)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Escreveu no documento")
+	fmt.Println(doc.GetContent())
+
+	for _, attachmentName := range attachmentNames {
+		err = os.Remove(attachmentName)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

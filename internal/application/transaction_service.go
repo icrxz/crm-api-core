@@ -15,6 +15,7 @@ type TransactionService interface {
 	GetTransaction(ctx context.Context, transactionID string) (domain.Transaction, error)
 	UpdateTransaction(ctx context.Context, transactionID string, transactionUpdate domain.TransactionUpdate) error
 	SearchTransactions(ctx context.Context, filters domain.TransactionFilters) ([]domain.Transaction, error)
+	CreateTransactionBatch(ctx context.Context, transactions []domain.Transaction) ([]string, error)
 }
 
 func NewTransactionService(transactionRepository domain.TransactionRepository) TransactionService {
@@ -52,4 +53,8 @@ func (s *transactionService) UpdateTransaction(ctx context.Context, transactionI
 
 func (s *transactionService) SearchTransactions(ctx context.Context, filters domain.TransactionFilters) ([]domain.Transaction, error) {
 	return s.transactionRepository.SearchTransactions(ctx, filters)
+}
+
+func (s *transactionService) CreateTransactionBatch(ctx context.Context, transactions []domain.Transaction) ([]string, error) {
+	return s.transactionRepository.CreateTransactionBatch(ctx, transactions)
 }

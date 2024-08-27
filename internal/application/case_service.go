@@ -78,9 +78,13 @@ func (c *caseService) SearchCases(ctx context.Context, filters domain.CaseFilter
 func (c *caseService) assignOwnerToNewCase(ctx context.Context, crmCase *domain.Case) error {
 	regionStringified := strconv.Itoa(crmCase.Region)
 
-	user, err := c.userService.Search(ctx, domain.UserFilters{
+	searchResult, err := c.userService.Search(ctx, domain.UserFilters{
 		Region: []string{regionStringified},
 		Role:   []string{string(domain.OPERATOR)},
+		PagingFilter: domain.PagingFilter{
+			Limit:  1,
+			Offset: 0,
+		},
 	})
 	if err != nil {
 		var customErr *domain.CustomError
@@ -88,6 +92,8 @@ func (c *caseService) assignOwnerToNewCase(ctx context.Context, crmCase *domain.
 			return domain.NewValidationError("user not found", nil)
 		}
 	}
+
+	user := searchResult.Result
 
 	if len(user) > 0 {
 		crmCase.OwnerID = user[0].UserID

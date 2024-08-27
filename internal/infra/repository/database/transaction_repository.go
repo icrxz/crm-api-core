@@ -99,3 +99,38 @@ func (r *transactionRepository) SearchTransactions(ctx context.Context, filters 
 
 	return transactions, nil
 }
+
+func (r *transactionRepository) CreateTransactionBatch(ctx context.Context, transactions []domain.Transaction) ([]string, error) {
+	chunks := createChunks(transactions, 100)
+	tx := r.client.MustBegin()
+
+	insertedIDs := make([]string, 0, len(transactions))
+	for _, chunk := range chunks {
+		transactionDTOs := mapTransactionsToTransactionsDTOs(chunk)
+
+		query := "INSERT INTO transactions " +
+			"(transaction_id, case_id, type, amount, status, attachment_id, created_at, updated_at, created_by, updated_by, description) " +
+			"VALUES " +
+			"(:transaction_id, :case_id, :type, :amount, :status, :attachment_id, :created_at, :updated_at, :created_by, :updated_by, :description)"
+
+		_, err := tx.NamedExecContext(
+			ctx,
+			query,
+			transactionDTOs,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, transaction := range transactionDTOs {
+			insertedIDs = append(insertedIDs, transaction.TransactionID)
+		}
+	}
+
+	err := tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return insertedIDs, nil
+}

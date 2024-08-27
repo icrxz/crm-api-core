@@ -12,10 +12,10 @@ type userService struct {
 
 type UserService interface {
 	Create(ctx context.Context, user domain.User) (string, error)
-	GetByID(ctx context.Context, id string) (*domain.User, error)
-	Update(ctx context.Context, user domain.User) error
-	Delete(ctx context.Context, id string) error
-	Search(ctx context.Context, filters domain.UserFilters) ([]domain.User, error)
+	GetByID(ctx context.Context, userID string) (*domain.User, error)
+	Update(ctx context.Context, userID, author string, user domain.UserUpdate) error
+	Delete(ctx context.Context, userID string) error
+	Search(ctx context.Context, filters domain.UserFilters) (domain.PagingResult[domain.User], error)
 }
 
 func NewUserService(userRepository domain.UserRepository) UserService {
@@ -24,30 +24,37 @@ func NewUserService(userRepository domain.UserRepository) UserService {
 	}
 }
 
-func (us *userService) Create(ctx context.Context, user domain.User) (string, error) {
-	return us.userRepository.Create(ctx, user)
+func (s *userService) Create(ctx context.Context, user domain.User) (string, error) {
+	return s.userRepository.Create(ctx, user)
 }
 
-func (us *userService) GetByID(ctx context.Context, userID string) (*domain.User, error) {
+func (s *userService) GetByID(ctx context.Context, userID string) (*domain.User, error) {
 	if userID == "" {
 		return nil, domain.NewValidationError("userID cannot be empty", nil)
 	}
 
-	return us.userRepository.GetByID(ctx, userID)
+	return s.userRepository.GetByID(ctx, userID)
 }
 
-func (us *userService) Update(ctx context.Context, user domain.User) error {
-	return us.userRepository.Update(ctx, user)
+func (s *userService) Update(ctx context.Context, userID, author string, userUpdate domain.UserUpdate) error {
+	user, err := s.userRepository.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	user.MergeUpdate(userUpdate, author)
+
+	return s.userRepository.Update(ctx, *user)
 }
 
-func (us *userService) Delete(ctx context.Context, userID string) error {
+func (s *userService) Delete(ctx context.Context, userID string) error {
 	if userID == "" {
 		return domain.NewValidationError("userID cannot be empty", nil)
 	}
 
-	return us.userRepository.Delete(ctx, userID)
+	return s.userRepository.Delete(ctx, userID)
 }
 
-func (us *userService) Search(ctx context.Context, filters domain.UserFilters) ([]domain.User, error) {
-	return us.userRepository.Search(ctx, filters)
+func (s *userService) Search(ctx context.Context, filters domain.UserFilters) (domain.PagingResult[domain.User], error) {
+	return s.userRepository.Search(ctx, filters)
 }

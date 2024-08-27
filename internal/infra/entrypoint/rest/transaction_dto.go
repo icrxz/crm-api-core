@@ -76,3 +76,17 @@ func mapTransactionUpdateDTOToTransactionUpdate(transactionUpdateDTO Transaction
 		UpdatedBy:    transactionUpdateDTO.UpdatedBy,
 	}
 }
+
+func mapCreateTransactionsDTOToTransactions(transactionsDTO []CreateTransactionDTO, caseID string) ([]domain.Transaction, error) {
+	transactions := make([]domain.Transaction, 0, len(transactionsDTO))
+
+	for _, transactionDTO := range transactionsDTO {
+		transaction, err := mapCreateTransactionDTOToTransaction(transactionDTO, caseID)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	return transactions, nil
+}

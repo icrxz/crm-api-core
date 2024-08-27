@@ -119,3 +119,32 @@ func (c *TransactionController) parseQueryToFilters(ctx *gin.Context) domain.Tra
 
 	return filters
 }
+
+func (c *TransactionController) CreateTransactionBatch(ctx *gin.Context) {
+	caseID := ctx.Param("caseID")
+	if caseID == "" {
+		ctx.Error(domain.NewValidationError("param caseID cannot be empty", nil))
+		return
+	}
+
+	var transactionsDTO []CreateTransactionDTO
+	err := ctx.BindJSON(&transactionsDTO)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	transactions, err := mapCreateTransactionsDTOToTransactions(transactionsDTO, caseID)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	transactionIDs, err := c.transactionService.CreateTransactionBatch(ctx.Request.Context(), transactions)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(201, gin.H{"transaction_ids": transactionIDs})
+}
