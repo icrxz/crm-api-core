@@ -70,36 +70,18 @@ func (s *partnerService) Search(ctx context.Context, filters domain.PartnerFilte
 func (s *partnerService) CreateBatch(ctx context.Context, file io.Reader, createdBy string) ([]string, error) {
 	fileCSV := csv.NewReader(file)
 
-	partnersRows, err := s.readCSV(fileCSV)
+	partnersRows, err := readCSV(fileCSV)
 	if err != nil {
 		return nil, err
 	}
 
-	columnsIndex := s.getColumnHeadersIndex(partnersRows[0])
+	columnsIndex := getColumnHeadersIndex(partnersRows[0])
 	partners, err := s.buildPartner(partnersRows[1:], columnsIndex, createdBy)
 	if err != nil {
 		return nil, err
 	}
 
 	return s.partnerRepository.CreateBatch(ctx, partners)
-}
-
-func (s *partnerService) readCSV(fileCSV *csv.Reader) ([][]string, error) {
-	csvRows := make([][]string, 0)
-
-	for {
-		row, err := fileCSV.Read()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-
-		csvRows = append(csvRows, row)
-	}
-
-	return csvRows, nil
 }
 
 func (s *partnerService) buildPartner(csvRows [][]string, columnsIndex map[string]int, author string) ([]domain.Partner, error) {
@@ -157,12 +139,4 @@ func (s *partnerService) buildPartner(csvRows [][]string, columnsIndex map[strin
 		partners = append(partners, newPartner)
 	}
 	return partners, nil
-}
-
-func (s *partnerService) getColumnHeadersIndex(header []string) map[string]int {
-	columnsIndex := make(map[string]int)
-	for i, column := range header {
-		columnsIndex[column] = i
-	}
-	return columnsIndex
 }

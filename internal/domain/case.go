@@ -12,6 +12,7 @@ type CaseRepository interface {
 	GetByID(ctx context.Context, caseID string) (*Case, error)
 	Search(ctx context.Context, filters CaseFilters) (PagingResult[Case], error)
 	Update(ctx context.Context, crmCase Case) error
+	CreateBatch(ctx context.Context, cases []Case) ([]string, error)
 }
 
 type CreateCase struct {
