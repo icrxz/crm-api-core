@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"github.com/nguyenthenguyen/docx"
 	"golang.org/x/sync/errgroup"
@@ -294,7 +295,7 @@ func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachme
 			return err
 		}
 
-		fileName := fmt.Sprintf("./resources/img%d.png", idx)
+		fileName := fmt.Sprintf("./resources/img_%s.png", uuid.NewString())
 		out, _ := os.Create(fileName)
 		attachmentNames = append(attachmentNames, fileName)
 
