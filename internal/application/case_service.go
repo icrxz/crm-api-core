@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"time"
 
@@ -152,8 +153,13 @@ func (s *caseService) buildCases(ctx context.Context, csvRows [][]string, column
 		companyName := row[columnsIndex["Seguradora"]]
 		customerDocument := row[columnsIndex["Documento"]]
 
-		companyNames = append(companyNames, companyName)
-		customerDocuments = append(customerDocuments, customerDocument)
+		if !slices.Contains(companyNames, companyName) {
+			companyNames = append(companyNames, companyName)
+		}
+
+		if !slices.Contains(customerDocuments, customerDocument) {
+			customerDocuments = append(customerDocuments, customerDocument)
+		}
 	}
 
 	contractors, err := s.searchContractorBatch(ctx, companyNames)
@@ -199,6 +205,7 @@ func (s *caseService) buildCases(ctx context.Context, csvRows [][]string, column
 			}
 
 			customer = newCustomer
+			customers[newCustomer.Document] = customer
 		}
 
 		dueDate := time.Now().Add(7 * 24 * time.Hour)

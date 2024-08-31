@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
+	_ "image/png"
 	"io"
 	"os"
 	"strings"
 	"time"
-
-	_ "image/jpeg"
-	_ "image/png"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"github.com/nguyenthenguyen/docx"
@@ -237,39 +235,29 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 		return err
 	}
 
-	serviceAttachments := make([][]byte, 0)
 	startAttachments := make([][]byte, 0)
 	resolution := make([]string, 0)
 	resolutionAttachments := make([][]byte, 0)
 
 	for _, comment := range reportData.Comments {
 		switch comment.CommentType {
-		case domain.COMMENT:
-			serviceAttachments, err = s.downloadFiles(ctx, comment.Attachments)
-			if err != nil {
-				return err
-			}
-			resolution = append(resolution, "Conteúdo - "+comment.Content)
 		case domain.RESOLUTION:
 			resolutionAttachments, err = s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
 				return err
 			}
-			//resolution = append(resolution, fmt.Sprintf("%s - %s", comment.CreatedAt.Format(dateTimeReportLayout), comment.Content))
-			resolution = append(resolution, "Conteúdo - "+comment.Content)
+			resolution = append(resolution, comment.Content)
 		case domain.CONTENT:
 			startAttachments, err = s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
 				return err
 			}
-			resolution = append(resolution, "Conteúdo - "+comment.Content)
 		}
 	}
 
-	imgAttachments := make([][]byte, 0, len(resolutionAttachments)+len(startAttachments)+len(serviceAttachments))
-	imgAttachments = append(imgAttachments, resolutionAttachments...)
+	imgAttachments := make([][]byte, 0, len(resolutionAttachments)+len(startAttachments))
 	imgAttachments = append(imgAttachments, startAttachments...)
-	imgAttachments = append(imgAttachments, serviceAttachments...)
+	imgAttachments = append(imgAttachments, resolutionAttachments...)
 
 	err = docEdit.Replace("$resolution", strings.Join(resolution, " \r\n"), -1)
 	if err != nil {
@@ -299,9 +287,6 @@ func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attach
 
 func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachments [][]byte) error {
 	attachmentNames := make([]string, 0, len(attachments))
-
-	fmt.Println(doc.ImagesLen())
-	fmt.Println(doc.GetContent())
 
 	for idx, attachment := range attachments {
 		img, _, err := image.Decode(bytes.NewReader(attachment))
