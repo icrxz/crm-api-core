@@ -129,18 +129,18 @@ func (c *caseService) UpdateCase(ctx context.Context, caseID string, newCase dom
 func (s *caseService) CreateBatch(ctx context.Context, file io.Reader, createdBy string) ([]string, error) {
 	fileCSV := csv.NewReader(file)
 
-	partnersRows, err := readCSV(fileCSV)
+	casesRows, err := readCSV(fileCSV)
 	if err != nil {
 		return nil, err
 	}
 
-	columnsIndex := getColumnHeadersIndex(partnersRows[0])
-	partners, err := s.buildCases(ctx, partnersRows[1:], columnsIndex, createdBy)
+	columnsIndex := getColumnHeadersIndex(casesRows[0])
+	cases, err := s.buildCases(ctx, casesRows[1:], columnsIndex, createdBy)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.caseRepository.CreateBatch(ctx, partners)
+	return s.caseRepository.CreateBatch(ctx, cases)
 }
 
 func (s *caseService) buildCases(ctx context.Context, csvRows [][]string, columnsIndex map[string]int, author string) ([]domain.Case, error) {
