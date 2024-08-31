@@ -2,12 +2,13 @@ package rest
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/icrxz/crm-api-core/internal/application"
-	"github.com/icrxz/crm-api-core/internal/domain"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/icrxz/crm-api-core/internal/application"
+	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
 type PartnerController struct {
@@ -134,6 +135,10 @@ func (c *PartnerController) CreateBatch(ctx *gin.Context) {
 	}
 
 	file, err := fileHeader.Open()
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
 	defer file.Close()
 
 	if !strings.Contains(fileHeader.Filename, ".csv") {

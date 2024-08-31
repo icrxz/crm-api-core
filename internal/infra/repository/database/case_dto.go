@@ -108,3 +108,13 @@ func mapCaseDTOsToCases(crmCaseDTOs []CaseDTO) []domain.Case {
 
 	return crmCases
 }
+
+func mapCasesToCaseDTOs(cases []domain.Case) []CaseDTO {
+	crmCaseDTOs := make([]CaseDTO, 0, len(cases))
+	for _, crmCase := range cases {
+		caseDTO := mapCaseToCaseDTO(crmCase)
+		crmCaseDTOs = append(crmCaseDTOs, caseDTO)
+	}
+
+	return crmCaseDTOs
+}

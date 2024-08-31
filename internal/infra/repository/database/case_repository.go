@@ -130,3 +130,38 @@ func (r *caseRepository) Update(ctx context.Context, crmCase domain.Case) error 
 
 	return nil
 }
+
+func (db *caseRepository) CreateBatch(ctx context.Context, cases []domain.Case) ([]string, error) {
+	chunks := createChunks(cases, 100)
+	tx := db.client.MustBegin()
+
+	insertedIDs := make([]string, 0, len(cases))
+	for _, chunk := range chunks {
+		caseDTOs := mapCasesToCaseDTOs(chunk)
+
+		query := "INSERT INTO cases " +
+			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id) " +
+			"VALUES " +
+			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id)"
+
+		_, err := tx.NamedExecContext(
+			ctx,
+			query,
+			caseDTOs,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, crmCase := range caseDTOs {
+			insertedIDs = append(insertedIDs, crmCase.CaseID)
+		}
+	}
+
+	err := tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return insertedIDs, nil
+}

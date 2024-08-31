@@ -3,6 +3,7 @@ package rest
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
@@ -73,6 +74,40 @@ func (c *CaseController) SearchCases(ctx *gin.Context) {
 	searchResult := mapSearchResultToSearchResultDTO(cases, mapCasesToCaseDTOs)
 
 	ctx.JSON(http.StatusOK, searchResult)
+}
+
+func (c *CaseController) CreateBatch(ctx *gin.Context) {
+	author := ctx.GetHeader("X-Author")
+	if author == "" {
+		ctx.Error(domain.NewValidationError("header X-Author cannot be empty", nil))
+		return
+	}
+
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	defer file.Close()
+
+	if !strings.Contains(fileHeader.Filename, ".csv") {
+		ctx.Error(domain.NewValidationError("file must be a csv", nil))
+		return
+	}
+
+	result, err := c.caseService.CreateBatch(ctx, file, author)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"case_ids": result})
 }
 
 func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilters {

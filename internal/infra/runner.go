@@ -57,7 +57,7 @@ func RunApp() error {
 	contractorService := application.NewContractorService(contractorRepository)
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
-	caseService := application.NewCaseService(customerService, caseRepository, productService, userService)
+	caseService := application.NewCaseService(customerService, caseRepository, productService, userService, contractorService)
 	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket)
 	transactionService := application.NewTransactionService(transactionRepository)
 	reportService := application.NewReportService(
