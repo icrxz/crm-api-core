@@ -17,42 +17,46 @@ type PartnerRepository interface {
 }
 
 type Partner struct {
-	PartnerID       string
-	FirstName       string
-	LastName        string
-	CompanyName     string
-	LegalName       string
-	PartnerType     string
-	Document        string
-	DocumentType    DocumentType
-	ShippingAddress Address
-	BillingAddress  Address
-	BusinessContact Contact
-	PersonalContact Contact
-	Cases           []Case
-	CreatedBy       string
-	CreatedAt       time.Time
-	UpdatedBy       string
-	UpdatedAt       time.Time
-	Active          bool
-	Description     string
+	PartnerID        string
+	FirstName        string
+	LastName         string
+	CompanyName      string
+	LegalName        string
+	PartnerType      string
+	Document         string
+	DocumentType     DocumentType
+	ShippingAddress  Address
+	BillingAddress   Address
+	BusinessContact  Contact
+	PersonalContact  Contact
+	Cases            []Case
+	CreatedBy        string
+	CreatedAt        time.Time
+	UpdatedBy        string
+	UpdatedAt        time.Time
+	Active           bool
+	Description      string
+	PaymentKey       string
+	PaymentKeyOption string
 }
 
 type EditPartner struct {
-	FirstName       *string
-	LastName        *string
-	CompanyName     *string
-	LegalName       *string
-	PartnerType     *EntityType
-	Document        *string
-	DocumentType    *DocumentType
-	ShippingAddress *Address
-	BillingAddress  *Address
-	BusinessContact *Contact
-	PersonalContact *Contact
-	Active          *bool
-	UpdatedBy       string
-	Description     *string
+	FirstName        *string
+	LastName         *string
+	CompanyName      *string
+	LegalName        *string
+	PartnerType      *EntityType
+	Document         *string
+	DocumentType     *DocumentType
+	ShippingAddress  *Address
+	BillingAddress   *Address
+	BusinessContact  *Contact
+	PersonalContact  *Contact
+	Active           *bool
+	UpdatedBy        string
+	Description      *string
+	PaymentKey       *string
+	PaymentKeyOption *string
 }
 
 type PartnerFilters struct {
@@ -77,7 +81,9 @@ func NewPartner(
 	shippingAddress,
 	billingAddress Address,
 	description,
-	partnerType string,
+	partnerType,
+	paymentKey,
+	paymentKeyOption string,
 ) (Partner, error) {
 	now := time.Now().UTC()
 
@@ -87,24 +93,26 @@ func NewPartner(
 	}
 
 	return Partner{
-		PartnerID:       partnerID.String(),
-		FirstName:       firstName,
-		LastName:        lastName,
-		CompanyName:     companyName,
-		LegalName:       legalName,
-		Document:        document,
-		DocumentType:    DocumentType(documentType),
-		PartnerType:     partnerType,
-		ShippingAddress: shippingAddress,
-		BillingAddress:  billingAddress,
-		PersonalContact: personalContact,
-		BusinessContact: businessContact,
-		CreatedAt:       now,
-		CreatedBy:       author,
-		UpdatedAt:       now,
-		UpdatedBy:       author,
-		Active:          true,
-		Description:     description,
+		PartnerID:        partnerID.String(),
+		FirstName:        firstName,
+		LastName:         lastName,
+		CompanyName:      companyName,
+		LegalName:        legalName,
+		Document:         document,
+		DocumentType:     DocumentType(documentType),
+		PartnerType:      partnerType,
+		ShippingAddress:  shippingAddress,
+		BillingAddress:   billingAddress,
+		PersonalContact:  personalContact,
+		BusinessContact:  businessContact,
+		CreatedAt:        now,
+		CreatedBy:        author,
+		UpdatedAt:        now,
+		UpdatedBy:        author,
+		Active:           true,
+		Description:      description,
+		PaymentKey:       paymentKey,
+		PaymentKeyOption: paymentKeyOption,
 	}, nil
 }
 
@@ -158,6 +166,14 @@ func (p *Partner) MergeUpdate(updatePartner EditPartner) {
 
 	if updatePartner.Description != nil {
 		p.Description = *updatePartner.Description
+	}
+
+	if updatePartner.PaymentKey != nil {
+		p.PaymentKey = *updatePartner.PaymentKey
+	}
+
+	if updatePartner.PaymentKeyOption != nil {
+		p.PaymentKeyOption = *updatePartner.PaymentKeyOption
 	}
 }
 
