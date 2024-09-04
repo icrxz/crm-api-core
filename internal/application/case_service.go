@@ -129,6 +129,7 @@ func (c *caseService) UpdateCase(ctx context.Context, caseID string, newCase dom
 
 func (s *caseService) CreateBatch(ctx context.Context, file io.Reader, createdBy string) ([]string, error) {
 	fileCSV := csv.NewReader(file)
+	fileCSV.Comma = ';'
 
 	casesRows, err := readCSV(fileCSV)
 	if err != nil {
