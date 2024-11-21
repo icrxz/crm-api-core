@@ -113,14 +113,10 @@ func (a *authService) VerifyToken(tokenString string) (jwt.MapClaims, error) {
 }
 
 func (a *authService) VerifyUserSession(ctx context.Context, userID, clientIP string) error {
-	fmt.Println("userID", userID)
-	fmt.Println("clientIP", clientIP)
-
-	user, err := a.userRepository.GetByID(ctx, userID)
+	_, err := a.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
 	}
-	fmt.Println(user)
 
 	//if user.LastLoggedIP != clientIP {
 	//	return domain.NewUnauthorizedError("client ip is different from the logged one, please login again!")

@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"encoding/csv"
 	"io"
 	"strings"
 
@@ -68,9 +67,7 @@ func (s *partnerService) Search(ctx context.Context, filters domain.PartnerFilte
 }
 
 func (s *partnerService) CreateBatch(ctx context.Context, file io.Reader, createdBy string) ([]string, error) {
-	fileCSV := csv.NewReader(file)
-
-	partnersRows, err := readCSV(fileCSV)
+	partnersRows, err := readCSV(file)
 	if err != nil {
 		return nil, err
 	}
