@@ -2,6 +2,7 @@ package rest
 
 import (
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -89,6 +90,10 @@ func (c *CaseController) CreateBatch(ctx *gin.Context) {
 		return
 	}
 
+	fileNameSplit := strings.Split(fileHeader.Filename, ".")
+	fileExtension := fileNameSplit[len(fileNameSplit)-1]
+	allowExtensions := []string{"csv", "xls", "xlsx"}
+
 	file, err := fileHeader.Open()
 	if err != nil {
 		ctx.Error(err)
@@ -96,12 +101,12 @@ func (c *CaseController) CreateBatch(ctx *gin.Context) {
 	}
 	defer file.Close()
 
-	if !strings.Contains(fileHeader.Filename, ".csv") {
+	if !slices.Contains(allowExtensions, fileExtension) {
 		ctx.Error(domain.NewValidationError("file must be a csv", nil))
 		return
 	}
 
-	result, err := c.caseService.CreateBatch(ctx, file, author)
+	result, err := c.caseService.CreateBatch(ctx, file, fileHeader.Filename, author)
 	if err != nil {
 		ctx.Error(err)
 		return

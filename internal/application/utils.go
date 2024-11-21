@@ -4,6 +4,8 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+
+	xlsx "github.com/thedatashed/xlsxreader"
 )
 
 func ParseDocument(document string) string {
@@ -25,7 +27,9 @@ func parseCNPJ(cnpj string) string {
 	return fmt.Sprintf("%s.%s.%s/%s-%s", cnpj[:2], cnpj[2:5], cnpj[5:8], cnpj[8:12], cnpj[12:14])
 }
 
-func readCSV(fileCSV *csv.Reader) ([][]string, error) {
+func readCSV(file io.Reader) ([][]string, error) {
+	fileCSV := csv.NewReader(file)
+
 	csvRows := make([][]string, 0)
 
 	for {
@@ -41,6 +45,38 @@ func readCSV(fileCSV *csv.Reader) ([][]string, error) {
 	}
 
 	return csvRows, nil
+}
+
+func readXLS(file io.Reader) ([][]string, error) {
+	xlsFile, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	fileXLS, err := xlsx.NewReader(xlsFile)
+	if err != nil {
+		return nil, err
+	}
+
+	xlsRows := make([][]string, 0)
+
+	for row := range fileXLS.ReadRows(fileXLS.Sheets[0]) {
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		xlsxRowCells := make([]string, 0)
+		for _, cell := range row.Cells {
+			xlsxRowCells = append(xlsxRowCells, cell.Value)
+		}
+
+		xlsRows = append(xlsRows, xlsxRowCells)
+	}
+
+	return xlsRows, nil
 }
 
 func getColumnHeadersIndex(header []string) map[string]int {
