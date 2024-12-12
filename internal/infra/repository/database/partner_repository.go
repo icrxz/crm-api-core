@@ -167,7 +167,8 @@ func (db *partnerRepository) CreateBatch(ctx context.Context, partners []domain.
 		query := `INSERT INTO partners
 		(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description, payment_key, payment_key_option)
 		VALUES
-		(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description, :payment_key, :payment_key_option)`
+		(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description, :payment_key, :payment_key_option)
+		ON CONFLICT DO NOTHING`
 
 		_, err := tx.NamedExecContext(
 			ctx,
