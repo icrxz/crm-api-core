@@ -142,7 +142,8 @@ func (db *caseRepository) CreateBatch(ctx context.Context, cases []domain.Case) 
 		query := "INSERT INTO cases " +
 			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id) " +
 			"VALUES " +
-			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id)"
+			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id)" +
+			"ON CONFLICT DO NOTHING"
 
 		_, err := tx.NamedExecContext(
 			ctx,

@@ -61,13 +61,6 @@ func readXLS(file io.Reader) ([][]string, error) {
 	xlsRows := make([][]string, 0)
 
 	for row := range fileXLS.ReadRows(fileXLS.Sheets[0]) {
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-
 		xlsxRowCells := make([]string, 0)
 		for _, cell := range row.Cells {
 			xlsxRowCells = append(xlsxRowCells, cell.Value)
