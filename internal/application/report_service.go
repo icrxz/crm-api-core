@@ -311,7 +311,7 @@ func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachme
 
 		err = doc.ReplaceImage(fmt.Sprintf("word/media/image%d.png", idx+1), fileName)
 		if err != nil {
-			return err
+			fmt.Println(err.Error())
 		}
 	}
 
