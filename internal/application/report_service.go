@@ -265,7 +265,7 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 		return err
 	}
 
-	err = s.replaceImages(docEdit, memDoc, imgAttachments)
+	err = s.replaceImages(docEdit, memDoc, imgAttachments, reportData.Contractor.CompanyName == "Assurant")
 	if err != nil {
 		return err
 	}
@@ -286,10 +286,19 @@ func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attach
 	return downloadedFiles, nil
 }
 
-func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachments [][]byte) error {
+func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachments [][]byte, isAssurant bool) error {
 	attachmentNames := make([]string, 0, len(attachments))
 
-	for idx, attachment := range attachments {
+	docImagesLength := doc.ImagesLen()
+	fmt.Println("images", docImagesLength)
+
+	for idx := range docImagesLength {
+		if idx >= docImagesLength-1 && isAssurant {
+			break
+		}
+
+		attachment := attachments[idx]
+
 		img, _, err := image.Decode(bytes.NewReader(attachment))
 		if err != nil {
 			return err
