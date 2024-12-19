@@ -297,6 +297,10 @@ func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachme
 			break
 		}
 
+		if idx >= len(attachments) {
+			break
+		}
+
 		attachment := attachments[idx]
 
 		img, _, err := image.Decode(bytes.NewReader(attachment))
