@@ -74,8 +74,6 @@ func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 
 	updateProduct := mapUpdateProductDTOToUpdateProduct(*updateProductDTO)
 
-	fmt.Println(updateProduct)
-
 	err := c.productService.UpdateProduct(ctx.Request.Context(), productID, updateProduct)
 	if err != nil {
 		ctx.Error(err)

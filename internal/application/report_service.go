@@ -290,7 +290,6 @@ func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachme
 	attachmentNames := make([]string, 0, len(attachments))
 
 	docImagesLength := doc.ImagesLen()
-	fmt.Println("images", docImagesLength)
 
 	for idx := range docImagesLength {
 		if idx >= docImagesLength-1 && isAssurant {
