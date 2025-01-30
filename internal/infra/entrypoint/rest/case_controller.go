@@ -189,8 +189,6 @@ func (c *CaseController) UpdateCase(ctx *gin.Context) {
 
 	caseUpdate := mapUpdateCaseDTOToUpdateCase(*updateCaseDTO)
 
-	fmt.Println(caseUpdate)
-
 	err := c.caseService.UpdateCase(ctx.Request.Context(), caseID, caseUpdate)
 	if err != nil {
 		ctx.Error(err)
