@@ -104,10 +104,10 @@ type UpdateCustomer struct {
 	LegalName       *string
 	Document        *string
 	DocumentType    *string
-	ShippingAddress *Address
-	BillingAddress  *Address
-	BusinessContact *Contact
-	PersonalContact *Contact
+	ShippingAddress *UpdateAddress
+	BillingAddress  *UpdateAddress
+	BusinessContact *UpdateContact
+	PersonalContact *UpdateContact
 	UpdatedBy       string
 }
 
@@ -140,19 +140,19 @@ func (c *Customer) MergeUpdate(updateCustomer UpdateCustomer) {
 	}
 
 	if updateCustomer.ShippingAddress != nil {
-		c.ShippingAddress = *updateCustomer.ShippingAddress
+		c.ShippingAddress.MergeUpdate(*updateCustomer.ShippingAddress)
 	}
 
 	if updateCustomer.BillingAddress != nil {
-		c.BillingAddress = *updateCustomer.BillingAddress
+		c.BillingAddress.MergeUpdate(*updateCustomer.BillingAddress)
 	}
 
 	if updateCustomer.BusinessContact != nil {
-		c.BusinessContact = *updateCustomer.BusinessContact
+		c.BusinessContact.MergeUpdate(*updateCustomer.BusinessContact)
 	}
 
 	if updateCustomer.PersonalContact != nil {
-		c.PersonalContact = *updateCustomer.PersonalContact
+		c.PersonalContact.MergeUpdate(*updateCustomer.PersonalContact)
 	}
 }
 

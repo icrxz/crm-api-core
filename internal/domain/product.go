@@ -9,6 +9,7 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, product Product) (string, error)
+	UpdateProduct(ctx context.Context, product Product) error
 	GetProductByID(ctx context.Context, productID string) (*Product, error)
 }
 
@@ -54,4 +55,43 @@ func NewProduct(
 		CreatedBy:    createdBy,
 		UpdatedBy:    createdBy,
 	}, nil
+}
+
+type UpdateProduct struct {
+	Name         *string
+	Description  *string
+	Value        *float64
+	Brand        *string
+	Model        *string
+	SerialNumber *string
+	UpdatedBy    string
+}
+
+func (p *Product) MergeUpdate(updateProduct UpdateProduct) {
+	p.UpdatedBy = updateProduct.UpdatedBy
+	p.UpdatedAt = time.Now().UTC()
+
+	if updateProduct.Name != nil {
+		p.Name = *updateProduct.Name
+	}
+
+	if updateProduct.Description != nil {
+		p.Description = *updateProduct.Description
+	}
+
+	if updateProduct.Value != nil {
+		p.Value = *updateProduct.Value
+	}
+
+	if updateProduct.Brand != nil {
+		p.Brand = *updateProduct.Brand
+	}
+
+	if updateProduct.Model != nil {
+		p.Model = *updateProduct.Model
+	}
+
+	if updateProduct.SerialNumber != nil {
+		p.SerialNumber = *updateProduct.SerialNumber
+	}
 }

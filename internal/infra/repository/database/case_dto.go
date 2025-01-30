@@ -9,7 +9,7 @@ import (
 type CaseDTO struct {
 	CaseID            string     `db:"case_id"`
 	ContractorID      string     `db:"contractor_id"`
-	CustomerID        string     `db:"customer_id"`
+	CustomerID        *string    `db:"customer_id"`
 	PartnerID         *string    `db:"partner_id"`
 	OwnerID           *string    `db:"owner_id"`
 	OriginChannel     string     `db:"origin"`
@@ -23,7 +23,7 @@ type CaseDTO struct {
 	UpdatedBy         string     `db:"updated_by"`
 	UpdatedAt         time.Time  `db:"updated_at"`
 	ExternalReference string     `db:"external_reference"`
-	ProductID         string     `db:"product_id"`
+	ProductID         *string    `db:"product_id"`
 	Region            int        `db:"region"`
 	ClosedAt          *time.Time `db:"closed_at"`
 	TargetDate        *time.Time `db:"target_date"`
@@ -40,10 +40,20 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		ownerID = &crmCase.OwnerID
 	}
 
+	var customerID *string
+	if crmCase.CustomerID != "" {
+		customerID = &crmCase.CustomerID
+	}
+
+	var productID *string
+	if crmCase.ProductID != "" {
+		productID = &crmCase.ProductID
+	}
+
 	return CaseDTO{
 		CaseID:            crmCase.CaseID,
 		ContractorID:      crmCase.ContractorID,
-		CustomerID:        crmCase.CustomerID,
+		CustomerID:        customerID,
 		PartnerID:         partnerID,
 		OwnerID:           ownerID,
 		OriginChannel:     crmCase.OriginChannel,
@@ -58,7 +68,7 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		UpdatedAt:         crmCase.UpdatedAt,
 		ExternalReference: crmCase.ExternalReference,
 		Region:            crmCase.Region,
-		ProductID:         crmCase.ProductID,
+		ProductID:         productID,
 		TargetDate:        crmCase.TargetDate,
 		ClosedAt:          crmCase.ClosedAt,
 	}
@@ -75,10 +85,20 @@ func mapCaseDTOToCase(crmCaseDTO CaseDTO) domain.Case {
 		ownerID = *crmCaseDTO.OwnerID
 	}
 
+	var customerID string
+	if crmCaseDTO.CustomerID != nil {
+		customerID = *crmCaseDTO.CustomerID
+	}
+
+	var productID string
+	if crmCaseDTO.ProductID != nil {
+		productID = *crmCaseDTO.ProductID
+	}
+
 	return domain.Case{
 		CaseID:            crmCaseDTO.CaseID,
 		ContractorID:      crmCaseDTO.ContractorID,
-		CustomerID:        crmCaseDTO.CustomerID,
+		CustomerID:        customerID,
 		PartnerID:         partnerID,
 		OwnerID:           ownerID,
 		OriginChannel:     crmCaseDTO.OriginChannel,
@@ -93,7 +113,7 @@ func mapCaseDTOToCase(crmCaseDTO CaseDTO) domain.Case {
 		UpdatedAt:         crmCaseDTO.UpdatedAt,
 		ExternalReference: crmCaseDTO.ExternalReference,
 		Region:            crmCaseDTO.Region,
-		ProductID:         crmCaseDTO.ProductID,
+		ProductID:         productID,
 		ClosedAt:          crmCaseDTO.ClosedAt,
 		TargetDate:        crmCaseDTO.TargetDate,
 	}

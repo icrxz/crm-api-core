@@ -61,6 +61,9 @@ type CaseUpdate struct {
 	OwnerID    *string
 	TargetDate *time.Time
 	ClosedAt   *time.Time
+	CustomerID *string
+	ProductID  *string
+	Subject    *string
 	UpdatedBy  string
 }
 
@@ -76,6 +79,7 @@ const (
 	RECEIPT         CaseStatus = "Receipt"
 	CLOSED          CaseStatus = "Closed"
 	CANCELED        CaseStatus = "Canceled"
+	DRAFT           CaseStatus = "Draft"
 )
 
 type CasePriority string
@@ -143,5 +147,17 @@ func (c *Case) MergeUpdate(updateCase CaseUpdate) {
 
 	if updateCase.ClosedAt != nil {
 		c.ClosedAt = updateCase.ClosedAt
+	}
+
+	if updateCase.CustomerID != nil {
+		c.CustomerID = *updateCase.CustomerID
+	}
+
+	if updateCase.ProductID != nil {
+		c.ProductID = *updateCase.ProductID
+	}
+
+	if updateCase.Subject != nil {
+		c.Subject = *updateCase.Subject
 	}
 }

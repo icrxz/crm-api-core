@@ -43,18 +43,18 @@ type CustomerDTO struct {
 }
 
 type UpdateCustomerDTO struct {
-	FirstName       *string     `json:"first_name"`
-	LastName        *string     `json:"last_name"`
-	CompanyName     *string     `json:"company_name"`
-	LegalName       *string     `json:"legal_name"`
-	PartnerType     *string     `json:"partner_type"`
-	Document        *string     `json:"document"`
-	DocumentType    *string     `json:"document_type"`
-	ShippingAddress *AddressDTO `json:"shipping"`
-	BillingAddress  *AddressDTO `json:"billing"`
-	PersonalContact *ContactDTO `json:"personal_contact"`
-	BusinessContact *ContactDTO `json:"business_contact"`
-	UpdatedBy       string      `json:"updated_by"`
+	FirstName       *string           `json:"first_name"`
+	LastName        *string           `json:"last_name"`
+	CompanyName     *string           `json:"company_name"`
+	LegalName       *string           `json:"legal_name"`
+	PartnerType     *string           `json:"partner_type"`
+	Document        *string           `json:"document"`
+	DocumentType    *string           `json:"document_type"`
+	ShippingAddress *UpdateAddressDTO `json:"shipping"`
+	BillingAddress  *UpdateAddressDTO `json:"billing"`
+	PersonalContact *UpdateContactDTO `json:"personal_contact"`
+	BusinessContact *UpdateContactDTO `json:"business_contact"`
+	UpdatedBy       string            `json:"updated_by"`
 }
 
 func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
@@ -106,27 +106,27 @@ func mapCustomersToCustomerDTOs(customers []domain.Customer) []CustomerDTO {
 }
 
 func mapUpdateCustomerDTOToUpdateCustomer(updateCustomerDTO UpdateCustomerDTO) domain.UpdateCustomer {
-	var parsedShippingAddress *domain.Address
+	var parsedShippingAddress *domain.UpdateAddress
 	if updateCustomerDTO.ShippingAddress != nil {
-		shippingAddress := mapAddressDTOToAddress(*updateCustomerDTO.ShippingAddress)
+		shippingAddress := mapUpdateAddressDTOToUpdateAddress(*updateCustomerDTO.ShippingAddress)
 		parsedShippingAddress = &shippingAddress
 	}
 
-	var parsedBillingAddress *domain.Address
+	var parsedBillingAddress *domain.UpdateAddress
 	if updateCustomerDTO.BillingAddress != nil {
-		billingAddress := mapAddressDTOToAddress(*updateCustomerDTO.BillingAddress)
+		billingAddress := mapUpdateAddressDTOToUpdateAddress(*updateCustomerDTO.BillingAddress)
 		parsedBillingAddress = &billingAddress
 	}
 
-	var parsedPersonalContact *domain.Contact
+	var parsedPersonalContact *domain.UpdateContact
 	if updateCustomerDTO.PersonalContact != nil {
-		personalContact := mapContactDTOToContact(*updateCustomerDTO.PersonalContact)
+		personalContact := mapUpdateContactDTOToUpdateContact(*updateCustomerDTO.PersonalContact)
 		parsedPersonalContact = &personalContact
 	}
 
-	var parsedBusinessContact *domain.Contact
+	var parsedBusinessContact *domain.UpdateContact
 	if updateCustomerDTO.BusinessContact != nil {
-		businessContact := mapContactDTOToContact(*updateCustomerDTO.BusinessContact)
+		businessContact := mapUpdateContactDTOToUpdateContact(*updateCustomerDTO.BusinessContact)
 		parsedBusinessContact = &businessContact
 	}
 
