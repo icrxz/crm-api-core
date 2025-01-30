@@ -54,3 +54,20 @@ func (r *productRepository) GetProductByID(ctx context.Context, productID string
 	product := mapProductDTOToProduct(productDTO)
 	return &product, nil
 }
+
+func (r *productRepository) UpdateProduct(ctx context.Context, product domain.Product) error {
+	productDTO := mapProductToProductDTO(product)
+
+	_, err := r.client.NamedExecContext(
+		ctx,
+		"UPDATE products "+
+			"SET name=:name, description=:description, brand=:brand, model=:model, value=:value, serial_number=:serial_number, updated_at=:updated_at, updated_by=:updated_by "+
+			"WHERE product_id=:product_id",
+		productDTO,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

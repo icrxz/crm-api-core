@@ -10,6 +10,14 @@ type AddressDTO struct {
 	ZipCode string `json:"zip_code"`
 }
 
+type UpdateAddressDTO struct {
+	Address *string `json:"address"`
+	State   *string `json:"state"`
+	City    *string `json:"city"`
+	Country *string `json:"country"`
+	ZipCode *string `json:"zip_code"`
+}
+
 func mapAddressDTOToAddress(addressDTO AddressDTO) domain.Address {
 	return domain.Address{
 		Address: addressDTO.Address,
@@ -27,5 +35,15 @@ func mapAddressToAddressDTO(address domain.Address) AddressDTO {
 		City:    address.City,
 		Country: address.Country,
 		ZipCode: address.ZipCode,
+	}
+}
+
+func mapUpdateAddressDTOToUpdateAddress(updateAddressDTO UpdateAddressDTO) domain.UpdateAddress {
+	return domain.UpdateAddress{
+		Address: updateAddressDTO.Address,
+		State:   updateAddressDTO.State,
+		City:    updateAddressDTO.City,
+		Country: updateAddressDTO.Country,
+		ZipCode: updateAddressDTO.ZipCode,
 	}
 }

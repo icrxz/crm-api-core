@@ -7,6 +7,11 @@ type ContactDTO struct {
 	Email       string `json:"email"`
 }
 
+type UpdateContactDTO struct {
+	PhoneNumber *string `json:"phone_number"`
+	Email       *string `json:"email"`
+}
+
 func mapContactDTOToContact(contactDTO ContactDTO) domain.Contact {
 	return domain.Contact{
 		PhoneNumber: contactDTO.PhoneNumber,
@@ -18,5 +23,12 @@ func mapContactToContactDTO(contact domain.Contact) ContactDTO {
 	return ContactDTO{
 		PhoneNumber: contact.PhoneNumber,
 		Email:       contact.Email,
+	}
+}
+
+func mapUpdateContactDTOToUpdateContact(updateContactDTO UpdateContactDTO) domain.UpdateContact {
+	return domain.UpdateContact{
+		PhoneNumber: updateContactDTO.PhoneNumber,
+		Email:       updateContactDTO.Email,
 	}
 }

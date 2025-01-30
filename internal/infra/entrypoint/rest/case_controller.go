@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
@@ -12,14 +13,17 @@ import (
 )
 
 type CaseController struct {
-	caseService application.CaseService
+	caseService      application.CaseService
+	batchCaseService application.BatchCaseService
 }
 
 func NewCaseController(
 	caseService application.CaseService,
+	batchCaseService application.BatchCaseService,
 ) CaseController {
 	return CaseController{
-		caseService: caseService,
+		caseService:      caseService,
+		batchCaseService: batchCaseService,
 	}
 }
 
@@ -90,6 +94,12 @@ func (c *CaseController) CreateBatch(ctx *gin.Context) {
 		return
 	}
 
+	company := ctx.Request.FormValue("company")
+	if company == "" {
+		ctx.Error(domain.NewValidationError("company is required", nil))
+		return
+	}
+
 	fileNameSplit := strings.Split(fileHeader.Filename, ".")
 	fileExtension := fileNameSplit[len(fileNameSplit)-1]
 	allowExtensions := []string{"csv", "xls", "xlsx"}
@@ -106,7 +116,7 @@ func (c *CaseController) CreateBatch(ctx *gin.Context) {
 		return
 	}
 
-	result, err := c.caseService.CreateBatch(ctx, file, fileHeader.Filename, author)
+	result, err := c.batchCaseService.CreateBatch(ctx, file, fileHeader.Filename, author, company)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -178,6 +188,8 @@ func (c *CaseController) UpdateCase(ctx *gin.Context) {
 	}
 
 	caseUpdate := mapUpdateCaseDTOToUpdateCase(*updateCaseDTO)
+
+	fmt.Println(caseUpdate)
 
 	err := c.caseService.UpdateCase(ctx.Request.Context(), caseID, caseUpdate)
 	if err != nil {
