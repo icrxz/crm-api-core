@@ -69,12 +69,14 @@ func LoadRoutes(
 	// cases
 	authGroup.POST("/cases", caseController.CreateCase)
 	authGroup.GET("/cases/:caseID", caseController.GetCase)
-	authGroup.PATCH("/cases/:caseID", caseController.UpdateCase)
+	authGroup.PUT("/cases/:caseID", caseController.UpdateCase)
 	authGroup.GET("/cases", caseController.SearchCases)
 	authGroup.POST("/cases/batch", caseController.CreateBatch)
 
 	// products
 	authGroup.GET("/products/:productID", productController.GetProductByID)
+	authGroup.POST("/products", productController.CreateProduct)
+	authGroup.PUT("/products/:productID", productController.UpdateProduct)
 
 	// comments
 	authGroup.GET("/comments/:commentID", commentController.GetByID)

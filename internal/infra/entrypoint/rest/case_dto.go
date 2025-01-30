@@ -48,6 +48,12 @@ type CaseDTO struct {
 
 type UpdateCaseDTO struct {
 	TargetDate *time.Time `json:"target_date"`
+	Status     *string    `json:"status"`
+	PartnerID  *string    `json:"partner_id"`
+	OwnerID    *string    `json:"owner_id"`
+	CustomerID *string    `json:"customer_id"`
+	ProductID  *string    `json:"product_id"`
+	Subject    *string    `json:"subject"`
 	UpdatedBy  string     `json:"updated_by" validate:"required"`
 }
 
@@ -119,8 +125,20 @@ func mapCasesToCaseDTOs(crmCases []domain.Case) []CaseDTO {
 }
 
 func mapUpdateCaseDTOToUpdateCase(dto UpdateCaseDTO) domain.CaseUpdate {
+	var status *domain.CaseStatus
+	if dto.Status != nil {
+		newStatus := domain.CaseStatus(*dto.Status)
+		status = &newStatus
+	}
+
 	return domain.CaseUpdate{
 		TargetDate: dto.TargetDate,
 		UpdatedBy:  dto.UpdatedBy,
+		Status:     status,
+		PartnerID:  dto.PartnerID,
+		OwnerID:    dto.OwnerID,
+		CustomerID: dto.CustomerID,
+		Subject:    dto.Subject,
+		ProductID:  dto.ProductID,
 	}
 }

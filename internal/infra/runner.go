@@ -57,7 +57,8 @@ func RunApp() error {
 	contractorService := application.NewContractorService(contractorRepository)
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
-	caseService := application.NewCaseService(customerService, caseRepository, productService, userService, contractorService)
+	batchCaseService := application.NewBatchCaseService(customerService, productService, contractorService, caseRepository)
+	caseService := application.NewCaseService(customerService, caseRepository, productService, userService)
 	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket)
 	transactionService := application.NewTransactionService(transactionRepository)
 	reportService := application.NewReportService(
@@ -80,7 +81,7 @@ func RunApp() error {
 	contractorController := rest.NewContractorController(contractorService)
 	webMessageController := rest.NewWebMessageController()
 	authController := rest.NewAuthController(authService)
-	caseController := rest.NewCaseController(caseService)
+	caseController := rest.NewCaseController(caseService, batchCaseService)
 	productController := rest.NewProductController(productService)
 	commentController := rest.NewCommentController(commentService)
 	transactionController := rest.NewTransactionController(transactionService)

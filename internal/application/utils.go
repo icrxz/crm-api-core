@@ -29,6 +29,7 @@ func parseCNPJ(cnpj string) string {
 
 func readCSV(file io.Reader) ([][]string, error) {
 	fileCSV := csv.NewReader(file)
+	fileCSV.Comma = ';' // CSV separator
 
 	csvRows := make([][]string, 0)
 
