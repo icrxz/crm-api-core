@@ -57,7 +57,7 @@ func (db *userDatabase) GetByID(ctx context.Context, userID string) (*domain.Use
 func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) (domain.PagingResult[domain.User], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
-	limitArgs := make([]any, 0, 2)
+	var limitArgs []any
 
 	whereQuery, whereArgs = prepareInQuery(filters.Email, whereQuery, whereArgs, "email")
 	whereQuery, whereArgs = prepareInQuery(filters.FirstName, whereQuery, whereArgs, "first_name")

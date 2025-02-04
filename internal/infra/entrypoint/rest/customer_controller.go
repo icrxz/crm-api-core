@@ -1,11 +1,12 @@
 package rest
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/icrxz/crm-api-core/internal/application"
 	"github.com/icrxz/crm-api-core/internal/domain"
-	"net/http"
-	"strconv"
 )
 
 type CustomerController struct {
@@ -69,7 +70,7 @@ func (c *CustomerController) SearchCustomers(ctx *gin.Context) {
 	}
 
 	searchResult := mapSearchResultToSearchResultDTO(customers, mapCustomersToCustomerDTOs)
-	
+
 	ctx.JSON(200, searchResult)
 }
 

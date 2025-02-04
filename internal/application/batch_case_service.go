@@ -53,8 +53,8 @@ func (s *batchCaseService) CreateBatch(ctx context.Context, file io.Reader, file
 	}
 
 	var caseBuilder domain.CaseBuilder
-	columnsIndex := make(map[string]int)
-	fileRows := make([][]string, 0)
+	var columnsIndex map[string]int
+	var fileRows [][]string
 
 	switch companyName {
 	case "Assurant":
@@ -146,27 +146,6 @@ func (s *batchCaseService) buildCases(ctx context.Context, csvRows [][]string, b
 	}
 
 	return crmCases, nil
-}
-
-func (s *batchCaseService) searchContractorBatch(ctx context.Context, companyName []string) (map[string]domain.Contractor, error) {
-	filters := domain.ContractorFilters{CompanyName: companyName, PagingFilter: domain.PagingFilter{Limit: 1000, Offset: 0}}
-
-	contractors, err := s.contractorService.Search(ctx, filters)
-	if err != nil {
-		fmt.Printf("error searching contractors: %v\n", err.Error())
-		return nil, err
-	}
-
-	if contractors.Paging.Total < len(companyName) {
-		return nil, domain.NewNotFoundError(fmt.Sprintf("company not found with name %s", companyName), nil)
-	}
-
-	contractorsMap := make(map[string]domain.Contractor)
-	for _, contractor := range contractors.Result {
-		contractorsMap[contractor.CompanyName] = contractor
-	}
-
-	return contractorsMap, nil
 }
 
 func (s *batchCaseService) searchCustomerBatch(ctx context.Context, customerDocument []string) (map[string]*domain.Customer, error) {

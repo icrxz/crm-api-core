@@ -60,7 +60,7 @@ func (r *caseRepository) GetByID(ctx context.Context, caseID string) (*domain.Ca
 func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.Case], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
-	limitArgs := make([]any, 0, 2)
+	var limitArgs []any
 
 	whereQuery, whereArgs = prepareInQuery(filters.ContractorID, whereQuery, whereArgs, "contractor_id")
 	whereQuery, whereArgs = prepareInQuery(filters.OwnerID, whereQuery, whereArgs, "owner_id")
@@ -72,7 +72,7 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
 	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
 
-	query := fmt.Sprintf("SELECT * FROM cases WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
+	query := fmt.Sprintf("SELECT * FROM cases WHERE %s ORDER BY created_at DESC %s", strings.Join(whereQuery, " AND "), limitQuery)
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundCases []CaseDTO
