@@ -70,7 +70,7 @@ func (db *partnerRepository) GetByID(ctx context.Context, partnerID string) (*do
 func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerFilters) (domain.PagingResult[domain.Partner], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
-	limitArgs := make([]any, 0, 2)
+	var limitArgs []any
 
 	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "document")
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerType, whereQuery, whereArgs, "partner_type")

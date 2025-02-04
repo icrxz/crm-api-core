@@ -57,7 +57,7 @@ func (db *customerRepository) GetByID(ctx context.Context, customerID string) (*
 func (db *customerRepository) Search(ctx context.Context, filters domain.CustomerFilters) (domain.PagingResult[domain.Customer], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
-	limitArgs := make([]any, 0, 2)
+	var limitArgs []any
 
 	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "Document")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerType, whereQuery, whereArgs, "customer_type")

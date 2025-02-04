@@ -71,7 +71,7 @@ func (db *contractorRepository) GetByID(ctx context.Context, contractorID string
 func (db *contractorRepository) Search(ctx context.Context, filters domain.ContractorFilters) (domain.PagingResult[domain.Contractor], error) {
 	whereQuery := []string{"1=1"}
 	whereArgs := make([]any, 0)
-	limitArgs := make([]any, 0, 2)
+	var limitArgs []any
 
 	whereQuery, whereArgs = prepareInQuery(filters.Document, whereQuery, whereArgs, "document")
 	whereQuery, whereArgs = prepareInQuery(filters.CompanyName, whereQuery, whereArgs, "company_name")

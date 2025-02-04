@@ -18,13 +18,6 @@ type SearchResultDTO[T any] struct {
 	Paging PagingDTO `json:"paging"`
 }
 
-func mapPagingFilterDTOToPagingFilter(pagingFilterDTO PagingFilterDTO) domain.PagingFilter {
-	return domain.PagingFilter{
-		Limit:  pagingFilterDTO.Limit,
-		Offset: pagingFilterDTO.Offset,
-	}
-}
-
 func mapPagingToPagingDTO(paging domain.Paging) PagingDTO {
 	return PagingDTO{
 		Total:  paging.Total,

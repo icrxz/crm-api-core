@@ -9,7 +9,6 @@ import (
 	_ "image/png"
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -237,17 +236,17 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 	}
 
 	startAttachments := make([][]byte, 0)
-	resolution := make([]string, 0)
+	var resolution string
 	resolutionAttachments := make([][]byte, 0)
 
 	for _, comment := range reportData.Comments {
 		switch comment.CommentType {
 		case domain.RESOLUTION:
+			resolution = comment.Content
 			resolutionAttachments, err = s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
 				return err
 			}
-			resolution = append(resolution, comment.Content)
 		case domain.CONTENT:
 			startAttachments, err = s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
@@ -260,12 +259,13 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 	imgAttachments = append(imgAttachments, startAttachments...)
 	imgAttachments = append(imgAttachments, resolutionAttachments...)
 
-	err = docEdit.Replace("$resolution", strings.Join(resolution, " \r\n"), -1)
+	err = docEdit.Replace("$resolution", fmt.Sprintf("%s\r\n", resolution), -1)
 	if err != nil {
 		return err
 	}
 
-	err = s.replaceImages(docEdit, memDoc, imgAttachments, reportData.Contractor.CompanyName == "Assurant")
+	isAssurant := reportData.Contractor.CompanyName == "Assurant"
+	err = s.replaceImages(docEdit, memDoc, imgAttachments, isAssurant)
 	if err != nil {
 		return err
 	}
@@ -276,6 +276,7 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attachment) ([][]byte, error) {
 	downloadedFiles := make([][]byte, 0)
 	for _, attachment := range files {
+		fmt.Println("")
 		file, err := s.attachmentBucket.Download(ctx, attachment.Key)
 		if err != nil {
 			return nil, err
