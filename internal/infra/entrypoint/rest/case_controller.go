@@ -156,6 +156,10 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 		filters.Region = region
 	}
 
+	if externalReference := ctx.QueryArray("external_reference"); len(externalReference) > 0 {
+		filters.ExternalReference = externalReference
+	}
+
 	if limit := ctx.Query("limit"); limit != "" {
 		parsedLimit, err := strconv.Atoi(limit)
 		if err == nil {
