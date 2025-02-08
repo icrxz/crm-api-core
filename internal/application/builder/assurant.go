@@ -12,28 +12,30 @@ import (
 type assurantBuilder struct {
 	columnsIndex map[string]int
 	author       string
+	companyName  string
 }
 
-func NewAssurantBuilder(columnsIndex map[string]int, author string) domain.CaseBuilder {
+func NewAssurantBuilder(columnsIndex map[string]int, author, companyName string) domain.CaseBuilder {
 	return &assurantBuilder{
 		columnsIndex: columnsIndex,
 		author:       author,
+		companyName:  companyName,
 	}
 }
 
-func (b *assurantBuilder) GetCompanyName() string {
-	return "Assurant"
+func (b *assurantBuilder) GetCompanyName() []string {
+	return []string{b.companyName}
 }
 
 func (b *assurantBuilder) GetCostumerDocumentIdx() int {
 	return b.columnsIndex["CPF Cliente"]
 }
 
-func (b *assurantBuilder) BuildCase(row []string, contractorID, customerID string, customerRegion int) (*domain.Case, error) {
+func (b *assurantBuilder) BuildCase(row []string, contractors []domain.Contractor, customerID string, customerRegion int) (*domain.Case, error) {
 	dueDate := time.Now().Add(7 * 24 * time.Hour)
 
 	newCrmCase, err := domain.NewCase(
-		contractorID,
+		contractors[0].ContractorID,
 		customerID,
 		"csv",
 		"insurance",

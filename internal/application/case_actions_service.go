@@ -2,8 +2,9 @@ package application
 
 import (
 	"context"
-	"github.com/icrxz/crm-api-core/internal/domain"
 	"slices"
+
+	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
 type caseActionService struct {
@@ -107,11 +108,13 @@ func (c *caseActionService) createChangeStatusComment(ctx context.Context, caseI
 	var commentType domain.CommentType
 	switch newStatus.Status {
 	case domain.WAITING_PARTNER:
-		commentType = domain.CONTENT
+		commentType = domain.COMMENT_CONTENT
 	case domain.REPORT:
-		commentType = domain.RESOLUTION
+		commentType = domain.COMMENT_RESOLUTION
+	case domain.PAYMENT:
+		commentType = domain.COMMENT_REPORT
 	case domain.REJECTED:
-		commentType = domain.REJECTION
+		commentType = domain.COMMENT_REJECTION
 	}
 
 	newComment, err := domain.NewComment(caseID, *newStatus.Content, newStatus.UpdatedBy, commentType, newStatus.Attachments)

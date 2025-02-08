@@ -63,6 +63,7 @@ const (
 	THAVANNA_ADMIN UserRole = "thavanna_admin"
 	ADMIN          UserRole = "admin"
 	OPERATOR       UserRole = "operator"
+	ADMIN_OPERATOR UserRole = "admin_operator"
 )
 
 func NewUser(firstName, lastName, email, password, author, username string, role UserRole, region int) (User, error) {

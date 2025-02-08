@@ -21,19 +21,19 @@ func NewDefaultBuilder(columnsIndex map[string]int, author string, company strin
 	}
 }
 
-func (b *defaultBuilder) GetCompanyName() string {
-	return b.company
+func (b *defaultBuilder) GetCompanyName() []string {
+	return []string{b.company}
 }
 
 func (b *defaultBuilder) GetCostumerDocumentIdx() int {
 	return b.columnsIndex["Documento"]
 }
 
-func (b *defaultBuilder) BuildCase(row []string, contractorID, customerID string, customerRegion int) (*domain.Case, error) {
+func (b *defaultBuilder) BuildCase(row []string, contractors []domain.Contractor, customerID string, customerRegion int) (*domain.Case, error) {
 	dueDate := time.Now().Add(7 * 24 * time.Hour)
 
 	newCrmCase, err := domain.NewCase(
-		contractorID,
+		contractors[0].ContractorID,
 		customerID,
 		"csv",
 		"insurance",

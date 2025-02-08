@@ -235,29 +235,20 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 		return err
 	}
 
-	startAttachments := make([][]byte, 0)
 	var resolution string
 	resolutionAttachments := make([][]byte, 0)
 
 	for _, comment := range reportData.Comments {
 		switch comment.CommentType {
-		case domain.RESOLUTION:
-			resolution = comment.Content
+		case domain.COMMENT_RESOLUTION:
 			resolutionAttachments, err = s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
 				return err
 			}
-		case domain.CONTENT:
-			startAttachments, err = s.downloadFiles(ctx, comment.Attachments)
-			if err != nil {
-				return err
-			}
+		case domain.COMMENT_REPORT:
+			resolution = comment.Content
 		}
 	}
-
-	imgAttachments := make([][]byte, 0, len(resolutionAttachments)+len(startAttachments))
-	imgAttachments = append(imgAttachments, startAttachments...)
-	imgAttachments = append(imgAttachments, resolutionAttachments...)
 
 	err = docEdit.Replace("$resolution", fmt.Sprintf("%s\r\n", resolution), -1)
 	if err != nil {
@@ -265,7 +256,7 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 	}
 
 	isAssurant := reportData.Contractor.CompanyName == "Assurant"
-	err = s.replaceImages(docEdit, memDoc, imgAttachments, isAssurant)
+	err = s.replaceImages(docEdit, memDoc, resolutionAttachments, isAssurant)
 	if err != nil {
 		return err
 	}

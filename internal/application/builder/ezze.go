@@ -10,28 +10,30 @@ import (
 type ezzeBuilder struct {
 	columnsIndex map[string]int
 	author       string
+	companyName  string
 }
 
-func NewEzzeBuilder(columnsIndex map[string]int, author string) domain.CaseBuilder {
+func NewEzzeBuilder(columnsIndex map[string]int, author, companyName string) domain.CaseBuilder {
 	return &ezzeBuilder{
 		columnsIndex: columnsIndex,
 		author:       author,
+		companyName:  companyName,
 	}
 }
 
-func (b *ezzeBuilder) GetCompanyName() string {
-	return "Ezze Seguros"
+func (b *ezzeBuilder) GetCompanyName() []string {
+	return []string{b.companyName}
 }
 
 func (b *ezzeBuilder) GetCostumerDocumentIdx() int {
 	return b.columnsIndex["CPF/CNPJ Segurado"]
 }
 
-func (b *ezzeBuilder) BuildCase(row []string, contractorID, customerID string, customerRegion int) (*domain.Case, error) {
+func (b *ezzeBuilder) BuildCase(row []string, contractors []domain.Contractor, customerID string, customerRegion int) (*domain.Case, error) {
 	dueDate := time.Now().Add(7 * 24 * time.Hour)
 
 	newCrmCase, err := domain.NewCase(
-		contractorID,
+		contractors[0].ContractorID,
 		customerID,
 		"csv",
 		"insurance",
