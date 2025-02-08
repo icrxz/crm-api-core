@@ -60,19 +60,19 @@ func (s *batchCaseService) CreateBatch(ctx context.Context, file io.Reader, file
 	case "Assurant":
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewAssurantBuilder(columnsIndex, createdBy)
+		caseBuilder = builder.NewAssurantBuilder(columnsIndex, createdBy, companyName)
 	case "Cardif":
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewCardifBuilder(columnsIndex, createdBy)
+		caseBuilder = builder.NewLuizaSegBuilder(columnsIndex, createdBy, companyName)
 	case "Ezze Seguros":
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewEzzeBuilder(columnsIndex, createdBy)
+		caseBuilder = builder.NewEzzeBuilder(columnsIndex, createdBy, companyName)
 	case "LuizaSeg":
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewLuizaSegBuilder(columnsIndex, createdBy)
+		caseBuilder = builder.NewLuizaSegBuilder(columnsIndex, createdBy, companyName)
 	default:
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
@@ -97,7 +97,7 @@ func (s *batchCaseService) CreateBatch(ctx context.Context, file io.Reader, file
 func (s *batchCaseService) buildCases(ctx context.Context, csvRows [][]string, builder domain.CaseBuilder) ([]domain.Case, error) {
 	crmCases := make([]domain.Case, 0, len(csvRows))
 
-	contractor, err := s.getCompany(ctx, builder.GetCompanyName())
+	contractors, err := s.getCompany(ctx, builder.GetCompanyName())
 	if err != nil {
 		fmt.Printf("error getting company: %v\n", err.Error())
 		return nil, err
@@ -129,7 +129,7 @@ func (s *batchCaseService) buildCases(ctx context.Context, csvRows [][]string, b
 			}
 		}
 
-		newCrmCase, err := builder.BuildCase(row, contractor.ContractorID, customerID, customerRegion)
+		newCrmCase, err := builder.BuildCase(row, contractors, customerID, customerRegion)
 		if err != nil {
 			fmt.Printf("error building case: %v\n", err.Error())
 			return nil, err
@@ -173,11 +173,11 @@ func (s *batchCaseService) searchCustomerBatch(ctx context.Context, customerDocu
 	return customersMap, nil
 }
 
-func (s *batchCaseService) getCompany(ctx context.Context, companyName string) (*domain.Contractor, error) {
+func (s *batchCaseService) getCompany(ctx context.Context, companyName []string) ([]domain.Contractor, error) {
 	contractorFilters := domain.ContractorFilters{
-		CompanyName: []string{companyName},
+		CompanyName: companyName,
 		PagingFilter: domain.PagingFilter{
-			Limit:  1,
+			Limit:  100,
 			Offset: 0,
 		},
 	}
@@ -192,7 +192,7 @@ func (s *batchCaseService) getCompany(ctx context.Context, companyName string) (
 		return nil, domain.NewNotFoundError(fmt.Sprintf("company not found with name %s", companyName), nil)
 	}
 
-	return &contractorsResult.Result[0], nil
+	return contractorsResult.Result, nil
 }
 
 func (s *batchCaseService) getCustomers(ctx context.Context, rows [][]string, documentColumn int, buildCustomerFunc domain.BuildCustomerFuncType) (map[string]*domain.Customer, error) {

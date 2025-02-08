@@ -1,6 +1,8 @@
 package builder
 
 import (
+	"fmt"
+	"slices"
 	"time"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
@@ -9,28 +11,47 @@ import (
 type luizaSegBuilder struct {
 	columnsIndex map[string]int
 	author       string
+	companyName  string
 }
 
-func NewLuizaSegBuilder(columnsIndex map[string]int, author string) domain.CaseBuilder {
+func NewLuizaSegBuilder(columnsIndex map[string]int, author, _ string) domain.CaseBuilder {
 	return &luizaSegBuilder{
 		columnsIndex: columnsIndex,
 		author:       author,
 	}
 }
 
-func (b *luizaSegBuilder) GetCompanyName() string {
-	return "LuizaSeg"
+func (b *luizaSegBuilder) GetCompanyName() []string {
+	return []string{"LuizaSeg", "Cardif"}
 }
 
 func (b *luizaSegBuilder) GetCostumerDocumentIdx() int {
 	return -1
 }
 
-func (b *luizaSegBuilder) BuildCase(row []string, contractorID, customerID string, customerRegion int) (*domain.Case, error) {
+func (b *luizaSegBuilder) BuildCase(row []string, contractors []domain.Contractor, customerID string, customerRegion int) (*domain.Case, error) {
 	dueDate := time.Now().Add(7 * 24 * time.Hour)
 
+	contractorColumn := row[b.columnsIndex["BASE"]+1]
+	var selectedContractorIdx int
+	if contractorColumn == "Garantias" {
+		selectedContractorIdx = slices.IndexFunc(contractors, func(c domain.Contractor) bool {
+			return c.CompanyName == "Cardif"
+		})
+	} else {
+		selectedContractorIdx = slices.IndexFunc(contractors, func(c domain.Contractor) bool {
+			return c.CompanyName == "LuizaSeg"
+		})
+	}
+
+	if selectedContractorIdx == -1 {
+		return nil, domain.NewNotFoundError(fmt.Sprintf("Not found contractor for base %s", contractorColumn), nil)
+	}
+
+	selectedContractor := contractors[selectedContractorIdx]
+
 	newCrmCase, err := domain.NewCase(
-		contractorID,
+		selectedContractor.ContractorID,
 		customerID,
 		"csv",
 		"insurance",

@@ -28,10 +28,11 @@ type Comment struct {
 type CommentType string
 
 const (
-	CONTENT    CommentType = "Content"
-	COMMENT    CommentType = "Comment"
-	RESOLUTION CommentType = "Resolution"
-	REJECTION  CommentType = "Rejection"
+	COMMENT_CONTENT    CommentType = "Content"
+	COMMENT            CommentType = "Comment"
+	COMMENT_RESOLUTION CommentType = "Resolution"
+	COMMENT_REPORT     CommentType = "Report"
+	COMMENT_REJECTION  CommentType = "Rejection"
 )
 
 func NewComment(

@@ -80,7 +80,7 @@ func (c *caseService) assignOwnerToNewCase(ctx context.Context, crmCase *domain.
 
 	searchResult, err := c.userService.Search(ctx, domain.UserFilters{
 		Region: []string{regionStringified},
-		Role:   []string{string(domain.OPERATOR)},
+		Role:   []string{string(domain.OPERATOR), string(domain.ADMIN_OPERATOR)},
 		PagingFilter: domain.PagingFilter{
 			Limit:  1,
 			Offset: 0,
