@@ -60,6 +60,10 @@ func (a *authService) Login(ctx context.Context, email, password, clientIP strin
 		return "", nil, domain.NewValidationError("password is incorrect", nil)
 	}
 
+	if !loggedUser.Active {
+		return "", nil, domain.NewValidationError("user is inactive", nil)
+	}
+
 	createdToken, err := a.CreateToken(loggedUser.UserID)
 	if err != nil {
 		return "", nil, err
