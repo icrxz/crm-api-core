@@ -68,6 +68,7 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerID, whereQuery, whereArgs, "partner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.Status, whereQuery, whereArgs, "status")
 	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "region")
+	whereQuery, whereArgs = prepareLikeQuery(filters.ExternalReference, whereQuery, whereArgs, "external_reference")
 
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
 	limitArgs = append(whereArgs, filters.Limit, filters.Offset)

@@ -46,12 +46,13 @@ type Case struct {
 }
 
 type CaseFilters struct {
-	OwnerID      []string
-	PartnerID    []string
-	ContractorID []string
-	CustomerID   []string
-	Status       []string
-	Region       []string
+	OwnerID           []string
+	PartnerID         []string
+	ContractorID      []string
+	CustomerID        []string
+	Status            []string
+	Region            []string
+	ExternalReference []string
 	PagingFilter
 }
 

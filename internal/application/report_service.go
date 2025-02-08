@@ -267,7 +267,6 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attachment) ([][]byte, error) {
 	downloadedFiles := make([][]byte, 0)
 	for _, attachment := range files {
-		fmt.Println("")
 		file, err := s.attachmentBucket.Download(ctx, attachment.Key)
 		if err != nil {
 			return nil, err
