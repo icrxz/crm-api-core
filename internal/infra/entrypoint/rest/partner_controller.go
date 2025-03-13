@@ -179,6 +179,10 @@ func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) (domain.Partne
 		filters.State = states
 	}
 
+	if cities := ctx.QueryArray("city"); len(cities) > 0 {
+		filters.City = cities
+	}
+
 	if active := ctx.Query("active"); active != "" {
 		isActive := active == "true"
 		filters.Active = &isActive

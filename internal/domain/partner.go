@@ -64,6 +64,7 @@ type PartnerFilters struct {
 	State       []string
 	Document    []string
 	PartnerType []string
+	City        []string
 	Active      *bool
 	PagingFilter
 }
