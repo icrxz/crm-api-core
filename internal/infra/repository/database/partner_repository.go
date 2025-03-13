@@ -77,6 +77,8 @@ func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerF
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerID, whereQuery, whereArgs, "partner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.State, whereQuery, whereArgs, "shipping_state")
 	whereQuery, whereArgs = prepareInQuery(filters.City, whereQuery, whereArgs, "shipping_city")
+	whereQuery, whereArgs = prepareLikeQuery(filters.FirstName, whereQuery, whereArgs, "first_name")
+	whereQuery, whereArgs = prepareLikeQuery(filters.LastName, whereQuery, whereArgs, "last_name")
 
 	if filters.Active != nil {
 		whereQuery = append(whereQuery, fmt.Sprintf("active = $%d", len(whereArgs)+1))
