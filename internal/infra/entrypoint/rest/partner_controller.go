@@ -183,6 +183,14 @@ func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) (domain.Partne
 		filters.City = cities
 	}
 
+	if firstName := ctx.QueryArray("first_name"); len(firstName) > 0 {
+		filters.FirstName = firstName
+	}
+
+	if lastName := ctx.QueryArray("last_name"); len(lastName) > 0 {
+		filters.LastName = lastName
+	}
+
 	if active := ctx.Query("active"); active != "" {
 		isActive := active == "true"
 		filters.Active = &isActive
