@@ -188,36 +188,63 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 	group.Go(func() error {
 		foundProduct, err := c.productService.GetProductByID(ctx, crmCase.ProductID)
 		if err != nil {
-			return err
+			var customErr *domain.CustomError
+			if !errors.As(err, customErr) || !customErr.IsNotFound() {
+				return err
+			}
 		}
-		product = *foundProduct
+
+		if foundProduct != nil {
+			product = *foundProduct
+		}
+
 		return nil
 	})
 
 	group.Go(func() error {
 		foundCustomer, err := c.customerService.GetByID(ctx, crmCase.CustomerID)
 		if err != nil {
-			return err
+			var customErr *domain.CustomError
+			if !errors.As(err, customErr) || !customErr.IsNotFound() {
+				return err
+			}
 		}
-		customer = *foundCustomer
+
+		if foundCustomer != nil {
+			customer = *foundCustomer
+		}
 		return nil
 	})
 
 	group.Go(func() error {
 		foundPartner, err := c.partnerService.GetByID(ctx, crmCase.PartnerID)
 		if err != nil {
-			return err
+			var customErr *domain.CustomError
+			if !errors.As(err, customErr) || !customErr.IsNotFound() {
+				return err
+			}
 		}
-		partner = *foundPartner
+
+		if foundPartner != nil {
+			partner = *foundPartner
+		}
+
 		return nil
 	})
 
 	group.Go(func() error {
 		foundContractor, err := c.contractorService.GetByID(ctx, crmCase.ContractorID)
 		if err != nil {
-			return err
+			var customErr *domain.CustomError
+			if !errors.As(err, customErr) || !customErr.IsNotFound() {
+				return err
+			}
 		}
-		contractor = *foundContractor
+
+		if foundContractor != nil {
+			contractor = *foundContractor
+		}
+
 		return nil
 	})
 
