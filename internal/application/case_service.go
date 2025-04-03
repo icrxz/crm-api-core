@@ -189,7 +189,7 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 		foundProduct, err := c.productService.GetProductByID(ctx, crmCase.ProductID)
 		if err != nil {
 			var customErr *domain.CustomError
-			if !errors.As(err, customErr) || !customErr.IsNotFound() {
+			if !errors.As(err, &customErr) || !customErr.IsNotFound() {
 				return err
 			}
 		}
@@ -205,7 +205,7 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 		foundCustomer, err := c.customerService.GetByID(ctx, crmCase.CustomerID)
 		if err != nil {
 			var customErr *domain.CustomError
-			if !errors.As(err, customErr) || !customErr.IsNotFound() {
+			if !errors.As(err, &customErr) || !customErr.IsNotFound() {
 				return err
 			}
 		}
@@ -220,7 +220,7 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 		foundPartner, err := c.partnerService.GetByID(ctx, crmCase.PartnerID)
 		if err != nil {
 			var customErr *domain.CustomError
-			if !errors.As(err, customErr) || !customErr.IsNotFound() {
+			if !errors.As(err, &customErr) || !customErr.IsNotFound() {
 				return err
 			}
 		}
@@ -236,7 +236,7 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 		foundContractor, err := c.contractorService.GetByID(ctx, crmCase.ContractorID)
 		if err != nil {
 			var customErr *domain.CustomError
-			if !errors.As(err, customErr) || !customErr.IsNotFound() {
+			if !errors.As(err, &customErr) || !customErr.IsNotFound() {
 				return err
 			}
 		}
