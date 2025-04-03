@@ -45,6 +45,31 @@ type Case struct {
 	TargetDate        *time.Time
 }
 
+type CaseFull struct {
+	CaseID            string
+	Contractor        Contractor
+	Customer          Customer
+	Partner           Partner
+	OwnerID           string
+	OriginChannel     string
+	Type              string
+	Subject           string
+	Priority          CasePriority
+	Transactions      []Transaction
+	Comments          []Comment
+	Status            CaseStatus
+	DueDate           time.Time
+	CreatedBy         string
+	CreatedAt         time.Time
+	UpdatedBy         string
+	UpdatedAt         time.Time
+	Region            int
+	Product           Product
+	ClosedAt          *time.Time
+	ExternalReference string
+	TargetDate        *time.Time
+}
+
 type CaseFilters struct {
 	OwnerID           []string
 	PartnerID         []string
@@ -160,5 +185,32 @@ func (c *Case) MergeUpdate(updateCase CaseUpdate) {
 
 	if updateCase.Subject != nil {
 		c.Subject = *updateCase.Subject
+	}
+}
+
+func NewCaseFull(crmCase Case, comments []Comment, transactions []Transaction, product Product, customer Customer, partner Partner, contractor Contractor) CaseFull {
+	return CaseFull{
+		CaseID:            crmCase.CaseID,
+		Contractor:        contractor,
+		Customer:          customer,
+		Partner:           partner,
+		OwnerID:           crmCase.OwnerID,
+		OriginChannel:     crmCase.OriginChannel,
+		Type:              crmCase.Type,
+		Subject:           crmCase.Subject,
+		Priority:          crmCase.Priority,
+		Transactions:      transactions,
+		Comments:          comments,
+		Status:            crmCase.Status,
+		DueDate:           crmCase.DueDate,
+		CreatedBy:         crmCase.CreatedBy,
+		CreatedAt:         crmCase.CreatedAt,
+		UpdatedBy:         crmCase.UpdatedBy,
+		UpdatedAt:         crmCase.CreatedAt,
+		Region:            crmCase.Region,
+		Product:           product,
+		ClosedAt:          crmCase.ClosedAt,
+		ExternalReference: crmCase.ExternalReference,
+		TargetDate:        crmCase.TargetDate,
 	}
 }

@@ -46,6 +46,31 @@ type CaseDTO struct {
 	TargetDate        *time.Time          `json:"target_date"`
 }
 
+type CaseFullDTO struct {
+	CaseID            string              `json:"case_id"`
+	Contractor        ContractorDTO       `json:"contractor"`
+	Customer          CustomerDTO         `json:"customer"`
+	Partner           PartnerDTO          `json:"partner"`
+	Product           ProductDTO          `json:"product"`
+	Comments          []CommentDTO        `json:"comments"`
+	Transactions      []TransactionDTO    `json:"transactions"`
+	OwnerID           string              `json:"owner_id"`
+	OriginChannel     string              `json:"origin_channel"`
+	Type              string              `json:"type"`
+	Subject           string              `json:"subject"`
+	Priority          domain.CasePriority `json:"priority"`
+	Status            domain.CaseStatus   `json:"status"`
+	DueDate           time.Time           `json:"due_date"`
+	CreatedBy         string              `json:"created_by"`
+	CreatedAt         time.Time           `json:"created_at"`
+	UpdatedBy         string              `json:"updated_by"`
+	UpdatedAt         time.Time           `json:"updated_at"`
+	Region            int                 `json:"region"`
+	ExternalReference string              `json:"external_reference"`
+	ClosedAt          *time.Time          `json:"closed_at"`
+	TargetDate        *time.Time          `json:"target_date"`
+}
+
 type UpdateCaseDTO struct {
 	TargetDate *time.Time `json:"target_date"`
 	Status     *string    `json:"status"`
@@ -140,5 +165,40 @@ func mapUpdateCaseDTOToUpdateCase(dto UpdateCaseDTO) domain.CaseUpdate {
 		CustomerID: dto.CustomerID,
 		Subject:    dto.Subject,
 		ProductID:  dto.ProductID,
+	}
+}
+
+func mapCaseFullToCaseFullDTO(caseFull domain.CaseFull) CaseFullDTO {
+	contractor := mapContractorToContractorDTO(caseFull.Contractor)
+	customer := mapCustomerToCustomerDTO(caseFull.Customer)
+	partner := mapPartnerToPartnerDTO(caseFull.Partner)
+	product := mapProductToProductDTO(caseFull.Product)
+
+	comments := mapCommentsToCommentDTOs(caseFull.Comments)
+	transactions := mapTransactionsToTransactionsDTO(caseFull.Transactions)
+
+	return CaseFullDTO{
+		CaseID:            caseFull.CaseID,
+		Contractor:        contractor,
+		Customer:          customer,
+		Partner:           partner,
+		Product:           product,
+		Comments:          comments,
+		Transactions:      transactions,
+		OwnerID:           caseFull.OwnerID,
+		OriginChannel:     caseFull.OriginChannel,
+		Type:              caseFull.Type,
+		Subject:           caseFull.Subject,
+		Priority:          caseFull.Priority,
+		Status:            caseFull.Status,
+		DueDate:           caseFull.DueDate,
+		CreatedBy:         caseFull.CreatedBy,
+		CreatedAt:         caseFull.CreatedAt,
+		UpdatedBy:         caseFull.UpdatedBy,
+		UpdatedAt:         caseFull.UpdatedAt,
+		Region:            caseFull.Region,
+		ExternalReference: caseFull.ExternalReference,
+		ClosedAt:          caseFull.ClosedAt,
+		TargetDate:        caseFull.TargetDate,
 	}
 }

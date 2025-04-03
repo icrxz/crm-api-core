@@ -200,3 +200,21 @@ func (c *CaseController) UpdateCase(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusNoContent, nil)
 }
+
+func (c *CaseController) GetCaseFull(ctx *gin.Context) {
+	caseID := ctx.Param("caseID")
+	if caseID == "" {
+		ctx.Error(domain.NewValidationError("case_id is required", nil))
+		return
+	}
+
+	caseFull, err := c.caseService.GetCaseFullByID(ctx.Request.Context(), caseID)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	caseFullDTO := mapCaseFullToCaseFullDTO(*caseFull)
+
+	ctx.JSON(http.StatusOK, caseFullDTO)
+}

@@ -29,6 +29,33 @@ type CaseDTO struct {
 	TargetDate        *time.Time `db:"target_date"`
 }
 
+type CaseFullDTO struct {
+	CaseID            string `db:"case_id"`
+	ContractorID      string `db:"contractor_id"`
+	ContractorDTO     `db:"contractors"`
+	CustomerID        *string `db:"customer_id"`
+	CustomerDTO       `db:"customers"`
+	PartnerID         *string `db:"partner_id"`
+	PartnerDTO        `db:"partners"`
+	ProductID         *string `db:"product_id"`
+	ProductDTO        `db:"products"`
+	OwnerID           *string    `db:"owner_id"`
+	OriginChannel     string     `db:"origin"`
+	Type              string     `db:"type"`
+	Subject           string     `db:"subject"`
+	Priority          string     `db:"priority"`
+	Status            string     `db:"status"`
+	DueDate           time.Time  `db:"due_date"`
+	CreatedBy         string     `db:"created_by"`
+	CreatedAt         time.Time  `db:"created_at"`
+	UpdatedBy         string     `db:"updated_by"`
+	UpdatedAt         time.Time  `db:"updated_at"`
+	ExternalReference string     `db:"external_reference"`
+	Region            int        `db:"region"`
+	ClosedAt          *time.Time `db:"closed_at"`
+	TargetDate        *time.Time `db:"target_date"`
+}
+
 func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 	var partnerID *string
 	if crmCase.PartnerID != "" {

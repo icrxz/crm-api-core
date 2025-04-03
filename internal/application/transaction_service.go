@@ -8,7 +8,7 @@ import (
 
 type transactionService struct {
 	transactionRepository domain.TransactionRepository
-	caseService           CaseService
+	caseRepository        domain.CaseRepository
 }
 
 type TransactionService interface {
@@ -19,10 +19,10 @@ type TransactionService interface {
 	CreateTransactionBatch(ctx context.Context, transactions []domain.Transaction) ([]string, error)
 }
 
-func NewTransactionService(transactionRepository domain.TransactionRepository, caseService CaseService) TransactionService {
+func NewTransactionService(transactionRepository domain.TransactionRepository, caseRepository domain.CaseRepository) TransactionService {
 	return &transactionService{
 		transactionRepository: transactionRepository,
-		caseService:           caseService,
+		caseRepository:        caseRepository,
 	}
 }
 
@@ -62,7 +62,7 @@ func (s *transactionService) CreateTransactionBatch(ctx context.Context, transac
 		return nil, domain.NewValidationError("transactions cannot be empty and caseID cannot be empty", nil)
 	}
 
-	crmCase, err := s.caseService.GetCaseByID(ctx, transactions[0].CaseID)
+	crmCase, err := s.caseRepository.GetByID(ctx, transactions[0].CaseID)
 	if err != nil {
 		return nil, err
 	}

@@ -6,13 +6,18 @@ import (
 	"strconv"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
+	"golang.org/x/sync/errgroup"
 )
 
 type caseService struct {
-	customerService CustomerService
-	userService     UserService
-	caseRepository  domain.CaseRepository
-	productService  ProductService
+	customerService    CustomerService
+	userService        UserService
+	caseRepository     domain.CaseRepository
+	productService     ProductService
+	commentService     CommentService
+	transactionService TransactionService
+	partnerService     PartnerService
+	contractorService  ContractorService
 }
 
 type CaseService interface {
@@ -20,6 +25,7 @@ type CaseService interface {
 	GetCaseByID(ctx context.Context, caseID string) (*domain.Case, error)
 	SearchCases(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.Case], error)
 	UpdateCase(ctx context.Context, caseID string, newCase domain.CaseUpdate) error
+	GetCaseFullByID(ctx context.Context, caseID string) (*domain.CaseFull, error)
 }
 
 func NewCaseService(
@@ -27,12 +33,20 @@ func NewCaseService(
 	caseRepository domain.CaseRepository,
 	productService ProductService,
 	userService UserService,
+	commentService CommentService,
+	transactionService TransactionService,
+	partnerService PartnerService,
+	contractorService ContractorService,
 ) CaseService {
 	return &caseService{
-		customerService: customerService,
-		caseRepository:  caseRepository,
-		productService:  productService,
-		userService:     userService,
+		customerService:    customerService,
+		caseRepository:     caseRepository,
+		productService:     productService,
+		userService:        userService,
+		commentService:     commentService,
+		transactionService: transactionService,
+		partnerService:     partnerService,
+		contractorService:  contractorService,
 	}
 }
 
@@ -116,4 +130,103 @@ func (c *caseService) UpdateCase(ctx context.Context, caseID string, newCase dom
 	crmCase.MergeUpdate(newCase)
 
 	return c.caseRepository.Update(ctx, *crmCase)
+}
+
+func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*domain.CaseFull, error) {
+	if caseID == "" {
+		return nil, domain.NewValidationError("case id cannot be empty", nil)
+	}
+
+	group := errgroup.Group{}
+
+	var crmCase *domain.Case
+	var comments []domain.Comment
+	var transactions []domain.Transaction
+	var product domain.Product
+	var partner domain.Partner
+	var customer domain.Customer
+	var contractor domain.Contractor
+
+	group.Go(func() error {
+		foundCase, err := c.caseRepository.GetByID(ctx, caseID)
+		if err != nil {
+			return err
+		}
+		crmCase = foundCase
+		return nil
+	})
+
+	group.Go(func() error {
+		foundComments, err := c.commentService.GetByCaseID(ctx, caseID)
+		if err != nil {
+			return err
+		}
+		comments = foundComments
+		return nil
+	})
+
+	group.Go(func() error {
+		transactionFilter := domain.TransactionFilters{
+			CaseIDs: []string{caseID},
+		}
+
+		foundTransactions, err := c.transactionService.SearchTransactions(ctx, transactionFilter)
+		if err != nil {
+			return err
+		}
+
+		transactions = foundTransactions
+
+		return nil
+	})
+
+	groupErr := group.Wait()
+	if groupErr != nil {
+		return nil, groupErr
+	}
+
+	group.Go(func() error {
+		foundProduct, err := c.productService.GetProductByID(ctx, crmCase.ProductID)
+		if err != nil {
+			return err
+		}
+		product = *foundProduct
+		return nil
+	})
+
+	group.Go(func() error {
+		foundCustomer, err := c.customerService.GetByID(ctx, crmCase.CustomerID)
+		if err != nil {
+			return err
+		}
+		customer = *foundCustomer
+		return nil
+	})
+
+	group.Go(func() error {
+		foundPartner, err := c.partnerService.GetByID(ctx, crmCase.PartnerID)
+		if err != nil {
+			return err
+		}
+		partner = *foundPartner
+		return nil
+	})
+
+	group.Go(func() error {
+		foundContractor, err := c.contractorService.GetByID(ctx, crmCase.ContractorID)
+		if err != nil {
+			return err
+		}
+		contractor = *foundContractor
+		return nil
+	})
+
+	groupErr = group.Wait()
+	if groupErr != nil {
+		return nil, groupErr
+	}
+
+	crmCaseFull := domain.NewCaseFull(*crmCase, comments, transactions, product, customer, partner, contractor)
+
+	return &crmCaseFull, nil
 }
