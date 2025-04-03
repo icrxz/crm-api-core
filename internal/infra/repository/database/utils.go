@@ -33,7 +33,7 @@ func prepareLikeQuery[S comparable](filters []S, query []string, args []any, key
 			parsedArray = append(parsedArray, filter)
 		}
 
-		queryFormatted := key + " LIKE '%' || "
+		queryFormatted := key + " ILIKE '%' || "
 		for i := len(args) + 1; i < len(args)+1+len(filters); i++ {
 			queryFormatted += fmt.Sprintf("$%d::text", i)
 		}

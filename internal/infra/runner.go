@@ -58,9 +58,18 @@ func RunApp() error {
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
 	batchCaseService := application.NewBatchCaseService(customerService, productService, contractorService, caseRepository)
-	caseService := application.NewCaseService(customerService, caseRepository, productService, userService)
 	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket)
-	transactionService := application.NewTransactionService(transactionRepository, caseService)
+	transactionService := application.NewTransactionService(transactionRepository, caseRepository)
+	caseService := application.NewCaseService(
+		customerService,
+		caseRepository,
+		productService,
+		userService,
+		commentService,
+		transactionService,
+		partnerService,
+		contractorService,
+	)
 	reportService := application.NewReportService(
 		appConfig.ReportFolder,
 		caseService,
