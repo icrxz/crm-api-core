@@ -186,6 +186,10 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 	}
 
 	group.Go(func() error {
+		if crmCase.ProductID == "" {
+			return nil
+		}
+
 		foundProduct, err := c.productService.GetProductByID(ctx, crmCase.ProductID)
 		if err != nil {
 			var customErr *domain.CustomError
@@ -202,6 +206,10 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 	})
 
 	group.Go(func() error {
+		if crmCase.CustomerID == "" {
+			return nil
+		}
+
 		foundCustomer, err := c.customerService.GetByID(ctx, crmCase.CustomerID)
 		if err != nil {
 			var customErr *domain.CustomError
@@ -217,6 +225,10 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 	})
 
 	group.Go(func() error {
+		if crmCase.PartnerID == "" {
+			return nil
+		}
+
 		foundPartner, err := c.partnerService.GetByID(ctx, crmCase.PartnerID)
 		if err != nil {
 			var customErr *domain.CustomError
@@ -233,6 +245,10 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 	})
 
 	group.Go(func() error {
+		if crmCase.ContractorID == "" {
+			return nil
+		}
+
 		foundContractor, err := c.contractorService.GetByID(ctx, crmCase.ContractorID)
 		if err != nil {
 			var customErr *domain.CustomError
