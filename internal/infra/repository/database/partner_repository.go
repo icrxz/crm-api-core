@@ -27,9 +27,9 @@ func (db *partnerRepository) Create(ctx context.Context, partner domain.Partner)
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO partners "+
-			"(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description, payment_key, payment_key_option) "+
+			"(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description, payment_key, payment_key_option, payment_type, payment_owner, payment_is_same_from_owner) "+
 			"VALUES "+
-			"(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description, :payment_key, :payment_key_option)",
+			"(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description, :payment_key, :payment_key_option, :payment_type, :payment_owner, :payment_is_same_from_owner)",
 		partnerDTO,
 	)
 	if err != nil {
@@ -122,35 +122,38 @@ func (db *partnerRepository) Update(ctx context.Context, partner domain.Partner)
 
 	_, err := db.client.NamedExecContext(
 		ctx,
-		"UPDATE partners "+
-			"SET first_name = :first_name, "+
-			"last_name = :last_name, "+
-			"company_name = :company_name, "+
-			"legal_name = :legal_name, "+
-			"partner_type = :partner_type, "+
-			"document = :document, "+
-			"document_type = :document_type, "+
-			"shipping_address = :shipping_address, "+
-			"shipping_city = :shipping_city, "+
-			"shipping_state = :shipping_state, "+
-			"shipping_zip_code = :shipping_zip_code, "+
-			"shipping_country = :shipping_country, "+
-			"billing_address = :billing_address, "+
-			"billing_city = :billing_city, "+
-			"billing_state = :billing_state, "+
-			"billing_zip_code = :billing_zip_code, "+
-			"billing_country = :billing_country, "+
-			"personal_phone = :personal_phone, "+
-			"business_phone = :business_phone, "+
-			"personal_email = :personal_email, "+
-			"business_email = :business_email, "+
-			"updated_at = :updated_at, "+
-			"updated_by = :updated_by, "+
-			"active = :active, "+
-			"description = :description, "+
-			"payment_key = :payment_key, "+
-			"payment_key_option = :payment_key_option "+
-			"WHERE partner_id = :partner_id",
+		`UPDATE partners
+			SET first_name = :first_name,
+			last_name = :last_name,
+			company_name = :company_name,
+			legal_name = :legal_name,
+			partner_type = :partner_type,
+			document = :document,
+			document_type = :document_type,
+			shipping_address = :shipping_address,
+			shipping_city = :shipping_city,
+			shipping_state = :shipping_state,
+			shipping_zip_code = :shipping_zip_code,
+			shipping_country = :shipping_country,
+			billing_address = :billing_address,
+			billing_city = :billing_city,
+			billing_state = :billing_state,
+			billing_zip_code = :billing_zip_code,
+			billing_country = :billing_country,
+			personal_phone = :personal_phone,
+			business_phone = :business_phone,
+			personal_email = :personal_email,
+			business_email = :business_email,
+			updated_at = :updated_at,
+			updated_by = :updated_by,
+			active = :active,
+			description = :description,
+			payment_key = :payment_key,
+			payment_key_option = :payment_key_option,
+			payment_type = :payment_type,
+			payment_owner = :payment_owner,
+			payment_is_same_from_owner = :payment_is_same_from_owner
+			WHERE partner_id = :partner_id`,
 		partnerDTO,
 	)
 	if err != nil {
@@ -169,9 +172,9 @@ func (db *partnerRepository) CreateBatch(ctx context.Context, partners []domain.
 		partnerDTOs := mapPartnersToPartnerDTOs(chunk)
 
 		query := `INSERT INTO partners
-		(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description, payment_key, payment_key_option)
+		(partner_id, first_name, last_name, company_name, legal_name, partner_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active, description, payment_key, payment_key_option, payment_type, payment_owner, payment_is_same_from_owner)
 		VALUES
-		(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description, :payment_key, :payment_key_option)
+		(:partner_id, :first_name, :last_name, :company_name, :legal_name, :partner_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active, :description, :payment_key, :payment_key_option, :payment_type, :payment_owner, :payment_is_same_from_owner)
 		ON CONFLICT DO NOTHING`
 
 		_, err := tx.NamedExecContext(
