@@ -1,0 +1,4 @@
+ALTER TABLE IF EXISTS partners
+  ADD COLUMN IF NOT EXISTS payment_type TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS payment_owner TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS payment_is_same_from_owner boolean DEFAULT NULL;

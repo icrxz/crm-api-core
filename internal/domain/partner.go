@@ -1,5 +1,7 @@
 package domain
 
+//go:generate go run go.uber.org/mock/mockgen -destination=mock_domain/partner_repository.go . PartnerRepository
+
 import (
 	"context"
 	"time"
@@ -17,46 +19,44 @@ type PartnerRepository interface {
 }
 
 type Partner struct {
-	PartnerID        string
-	FirstName        string
-	LastName         string
-	CompanyName      string
-	LegalName        string
-	PartnerType      string
-	Document         string
-	DocumentType     DocumentType
-	ShippingAddress  Address
-	BillingAddress   Address
-	BusinessContact  Contact
-	PersonalContact  Contact
-	Cases            []Case
-	CreatedBy        string
-	CreatedAt        time.Time
-	UpdatedBy        string
-	UpdatedAt        time.Time
-	Active           bool
-	Description      string
-	PaymentKey       string
-	PaymentKeyOption string
+	PartnerID       string
+	FirstName       string
+	LastName        string
+	CompanyName     string
+	LegalName       string
+	PartnerType     string
+	Document        string
+	DocumentType    DocumentType
+	ShippingAddress Address
+	BillingAddress  Address
+	BusinessContact Contact
+	PersonalContact Contact
+	Cases           []Case
+	CreatedBy       string
+	CreatedAt       time.Time
+	UpdatedBy       string
+	UpdatedAt       time.Time
+	Active          bool
+	Description     string
+	Billing         Billing
 }
 
 type EditPartner struct {
-	FirstName        *string
-	LastName         *string
-	CompanyName      *string
-	LegalName        *string
-	PartnerType      *EntityType
-	Document         *string
-	DocumentType     *DocumentType
-	ShippingAddress  *Address
-	BillingAddress   *Address
-	BusinessContact  *Contact
-	PersonalContact  *Contact
-	Active           *bool
-	UpdatedBy        string
-	Description      *string
-	PaymentKey       *string
-	PaymentKeyOption *string
+	FirstName       *string
+	LastName        *string
+	CompanyName     *string
+	LegalName       *string
+	PartnerType     *EntityType
+	Document        *string
+	DocumentType    *DocumentType
+	ShippingAddress *Address
+	BillingAddress  *Address
+	BusinessContact *Contact
+	PersonalContact *Contact
+	Active          *bool
+	UpdatedBy       string
+	Description     *string
+	Billing         *Billing
 }
 
 type PartnerFilters struct {
@@ -84,9 +84,8 @@ func NewPartner(
 	shippingAddress,
 	billingAddress Address,
 	description,
-	partnerType,
-	paymentKey,
-	paymentKeyOption string,
+	partnerType string,
+	billing Billing,
 ) (Partner, error) {
 	now := time.Now().UTC()
 
@@ -96,26 +95,25 @@ func NewPartner(
 	}
 
 	return Partner{
-		PartnerID:        partnerID.String(),
-		FirstName:        firstName,
-		LastName:         lastName,
-		CompanyName:      companyName,
-		LegalName:        legalName,
-		Document:         document,
-		DocumentType:     DocumentType(documentType),
-		PartnerType:      partnerType,
-		ShippingAddress:  shippingAddress,
-		BillingAddress:   billingAddress,
-		PersonalContact:  personalContact,
-		BusinessContact:  businessContact,
-		CreatedAt:        now,
-		CreatedBy:        author,
-		UpdatedAt:        now,
-		UpdatedBy:        author,
-		Active:           true,
-		Description:      description,
-		PaymentKey:       paymentKey,
-		PaymentKeyOption: paymentKeyOption,
+		PartnerID:       partnerID.String(),
+		FirstName:       firstName,
+		LastName:        lastName,
+		CompanyName:     companyName,
+		LegalName:       legalName,
+		Document:        document,
+		DocumentType:    DocumentType(documentType),
+		PartnerType:     partnerType,
+		ShippingAddress: shippingAddress,
+		BillingAddress:  billingAddress,
+		PersonalContact: personalContact,
+		BusinessContact: businessContact,
+		CreatedAt:       now,
+		CreatedBy:       author,
+		UpdatedAt:       now,
+		UpdatedBy:       author,
+		Active:          true,
+		Description:     description,
+		Billing:         billing,
 	}, nil
 }
 
@@ -171,12 +169,8 @@ func (p *Partner) MergeUpdate(updatePartner EditPartner) {
 		p.Description = *updatePartner.Description
 	}
 
-	if updatePartner.PaymentKey != nil {
-		p.PaymentKey = *updatePartner.PaymentKey
-	}
-
-	if updatePartner.PaymentKeyOption != nil {
-		p.PaymentKeyOption = *updatePartner.PaymentKeyOption
+	if updatePartner.Billing != nil {
+		p.Billing = *updatePartner.Billing
 	}
 }
 
