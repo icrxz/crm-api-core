@@ -128,8 +128,7 @@ func (s *partnerService) buildPartner(csvRows [][]string, columnsIndex map[strin
 			domain.Address{},
 			description,
 			row[columnsIndex["Tipo"]],
-			"",
-			"",
+			domain.Billing{},
 		)
 		if err != nil {
 			return nil, err
