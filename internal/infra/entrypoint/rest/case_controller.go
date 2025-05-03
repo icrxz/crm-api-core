@@ -80,6 +80,20 @@ func (c *CaseController) SearchCases(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, searchResult)
 }
 
+func (c *CaseController) SearchCasesFull(ctx *gin.Context) {
+	filters := c.parseQueryToFilters(ctx)
+
+	cases, err := c.caseService.SearchCasesFull(ctx.Request.Context(), filters)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	searchResult := mapSearchResultToSearchResultDTO(cases, mapCasesFullToCasesFullDTOs)
+
+	ctx.JSON(http.StatusOK, searchResult)
+}
+
 func (c *CaseController) CreateBatch(ctx *gin.Context) {
 	author := ctx.GetHeader("X-Author")
 	if author == "" {
@@ -158,6 +172,18 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 
 	if externalReference := ctx.QueryArray("external_reference"); len(externalReference) > 0 {
 		filters.ExternalReference = externalReference
+	}
+
+	if state := ctx.QueryArray("state"); len(state) > 0 {
+		filters.ShippingState = state
+	}
+
+	if startDate := ctx.Query("start_date"); startDate != "" {
+		filters.StartDate = &startDate
+	}
+
+	if endDate := ctx.Query("end_date"); endDate != "" {
+		filters.EndDate = &endDate
 	}
 
 	if limit := ctx.Query("limit"); limit != "" {

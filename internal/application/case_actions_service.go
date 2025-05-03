@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"slices"
+	"time"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
@@ -58,6 +59,12 @@ func (c *caseActionService) ChangeStatus(ctx context.Context, caseID string, new
 		Status:    &newStatus.Status,
 		UpdatedBy: newStatus.UpdatedBy,
 	}
+
+	if newStatus.Status == domain.CLOSED {
+		now := time.Now().UTC()
+		caseUpdate.ClosedAt = &now
+	}
+
 	crmCase.MergeUpdate(caseUpdate)
 
 	if newStatus.Content != nil {

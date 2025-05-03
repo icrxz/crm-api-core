@@ -13,6 +13,7 @@ type CaseRepository interface {
 	Search(ctx context.Context, filters CaseFilters) (PagingResult[Case], error)
 	Update(ctx context.Context, crmCase Case) error
 	CreateBatch(ctx context.Context, cases []Case) ([]string, error)
+	SearchFull(ctx context.Context, filters CaseFilters) (PagingResult[CaseFull], error)
 }
 
 type CreateCase struct {
@@ -78,6 +79,9 @@ type CaseFilters struct {
 	Status            []string
 	Region            []string
 	ExternalReference []string
+	StartDate         *string
+	EndDate           *string
+	ShippingState     []string
 	PagingFilter
 }
 

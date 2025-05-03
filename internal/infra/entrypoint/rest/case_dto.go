@@ -202,3 +202,11 @@ func mapCaseFullToCaseFullDTO(caseFull domain.CaseFull) CaseFullDTO {
 		TargetDate:        caseFull.TargetDate,
 	}
 }
+
+func mapCasesFullToCasesFullDTOs(crmCases []domain.CaseFull) []CaseFullDTO {
+	crmCasesDTO := make([]CaseFullDTO, len(crmCases))
+	for i, crmCase := range crmCases {
+		crmCasesDTO[i] = mapCaseFullToCaseFullDTO(crmCase)
+	}
+	return crmCasesDTO
+}

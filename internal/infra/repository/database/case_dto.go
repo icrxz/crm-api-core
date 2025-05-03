@@ -30,30 +30,27 @@ type CaseDTO struct {
 }
 
 type CaseFullDTO struct {
-	CaseID            string `db:"case_id"`
-	ContractorID      string `db:"contractor_id"`
-	ContractorDTO     `db:"contractors"`
-	CustomerID        *string `db:"customer_id"`
-	CustomerDTO       `db:"customers"`
-	PartnerID         *string `db:"partner_id"`
-	PartnerDTO        `db:"partners"`
-	ProductID         *string `db:"product_id"`
-	ProductDTO        `db:"products"`
-	OwnerID           *string    `db:"owner_id"`
-	OriginChannel     string     `db:"origin"`
-	Type              string     `db:"type"`
-	Subject           string     `db:"subject"`
-	Priority          string     `db:"priority"`
-	Status            string     `db:"status"`
-	DueDate           time.Time  `db:"due_date"`
-	CreatedBy         string     `db:"created_by"`
-	CreatedAt         time.Time  `db:"created_at"`
-	UpdatedBy         string     `db:"updated_by"`
-	UpdatedAt         time.Time  `db:"updated_at"`
-	ExternalReference string     `db:"external_reference"`
-	Region            int        `db:"region"`
-	ClosedAt          *time.Time `db:"closed_at"`
-	TargetDate        *time.Time `db:"target_date"`
+	CaseID            string              `db:"case_id"`
+	OwnerID           *string             `db:"owner_id"`
+	OriginChannel     string              `db:"origin"`
+	Type              string              `db:"type"`
+	Subject           string              `db:"subject"`
+	Priority          string              `db:"priority"`
+	Status            string              `db:"status"`
+	DueDate           time.Time           `db:"due_date"`
+	CreatedBy         string              `db:"created_by"`
+	CreatedAt         time.Time           `db:"created_at"`
+	UpdatedBy         string              `db:"updated_by"`
+	UpdatedAt         time.Time           `db:"updated_at"`
+	ExternalReference string              `db:"external_reference"`
+	Region            int                 `db:"region"`
+	ClosedAt          *time.Time          `db:"closed_at"`
+	TargetDate        *time.Time          `db:"target_date"`
+	Contractor        ContractorDTO       `db:"contractor"`
+	Customer          CustomerOptionalDTO `db:"customers"`
+	Partner           PartnerOptionalDTO  `db:"partners"`
+	Product           ProductDTO          `db:"products"`
+	Transactions      []TransactionDTO    `db:"transactions"`
 }
 
 func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
@@ -164,4 +161,45 @@ func mapCasesToCaseDTOs(cases []domain.Case) []CaseDTO {
 	}
 
 	return crmCaseDTOs
+}
+
+func mapCaseFullDTOToCaseFull(crmCaseFullDTO CaseFullDTO) domain.CaseFull {
+	var ownerID string
+	if crmCaseFullDTO.OwnerID != nil {
+		ownerID = *crmCaseFullDTO.OwnerID
+	}
+
+	return domain.CaseFull{
+		CaseID:            crmCaseFullDTO.CaseID,
+		OwnerID:           ownerID,
+		OriginChannel:     crmCaseFullDTO.OriginChannel,
+		Type:              crmCaseFullDTO.Type,
+		Subject:           crmCaseFullDTO.Subject,
+		Priority:          domain.CasePriority(crmCaseFullDTO.Priority),
+		Status:            domain.CaseStatus(crmCaseFullDTO.Status),
+		DueDate:           crmCaseFullDTO.DueDate,
+		CreatedBy:         crmCaseFullDTO.CreatedBy,
+		CreatedAt:         crmCaseFullDTO.CreatedAt,
+		UpdatedBy:         crmCaseFullDTO.UpdatedBy,
+		UpdatedAt:         crmCaseFullDTO.UpdatedAt,
+		ExternalReference: crmCaseFullDTO.ExternalReference,
+		Region:            crmCaseFullDTO.Region,
+		ClosedAt:          crmCaseFullDTO.ClosedAt,
+		TargetDate:        crmCaseFullDTO.TargetDate,
+		Contractor:        mapContractorDTOToContractor(crmCaseFullDTO.Contractor),
+		Customer:          mapCustomerOptionalDTOToCustomer(crmCaseFullDTO.Customer),
+		Partner:           mapPartnerOptionalDTOToPartner(crmCaseFullDTO.Partner),
+		Product:           mapProductDTOToProduct(crmCaseFullDTO.Product),
+		Transactions:      mapTransactionDTOsToTransactions(crmCaseFullDTO.Transactions),
+	}
+}
+
+func mapCaseFullDTOsToCasesFull(crmCaseDTOs []CaseFullDTO) []domain.CaseFull {
+	crmCases := make([]domain.CaseFull, 0, len(crmCaseDTOs))
+	for _, crmCaseDTO := range crmCaseDTOs {
+		crmCase := mapCaseFullDTOToCaseFull(crmCaseDTO)
+		crmCases = append(crmCases, crmCase)
+	}
+
+	return crmCases
 }
