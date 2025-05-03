@@ -26,6 +26,7 @@ type CaseService interface {
 	SearchCases(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.Case], error)
 	UpdateCase(ctx context.Context, caseID string, newCase domain.CaseUpdate) error
 	GetCaseFullByID(ctx context.Context, caseID string) (*domain.CaseFull, error)
+	SearchCasesFull(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.CaseFull], error)
 }
 
 func NewCaseService(
@@ -87,6 +88,10 @@ func (c *caseService) GetCaseByID(ctx context.Context, caseID string) (*domain.C
 
 func (c *caseService) SearchCases(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.Case], error) {
 	return c.caseRepository.Search(ctx, filters)
+}
+
+func (c *caseService) SearchCasesFull(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.CaseFull], error) {
+	return c.caseRepository.SearchFull(ctx, filters)
 }
 
 func (c *caseService) assignOwnerToNewCase(ctx context.Context, crmCase *domain.Case) error {
