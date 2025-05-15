@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"github.com/jmoiron/sqlx"
 )
@@ -72,4 +73,24 @@ func (r *attachmentRepository) GetByCommentID(ctx context.Context, commentID str
 	attachments := mapAttachmentsDTOToAttachments(attachmentsDTO)
 
 	return attachments, nil
+}
+
+func (r *attachmentRepository) DeleteManyByComments(ctx context.Context, commentIDs []string) error {
+	if len(commentIDs) == 0 {
+		return nil
+	}
+
+	query, args, err := sqlx.In("DELETE FROM attachments WHERE comment_id IN (?)", commentIDs)
+	if err != nil {
+		return err
+	}
+
+	query = r.db.Rebind(query)
+
+	_, err = r.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

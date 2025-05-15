@@ -134,3 +134,16 @@ func (r *transactionRepository) CreateTransactionBatch(ctx context.Context, tran
 
 	return insertedIDs, nil
 }
+
+func (r *transactionRepository) DeleteManyByCaseID(ctx context.Context, caseID string) error {
+	if caseID == "" {
+		return domain.NewValidationError("caseID is required", nil)
+	}
+
+	_, err := r.client.ExecContext(ctx, "DELETE FROM transactions WHERE case_id = $1", caseID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

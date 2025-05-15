@@ -113,3 +113,19 @@ func (c *CaseActionController) DownloadReport(ctx *gin.Context) {
 	contentType := fmt.Sprintf("application/vnd.openxmlformats-officedocument.wordprocessingml.document;%s.docx", filename)
 	ctx.Data(http.StatusOK, contentType, report)
 }
+
+func (c *CaseActionController) ResetCase(ctx *gin.Context) {
+	caseID := ctx.Param("caseID")
+	if caseID == "" {
+		ctx.Error(domain.NewValidationError("case_id is required", nil))
+		return
+	}
+
+	err := c.caseActionService.ResetCaseStatus(ctx.Request.Context(), caseID)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
+}

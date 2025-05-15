@@ -12,6 +12,7 @@ type AttachmentRepository interface {
 	SaveBatch(ctx context.Context, attachments []Attachment) error
 	GetByID(ctx context.Context, attachmentID string) (Attachment, error)
 	GetByCommentID(ctx context.Context, commentID string) ([]Attachment, error)
+	DeleteManyByComments(ctx context.Context, commentIDs []string) error
 }
 
 type AttachmentBucket interface {
