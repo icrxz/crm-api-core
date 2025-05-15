@@ -16,6 +16,7 @@ type CommentService interface {
 	Create(ctx context.Context, comment domain.Comment) (string, error)
 	GetByID(ctx context.Context, commentID string) (*domain.Comment, error)
 	GetByCaseID(ctx context.Context, caseID string) ([]domain.Comment, error)
+	DeleteByCaseID(ctx context.Context, caseID string) error
 }
 
 func NewCommentService(
@@ -88,4 +89,12 @@ func (s *commentService) GetByCaseID(ctx context.Context, caseID string) ([]doma
 	}
 
 	return comments, nil
+}
+
+func (s *commentService) DeleteByCaseID(ctx context.Context, caseID string) error {
+	if caseID == "" {
+		return domain.NewValidationError("caseID is required", nil)
+	}
+
+	return s.commentRepository.DeleteManyByCaseID(ctx, caseID)
 }

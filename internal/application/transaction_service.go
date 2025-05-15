@@ -17,6 +17,7 @@ type TransactionService interface {
 	UpdateTransaction(ctx context.Context, transactionID string, transactionUpdate domain.TransactionUpdate) error
 	SearchTransactions(ctx context.Context, filters domain.TransactionFilters) ([]domain.Transaction, error)
 	CreateTransactionBatch(ctx context.Context, transactions []domain.Transaction) ([]string, error)
+	DeleteByCaseID(ctx context.Context, caseID string) error
 }
 
 func NewTransactionService(transactionRepository domain.TransactionRepository, caseRepository domain.CaseRepository) TransactionService {
@@ -72,4 +73,12 @@ func (s *transactionService) CreateTransactionBatch(ctx context.Context, transac
 	}
 
 	return s.transactionRepository.CreateTransactionBatch(ctx, transactions)
+}
+
+func (s *transactionService) DeleteByCaseID(ctx context.Context, caseID string) error {
+	if caseID == "" {
+		return domain.NewValidationError("caseID is required", nil)
+	}
+
+	return s.transactionRepository.DeleteManyByCaseID(ctx, caseID)
 }
