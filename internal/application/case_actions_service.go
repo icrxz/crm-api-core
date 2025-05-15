@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"time"
 
@@ -9,9 +10,11 @@ import (
 )
 
 type caseActionService struct {
-	caseRepository domain.CaseRepository
-	commentService CommentService
-	reportService  ReportService
+	caseRepository     domain.CaseRepository
+	commentService     CommentService
+	attachmentService  AttachmentService
+	transactionService TransactionService
+	reportService      ReportService
 }
 
 type CaseActionService interface {
@@ -19,6 +22,7 @@ type CaseActionService interface {
 	ChangeStatus(ctx context.Context, caseID string, newStatus domain.ChangeStatus) error
 	ChangePartner(ctx context.Context, caseID string, newPartner domain.ChangePartner) error
 	GenerateReport(ctx context.Context, caseID string) ([]byte, string, error)
+	ResetCaseStatus(ctx context.Context, caseID string) error
 }
 
 func NewCaseActionService(
@@ -132,4 +136,56 @@ func (c *caseActionService) createChangeStatusComment(ctx context.Context, caseI
 
 	_, err = c.commentService.Create(ctx, newComment)
 	return err
+}
+
+func (c *caseActionService) ResetCaseStatus(ctx context.Context, caseID string) error {
+	crmCase, err := c.caseRepository.GetByID(ctx, caseID)
+	if err != nil {
+		var customErr *domain.CustomError
+		if errors.As(err, &customErr) && customErr.IsNotFound() {
+			return nil
+		}
+		return err
+	}
+
+	newStatus := domain.NEW
+	cleanCase := domain.CaseUpdate{
+		Status:    &newStatus,
+		PartnerID: nil,
+		OwnerID:   nil,
+	}
+
+	crmCase.MergeUpdate(cleanCase)
+
+	caseComments, err := c.commentService.GetByCaseID(ctx, caseID)
+	if err != nil {
+		return err
+	}
+
+	commentIDs := make([]string, 0, len(caseComments))
+	for _, comment := range caseComments {
+		commentIDs = append(commentIDs, comment.CommentID)
+	}
+
+	err = c.attachmentService.DeleteByComments(ctx, commentIDs)
+	if err != nil {
+		return err
+	}
+
+	err = c.transactionService.DeleteByCaseID(ctx, caseID)
+	if err != nil {
+		return err
+	}
+
+	err = c.commentService.DeleteByCaseID(ctx, caseID)
+	if err != nil {
+		return err
+	}
+
+	err = c.caseRepository.Update(ctx, *crmCase)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

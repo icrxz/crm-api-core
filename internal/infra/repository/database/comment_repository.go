@@ -70,3 +70,16 @@ func (r *commentRepository) GetByCaseID(ctx context.Context, caseID string) ([]d
 
 	return comments, nil
 }
+
+func (r *commentRepository) DeleteManyByCaseID(ctx context.Context, caseID string) error {
+	if caseID == "" {
+		return domain.NewValidationError("caseID is required", nil)
+	}
+
+	_, err := r.db.ExecContext(ctx, "DELETE FROM comments WHERE case_id = $1", caseID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
