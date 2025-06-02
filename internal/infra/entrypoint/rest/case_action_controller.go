@@ -121,7 +121,13 @@ func (c *CaseActionController) ResetCase(ctx *gin.Context) {
 		return
 	}
 
-	err := c.caseActionService.ResetCaseStatus(ctx.Request.Context(), caseID)
+	author := ctx.Request.Header.Get("X-Author")
+	if author == "" {
+		ctx.Error(domain.NewValidationError("X-Author is required", nil))
+		return
+	}
+
+	err := c.caseActionService.ResetCaseStatus(ctx.Request.Context(), caseID, author)
 	if err != nil {
 		ctx.Error(err)
 		return

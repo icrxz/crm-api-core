@@ -37,7 +37,7 @@ func (s *commentService) Create(ctx context.Context, comment domain.Comment) (st
 		return "", err
 	}
 
-	if comment.Attachments != nil && len(comment.Attachments) > 0 {
+	if len(comment.Attachments) > 0 {
 		for idx := range comment.Attachments {
 			comment.Attachments[idx].CommentID = commentID
 		}

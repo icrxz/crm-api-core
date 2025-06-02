@@ -22,18 +22,22 @@ type CaseActionService interface {
 	ChangeStatus(ctx context.Context, caseID string, newStatus domain.ChangeStatus) error
 	ChangePartner(ctx context.Context, caseID string, newPartner domain.ChangePartner) error
 	GenerateReport(ctx context.Context, caseID string) ([]byte, string, error)
-	ResetCaseStatus(ctx context.Context, caseID string) error
+	ResetCaseStatus(ctx context.Context, caseID, author string) error
 }
 
 func NewCaseActionService(
 	caseRepository domain.CaseRepository,
 	commentService CommentService,
 	reportService ReportService,
+	attachmentService AttachmentService,
+	transactionService TransactionService,
 ) CaseActionService {
 	return &caseActionService{
-		caseRepository: caseRepository,
-		commentService: commentService,
-		reportService:  reportService,
+		caseRepository:     caseRepository,
+		commentService:     commentService,
+		reportService:      reportService,
+		attachmentService:  attachmentService,
+		transactionService: transactionService,
 	}
 }
 
@@ -138,7 +142,7 @@ func (c *caseActionService) createChangeStatusComment(ctx context.Context, caseI
 	return err
 }
 
-func (c *caseActionService) ResetCaseStatus(ctx context.Context, caseID string) error {
+func (c *caseActionService) ResetCaseStatus(ctx context.Context, caseID, author string) error {
 	crmCase, err := c.caseRepository.GetByID(ctx, caseID)
 	if err != nil {
 		var customErr *domain.CustomError
@@ -148,11 +152,16 @@ func (c *caseActionService) ResetCaseStatus(ctx context.Context, caseID string) 
 		return err
 	}
 
+	emptyString := ""
+
 	newStatus := domain.NEW
 	cleanCase := domain.CaseUpdate{
 		Status:    &newStatus,
-		PartnerID: nil,
-		OwnerID:   nil,
+		PartnerID: &emptyString,
+		OwnerID:   &emptyString,
+		// TargetDate: nil,
+		// ClosedAt:   nil,
+		UpdatedBy: author,
 	}
 
 	crmCase.MergeUpdate(cleanCase)

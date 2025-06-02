@@ -2,12 +2,14 @@ package application
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
 type attachmentService struct {
 	attachmentRepository domain.AttachmentRepository
+	attachmentBucket     domain.AttachmentBucket
 }
 
 type AttachmentService interface {
@@ -16,9 +18,13 @@ type AttachmentService interface {
 	DeleteByComments(ctx context.Context, commentIDs []string) error
 }
 
-func NewAttachmentService(attachmentRepository domain.AttachmentRepository) AttachmentService {
+func NewAttachmentService(
+	attachmentRepository domain.AttachmentRepository,
+	attachmentBucket domain.AttachmentBucket,
+) AttachmentService {
 	return &attachmentService{
 		attachmentRepository: attachmentRepository,
+		attachmentBucket:     attachmentBucket,
 	}
 }
 
@@ -50,7 +56,8 @@ func (s *attachmentService) SearchByCommentID(ctx context.Context, commentID str
 
 func (s *attachmentService) DeleteByComments(ctx context.Context, commentIDs []string) error {
 	if len(commentIDs) == 0 {
-		return domain.NewValidationError("commentIDs is required to delete attachments", nil)
+		fmt.Println("DeleteByComments called with empty commentIDs, nothing to delete")
+		return nil
 	}
 
 	return s.attachmentRepository.DeleteManyByComments(ctx, commentIDs)

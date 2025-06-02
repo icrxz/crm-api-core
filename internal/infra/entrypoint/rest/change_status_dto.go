@@ -21,5 +21,6 @@ func mapChangeStatusDTOToChangeStatus(changeStatusDTO ChangeStatusDTO) (domain.C
 		UpdatedBy:   changeStatusDTO.UpdatedBy,
 		Content:     changeStatusDTO.Content,
 		Attachments: attachmentDTO,
+		Type:        changeStatusDTO.Type,
 	}, nil
 }

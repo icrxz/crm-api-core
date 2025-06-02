@@ -80,7 +80,8 @@ func RunApp() error {
 		contractorService,
 		attachmentBucket,
 	)
-	caseActionService := application.NewCaseActionService(caseRepository, commentService, reportService)
+	attachmentService := application.NewAttachmentService(attachmentRepository, attachmentBucket)
+	caseActionService := application.NewCaseActionService(caseRepository, commentService, reportService, attachmentService, transactionService)
 
 	// controllers
 	pingController := rest.NewPingController()
