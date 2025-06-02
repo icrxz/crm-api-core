@@ -1,6 +1,6 @@
 module github.com/icrxz/crm-api-core
 
-go 1.22.1
+go 1.24.3
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.30.3
@@ -15,9 +15,9 @@ require (
 	github.com/magiconair/properties v1.8.7
 	github.com/nguyenthenguyen/docx v0.0.0-20230621112118-9c8e795a11db
 	github.com/thedatashed/xlsxreader v1.2.8
-	go.uber.org/mock v0.4.0
-	golang.org/x/crypto v0.26.0
-	golang.org/x/sync v0.8.0
+	go.uber.org/mock v0.5.2
+	golang.org/x/crypto v0.38.0
+	golang.org/x/sync v0.14.0
 )
 
 require (
@@ -57,11 +57,11 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/mod v0.20.0 // indirect
-	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sys v0.23.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
-	golang.org/x/tools v0.24.0 // indirect
+	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/tools v0.33.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

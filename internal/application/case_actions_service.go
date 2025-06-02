@@ -57,6 +57,7 @@ func (c *caseActionService) ChangeStatus(ctx context.Context, caseID string, new
 
 	caseUpdate := domain.CaseUpdate{
 		Status:    &newStatus.Status,
+		Type:      newStatus.Type,
 		UpdatedBy: newStatus.UpdatedBy,
 	}
 

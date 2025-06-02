@@ -79,6 +79,7 @@ type UpdateCaseDTO struct {
 	CustomerID *string    `json:"customer_id"`
 	ProductID  *string    `json:"product_id"`
 	Subject    *string    `json:"subject"`
+	Type       *string    `json:"type"`
 	UpdatedBy  string     `json:"updated_by" validate:"required"`
 }
 
@@ -165,6 +166,7 @@ func mapUpdateCaseDTOToUpdateCase(dto UpdateCaseDTO) domain.CaseUpdate {
 		CustomerID: dto.CustomerID,
 		Subject:    dto.Subject,
 		ProductID:  dto.ProductID,
+		Type:       dto.Type,
 	}
 }
 
