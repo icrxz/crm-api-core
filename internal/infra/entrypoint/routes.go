@@ -97,4 +97,5 @@ func LoadRoutes(
 	authGroup.PATCH("/cases/:caseID/status", caseActionController.ChangeStatus)
 	authGroup.PATCH("/cases/:caseID/partner", caseActionController.ChangePartner)
 	authGroup.GET("/cases/:caseID/report", caseActionController.DownloadReport)
+	authGroup.PATCH("/cases/:caseID/reset", caseActionController.ResetCase)
 }

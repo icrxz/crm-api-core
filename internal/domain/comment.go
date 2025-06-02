@@ -11,6 +11,7 @@ type CommentRepository interface {
 	Create(ctx context.Context, comment Comment) (string, error)
 	GetByID(ctx context.Context, commentID string) (*Comment, error)
 	GetByCaseID(ctx context.Context, caseID string) ([]Comment, error)
+	DeleteManyByCaseID(ctx context.Context, caseID string) error
 }
 
 type Comment struct {
