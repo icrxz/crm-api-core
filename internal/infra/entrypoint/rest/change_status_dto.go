@@ -6,6 +6,7 @@ type ChangeStatusDTO struct {
 	Status      string                `json:"status"`
 	UpdatedBy   string                `json:"updated_by"`
 	Content     *string               `json:"content"`
+	Type        *string               `json:"type"`
 	Attachments []CreateAttachmentDTO `json:"attachments"`
 }
 
