@@ -91,6 +91,7 @@ type CaseUpdate struct {
 	OwnerID    *string
 	TargetDate *time.Time
 	ClosedAt   *time.Time
+	Type       *string
 	CustomerID *string
 	ProductID  *string
 	Subject    *string
@@ -189,6 +190,10 @@ func (c *Case) MergeUpdate(updateCase CaseUpdate) {
 
 	if updateCase.Subject != nil {
 		c.Subject = *updateCase.Subject
+	}
+
+	if updateCase.Type != nil {
+		c.Type = *updateCase.Type
 	}
 }
 
