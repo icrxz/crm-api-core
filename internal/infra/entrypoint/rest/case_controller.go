@@ -143,6 +143,8 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 		PagingFilter: domain.PagingFilter{
 			Limit:  10,
 			Offset: 0,
+			SortBy: "created_at",
+			SortOrder: domain.SortOrderDesc,
 		},
 	}
 
@@ -198,6 +200,14 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 		if err == nil {
 			filters.Offset = parsedOffset
 		}
+	}
+
+	if sortBy := ctx.Query("sort_by"); sortBy != "" {
+		filters.SortBy = sortBy
+	}
+
+	if sortOrder := ctx.Query("sort_order"); sortOrder != "" {
+		filters.SortOrder = sortOrder
 	}
 
 	return filters

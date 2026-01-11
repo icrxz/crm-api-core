@@ -74,7 +74,16 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
 	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
 
-	query := fmt.Sprintf("SELECT * FROM cases WHERE %s ORDER BY created_at DESC %s", strings.Join(whereQuery, " AND "), limitQuery)
+	sortByQuery := "created_at"
+	sortOrderQuery := "DESC"
+	if filters.SortBy != "" {
+		sortByQuery = filters.SortBy
+	}
+	if filters.SortOrder != "" {
+		sortOrderQuery = string(filters.SortOrder)
+	}
+
+	query := fmt.Sprintf("SELECT * FROM cases WHERE %s ORDER BY %s %s %s", strings.Join(whereQuery, " AND "), sortByQuery, sortOrderQuery, limitQuery)
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundCases []CaseDTO
