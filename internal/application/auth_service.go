@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
@@ -109,7 +109,7 @@ func (a *authService) VerifyToken(tokenString string) (jwt.MapClaims, error) {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		return claims, nil
 	}
 

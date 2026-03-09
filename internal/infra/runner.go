@@ -100,8 +100,10 @@ func RunApp() error {
 	// middlewares
 	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
 
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery())
 	router.Use(entrypoint.CustomErrorEncoder())
+	router.SetTrustedProxies(nil)
 
 	entrypoint.LoadRoutes(
 		router,
