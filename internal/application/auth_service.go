@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
@@ -16,10 +17,10 @@ type authService struct {
 
 type AuthService interface {
 	Login(ctx context.Context, email, password, clientIP string) (string, *domain.User, error)
-	Logout(ctx context.Context) error
-	CreateToken(userID string) (string, error)
+	Logout(ctx context.Context, userID string) error
+	CreateToken(userID, sessionToken string) (string, error)
 	VerifyToken(tokenString string) (jwt.MapClaims, error)
-	VerifyUserSession(ctx context.Context, userID, clientIP string) error
+	VerifyUserSession(ctx context.Context, userID, sessionToken string) error
 }
 
 func NewAuthService(userRepository domain.UserRepository, jwtSecretKey string) AuthService {
@@ -64,12 +65,13 @@ func (a *authService) Login(ctx context.Context, email, password, clientIP strin
 		return "", nil, domain.NewValidationError("user is inactive", nil)
 	}
 
-	createdToken, err := a.CreateToken(loggedUser.UserID)
+	sessionToken := uuid.New().String()
+	createdToken, err := a.CreateToken(loggedUser.UserID, sessionToken)
 	if err != nil {
 		return "", nil, err
 	}
 
-	loggedUser.MergeUpdate(domain.UserUpdate{LastLoggedIP: &clientIP}, "")
+	loggedUser.MergeUpdate(domain.UserUpdate{LastLoggedIP: &clientIP, SessionToken: &sessionToken}, "")
 	err = a.userRepository.Update(ctx, loggedUser)
 	if err != nil {
 		return "", nil, err
@@ -78,15 +80,22 @@ func (a *authService) Login(ctx context.Context, email, password, clientIP strin
 	return createdToken, &loggedUser, nil
 }
 
-// Logout implements AuthService.
-func (a *authService) Logout(ctx context.Context) error {
-	panic("unimplemented")
+func (a *authService) Logout(ctx context.Context, userID string) error {
+	user, err := a.userRepository.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	emptyToken := ""
+	user.MergeUpdate(domain.UserUpdate{SessionToken: &emptyToken}, userID)
+	return a.userRepository.Update(ctx, *user)
 }
 
-func (a *authService) CreateToken(userID string) (string, error) {
+func (a *authService) CreateToken(userID, sessionToken string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(12 * time.Hour).Unix(),
+		"user_id":       userID,
+		"session_token": sessionToken,
+		"exp":           time.Now().Add(12 * time.Hour).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(a.jwtSecretKey))
@@ -116,15 +125,15 @@ func (a *authService) VerifyToken(tokenString string) (jwt.MapClaims, error) {
 	return nil, fmt.Errorf("invalid token")
 }
 
-func (a *authService) VerifyUserSession(ctx context.Context, userID, clientIP string) error {
-	_, err := a.userRepository.GetByID(ctx, userID)
+func (a *authService) VerifyUserSession(ctx context.Context, userID, sessionToken string) error {
+	user, err := a.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	//if user.LastLoggedIP != clientIP {
-	//	return domain.NewUnauthorizedError("client ip is different from the logged one, please login again!")
-	//}
+	if user.SessionToken != sessionToken {
+		return domain.NewUnauthorizedError("session expired, please login again")
+	}
 
 	return nil
 }

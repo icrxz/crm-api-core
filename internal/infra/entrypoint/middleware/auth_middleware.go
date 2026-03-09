@@ -43,8 +43,8 @@ func (a *AuthenticationMiddleware) Authenticate() gin.HandlerFunc {
 		}
 
 		userID := claims["user_id"].(string)
-		clientIP := ctx.ClientIP()
-		err = a.authService.VerifyUserSession(ctx.Request.Context(), userID, clientIP)
+		sessionToken := claims["session_token"].(string)
+		err = a.authService.VerifyUserSession(ctx.Request.Context(), userID, sessionToken)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			ctx.Abort()

@@ -37,4 +37,12 @@ func (c *AuthController) Login(ctx *gin.Context) {
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
+	userID := ctx.GetString("user_id")
+	err := c.authService.Logout(ctx.Request.Context(), userID)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
