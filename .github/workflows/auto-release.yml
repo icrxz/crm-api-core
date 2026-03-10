@@ -1,0 +1,42 @@
+name: Gerar Tag e Release Notes
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write # Permissão obrigatória para criar Tags e Releases
+
+jobs:
+  release:
+    name: Criar Nova Versão
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessário para ler o histórico de commits/tags
+
+      - name: Calcular próxima Tag (SemVer)
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch # Se não achar feat/fix, sobe o patch por padrão
+          release_branches: main
+
+      - name: Criar GitHub Release e Changelog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag_version.outputs.new_tag }}
+          PREVIOUS_TAG: ${{ steps.tag_version.outputs.previous_tag }}
+        run: |
+          echo "Gerando release para a tag $TAG..."
+
+          # Usa o GitHub CLI para criar o release.
+          # A flag --generate-notes cria o changelog automaticamente
+          # listando todos os PRs mergeados desde a última tag ($PREVIOUS_TAG).
+          gh release create "$TAG" \
+            --title "Release $TAG" \
+            --generate-notes
