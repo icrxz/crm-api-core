@@ -1,0 +1,30 @@
+name: Validar Nomenclatura de Branches no PR
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  validate-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checar branch de origem
+        run: |
+          BASE_BRANCH="${{ github.base_ref }}"
+          HEAD_BRANCH="${{ github.head_ref }}"
+
+          if [ "$BASE_BRANCH" == "main" ]; then
+            if [[ ! "$HEAD_BRANCH" =~ ^(hotfix/.*|release/.*)$ ]]; then
+              echo "❌ Erro: PRs para a main só podem vir de hotfix/, release/."
+              exit 1
+            fi
+          elif [ "$BASE_BRANCH" == "develop" ]; then
+            if [[ ! "$HEAD_BRANCH" =~ ^(feature/.*|fix/.*|docs/.*|chore/.*)$ ]]; then
+              echo "❌ Erro: PRs para a develop só podem vir de feature/, fix/, docs/ ou chore/."
+              exit 1
+            fi
+          fi
+
+          echo "✅ Nomenclatura válida!"

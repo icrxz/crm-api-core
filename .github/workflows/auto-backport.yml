@@ -1,0 +1,65 @@
+name: Auto Backport
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-backports:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Criar PRs de Backport
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          MERGED_BY: ${{ github.actor }}
+        run: |
+          # 1. Definir os alvos (develop já é padrão)
+          TARGETS=("develop")
+
+          # 2. Buscar branches abertas usando a API do GitHub
+          BRANCHES=$(gh api repos/${{ github.repository }}/branches --jq '.[].name')
+
+          for branch in $BRANCHES; do
+            if [[ "$branch" =~ ^(release/|hotfix/) ]]; then
+              TARGETS+=("$branch")
+            fi
+          done
+
+          # 3. Criar os PRs para cada branch alvo
+          for TARGET in "${TARGETS[@]}"; do
+            echo "Iniciando backport para $TARGET..."
+
+            BP_BRANCH="backport-pr-${PR_NUMBER}-to-${TARGET//\//-}"
+
+            git checkout "$TARGET"
+            git pull origin "$TARGET"
+            git checkout -b "$BP_BRANCH"
+
+            # Tenta fazer o merge da main
+            git merge origin/main --no-ff -m "Auto-merge main into $TARGET" || true
+
+            git push origin "$BP_BRANCH"
+
+            # Criar o Pull Request com a atribuição automática
+            gh pr create \
+              --base "$TARGET" \
+              --head "$BP_BRANCH" \
+              --title "🔄 Backport PR #${PR_NUMBER} para ${TARGET}" \
+              --body "Este é um PR gerado automaticamente trazendo as alterações do PR #${PR_NUMBER} (main) para a branch \`${TARGET}\`. Por favor, verifique se há conflitos a serem resolvidos." \
+              --assignee "$MERGED_BY"
+          done

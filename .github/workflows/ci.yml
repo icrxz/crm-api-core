@@ -1,0 +1,43 @@
+name: Go CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-lint-test:
+    name: Build, Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Setup Go 1.26
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          # O actions/setup-go já possui cache nativo ativado por padrão
+          cache: true
+
+      - name: Instalar dependências
+        run: go mod download
+
+      - name: Rodar Linter (golangci-lint)
+        uses: golangci/golangci-lint-action@v9.2.0
+        with:
+          version: v2.10
+          only-new-issues: true
+
+      - name: Rodar Testes Unitários
+        # A flag -race é uma boa prática em Go para identificar race conditions
+        run: go test -v -race ./...
+
+      - name: Validar Build da Aplicação
+        # Apenas compila o código e descarta o binário para garantir que não há erros de sintaxe/tipagem
+        run: go build -v ./...
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
