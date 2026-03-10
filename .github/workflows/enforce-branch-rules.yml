@@ -16,8 +16,8 @@ jobs:
           HEAD_BRANCH="${{ github.head_ref }}"
 
           if [ "$BASE_BRANCH" == "main" ]; then
-            if [[ ! "$HEAD_BRANCH" =~ ^(hotfix/.*|release/.*|develop)$ ]]; then
-              echo "❌ Erro: PRs para a main só podem vir de hotfix/, release/ ou develop."
+            if [[ ! "$HEAD_BRANCH" =~ ^(hotfix/.*|release/.*)$ ]]; then
+              echo "❌ Erro: PRs para a main só podem vir de hotfix/, release/."
               exit 1
             fi
           elif [ "$BASE_BRANCH" == "develop" ]; then
