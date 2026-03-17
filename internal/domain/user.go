@@ -26,6 +26,7 @@ type User struct {
 	Region       int
 	Password     string
 	LastLoggedIP string
+	SessionToken string
 	Active       bool
 	Cases        []Case
 	CreatedBy    string
@@ -54,6 +55,7 @@ type UserUpdate struct {
 	Region       *int
 	Password     *string
 	LastLoggedIP *string
+	SessionToken *string
 	Active       *bool
 }
 
@@ -134,6 +136,10 @@ func (u *User) MergeUpdate(userUpdate UserUpdate, author string) {
 
 	if userUpdate.LastLoggedIP != nil {
 		u.LastLoggedIP = *userUpdate.LastLoggedIP
+	}
+
+	if userUpdate.SessionToken != nil {
+		u.SessionToken = *userUpdate.SessionToken
 	}
 
 	if userUpdate.Region != nil {

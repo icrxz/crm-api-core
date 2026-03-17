@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,4 +38,14 @@ func (c *AuthController) Login(ctx *gin.Context) {
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
+	userID := ctx.GetString("user_id")
+	err := c.authService.Logout(ctx.Request.Context(), userID)
+	if err != nil {
+		if ctxErr := ctx.Error(err); ctxErr != nil {
+			fmt.Printf("failed to add error in context: %v\n", ctxErr.Error())
+		}
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }

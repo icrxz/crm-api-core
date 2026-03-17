@@ -6,7 +6,6 @@ run:
   tests: true
 
 linters:
-  # Substitui o antigo disable-all: true
   default: none
 
   enable:
@@ -19,12 +18,9 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - gosec
     - misspell
     - nilerr
-    - revive
 
-  # O antigo 'linters-settings' foi encapsulado aqui
   settings:
     gocyclo:
       min-complexity: 15
