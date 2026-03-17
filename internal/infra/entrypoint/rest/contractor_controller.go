@@ -145,14 +145,14 @@ func (c *ContractorController) parseQueryToFilters(ctx *gin.Context) domain.Cont
 	if limitParam := ctx.Query("limit"); limitParam != "" {
 		parsedLimit, err := strconv.Atoi(limitParam)
 		if err == nil {
-			filters.PagingFilter.Limit = parsedLimit
+			filters.Limit = parsedLimit
 		}
 	}
 
 	if offsetParam := ctx.Query("offset"); offsetParam != "" {
 		parsedOffset, err := strconv.Atoi(offsetParam)
 		if err == nil {
-			filters.PagingFilter.Offset = parsedOffset
+			filters.Offset = parsedOffset
 		}
 	}
 

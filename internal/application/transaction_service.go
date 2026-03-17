@@ -59,7 +59,7 @@ func (s *transactionService) SearchTransactions(ctx context.Context, filters dom
 }
 
 func (s *transactionService) CreateTransactionBatch(ctx context.Context, transactions []domain.Transaction) ([]string, error) {
-	if len(transactions) <= 0 || transactions[0].CaseID == "" {
+	if len(transactions) == 0 || transactions[0].CaseID == "" {
 		return nil, domain.NewValidationError("transactions cannot be empty and caseID cannot be empty", nil)
 	}
 

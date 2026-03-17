@@ -111,6 +111,7 @@ const (
 	CLOSED          CaseStatus = "Closed"
 	CANCELED        CaseStatus = "Canceled"
 	DRAFT           CaseStatus = "Draft"
+	REJECTED        CaseStatus = "Rejected"
 )
 
 type CasePriority string
