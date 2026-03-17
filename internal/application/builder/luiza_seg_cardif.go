@@ -11,7 +11,6 @@ import (
 type luizaSegBuilder struct {
 	columnsIndex map[string]int
 	author       string
-	companyName  string
 }
 
 func NewLuizaSegBuilder(columnsIndex map[string]int, author, _ string) domain.CaseBuilder {

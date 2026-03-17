@@ -1,0 +1,49 @@
+name: Build and Publish to Docker Hub
+
+on:
+  push:
+    # Roda apenas quando uma tag de versão oficial for criada (ex: v1.0.0)
+    tags:
+      - "v*"
+
+jobs:
+  build-and-push:
+    name: Publicar Imagem no Docker Hub
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # Ferramenta avançada do Docker que permite usar cache em nuvem
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login no Docker Hub usando os Secrets que você cadastrou
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Extrai a tag atual (ex: v1.2.0) e também marca a imagem como 'latest'
+      - name: Extrair metadados (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # Substitua o prefixo se necessário. Por padrão ele usa seu username do Dockerhub / nome do repositório
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest
+
+      - name: Build and Push da Imagem
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Utiliza o cache do próprio GitHub Actions para acelerar builds futuros
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
