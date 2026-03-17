@@ -12,6 +12,7 @@ type partnerService struct {
 	partnerRepository domain.PartnerRepository
 }
 
+//go:generate mockgen -source=partner_service.go -destination=mock_application/mock_partner_service.go -package=mock_application
 type PartnerService interface {
 	Create(ctx context.Context, partner domain.Partner) (string, error)
 	GetByID(ctx context.Context, partnerID string) (*domain.Partner, error)

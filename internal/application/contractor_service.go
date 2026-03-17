@@ -10,6 +10,7 @@ type contractorService struct {
 	contractorRepository domain.ContractorRepository
 }
 
+//go:generate mockgen -source=contractor_service.go -destination=mock_application/mock_contractor_service.go -package=mock_application
 type ContractorService interface {
 	Create(ctx context.Context, contractor domain.Contractor) (string, error)
 	GetByID(ctx context.Context, contractorID string) (*domain.Contractor, error)

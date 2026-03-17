@@ -63,6 +63,7 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereArgs := make([]any, 0)
 	var limitArgs []any
 
+	whereQuery, whereArgs = prepareInQuery(filters.CaseID, whereQuery, whereArgs, "case_id")
 	whereQuery, whereArgs = prepareInQuery(filters.ContractorID, whereQuery, whereArgs, "contractor_id")
 	whereQuery, whereArgs = prepareInQuery(filters.OwnerID, whereQuery, whereArgs, "owner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerID, whereQuery, whereArgs, "customer_id")
@@ -175,6 +176,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 	whereArgs := make([]any, 0)
 	var limitArgs []any
 
+	whereQuery, whereArgs = prepareInQuery(filters.CaseID, whereQuery, whereArgs, "ca.case_id")
 	whereQuery, whereArgs = prepareInQuery(filters.ContractorID, whereQuery, whereArgs, "ca.contractor_id")
 	whereQuery, whereArgs = prepareInQuery(filters.OwnerID, whereQuery, whereArgs, "ca.owner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerID, whereQuery, whereArgs, "ca.customer_id")

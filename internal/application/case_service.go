@@ -20,6 +20,7 @@ type caseService struct {
 	contractorService  ContractorService
 }
 
+//go:generate mockgen -source=case_service.go -destination=mock_application/mock_case_service.go -package=mock_application
 type CaseService interface {
 	CreateCase(ctx context.Context, newCase domain.CreateCase) (string, error)
 	GetCaseByID(ctx context.Context, caseID string) (*domain.Case, error)

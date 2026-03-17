@@ -72,6 +72,7 @@ type CaseFull struct {
 }
 
 type CaseFilters struct {
+	CaseID            []string
 	OwnerID           []string
 	PartnerID         []string
 	ContractorID      []string

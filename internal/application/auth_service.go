@@ -15,6 +15,7 @@ type authService struct {
 	jwtSecretKey   string
 }
 
+//go:generate mockgen -source=auth_service.go -destination=mock_application/mock_auth_service.go -package=mock_application
 type AuthService interface {
 	Login(ctx context.Context, email, password, clientIP string) (string, *domain.User, error)
 	Logout(ctx context.Context, userID string) error

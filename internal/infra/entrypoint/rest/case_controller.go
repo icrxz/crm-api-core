@@ -146,6 +146,10 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 		},
 	}
 
+	if caseIDParam := ctx.Query("case_id"); caseIDParam != "" {
+		filters.CaseID = strings.Split(caseIDParam, ",")
+	}
+
 	if ownerIDs := ctx.QueryArray("owner_id"); len(ownerIDs) > 0 {
 		filters.OwnerID = ownerIDs
 	}

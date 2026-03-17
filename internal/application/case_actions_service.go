@@ -17,6 +17,7 @@ type caseActionService struct {
 	reportService      ReportService
 }
 
+//go:generate mockgen -source=case_actions_service.go -destination=mock_application/mock_case_actions_service.go -package=mock_application
 type CaseActionService interface {
 	ChangeOwner(ctx context.Context, caseID string, newOwner domain.ChangeOwner) error
 	ChangeStatus(ctx context.Context, caseID string, newStatus domain.ChangeStatus) error

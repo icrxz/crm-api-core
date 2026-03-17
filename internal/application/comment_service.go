@@ -12,6 +12,7 @@ type commentService struct {
 	attachmentBucket     domain.AttachmentBucket
 }
 
+//go:generate mockgen -source=comment_service.go -destination=mock_application/mock_comment_service.go -package=mock_application
 type CommentService interface {
 	Create(ctx context.Context, comment domain.Comment) (string, error)
 	GetByID(ctx context.Context, commentID string) (*domain.Comment, error)

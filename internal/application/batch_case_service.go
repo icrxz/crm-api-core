@@ -18,6 +18,7 @@ type batchCaseService struct {
 	caseRepository    domain.CaseRepository
 }
 
+//go:generate mockgen -source=batch_case_service.go -destination=mock_application/mock_batch_case_service.go -package=mock_application
 type BatchCaseService interface {
 	CreateBatch(ctx context.Context, file io.Reader, fileName, createdBy, company string) ([]string, error)
 }

@@ -46,6 +46,7 @@ type reportService struct {
 	attachmentBucket  domain.AttachmentBucket
 }
 
+//go:generate mockgen -source=report_service.go -destination=mock_application/mock_report_service.go -package=mock_application
 type ReportService interface {
 	GenerateReport(ctx context.Context, crmCase domain.Case) ([]byte, string, error)
 }

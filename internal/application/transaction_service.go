@@ -11,6 +11,7 @@ type transactionService struct {
 	caseRepository        domain.CaseRepository
 }
 
+//go:generate mockgen -source=transaction_service.go -destination=mock_application/mock_transaction_service.go -package=mock_application
 type TransactionService interface {
 	CreateTransaction(ctx context.Context, transaction domain.Transaction) (string, error)
 	GetTransaction(ctx context.Context, transactionID string) (domain.Transaction, error)

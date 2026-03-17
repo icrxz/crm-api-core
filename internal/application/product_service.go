@@ -10,6 +10,7 @@ type productService struct {
 	productRepository domain.ProductRepository
 }
 
+//go:generate mockgen -source=product_service.go -destination=mock_application/mock_product_service.go -package=mock_application
 type ProductService interface {
 	CreateProduct(ctx context.Context, product domain.Product) (string, error)
 	GetProductByID(ctx context.Context, productID string) (*domain.Product, error)
