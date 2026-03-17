@@ -59,6 +59,11 @@ type EditPartner struct {
 	Billing         *Billing
 }
 
+type NameOrCityFilter struct {
+	Name []string
+	City []string
+}
+
 type PartnerFilters struct {
 	PartnerID   []string
 	State       []string
@@ -68,6 +73,7 @@ type PartnerFilters struct {
 	FirstName   []string
 	LastName    []string
 	Active      *bool
+	NameOrCity  *NameOrCityFilter
 	PagingFilter
 }
 
