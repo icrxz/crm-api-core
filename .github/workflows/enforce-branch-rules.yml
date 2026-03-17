@@ -21,8 +21,8 @@ jobs:
               exit 1
             fi
           elif [ "$BASE_BRANCH" == "develop" ]; then
-            if [[ ! "$HEAD_BRANCH" =~ ^(feature/.*|fix/.*|docs/.*|chore/.*)$ ]]; then
-              echo "❌ Erro: PRs para a develop só podem vir de feature/, fix/, docs/ ou chore/."
+            if [[ ! "$HEAD_BRANCH" =~ ^(feature/.*|fix/.*|docs/.*|chore/.*|dependabot/.*)$ ]]; then
+              echo "❌ Erro: PRs para a develop só podem vir de feature/, fix/, docs/, dependabot/ ou chore/."
               exit 1
             fi
           fi

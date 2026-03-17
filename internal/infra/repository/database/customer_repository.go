@@ -64,7 +64,8 @@ func (db *customerRepository) Search(ctx context.Context, filters domain.Custome
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerID, whereQuery, whereArgs, "customer_id")
 
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
-	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+	limitArgs = append(limitArgs, whereArgs...)
+	limitArgs = append(limitArgs, filters.Limit, filters.Offset)
 
 	query := fmt.Sprintf("SELECT * FROM customers WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM customers WHERE %s", strings.Join(whereQuery, " AND "))
