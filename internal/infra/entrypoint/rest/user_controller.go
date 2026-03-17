@@ -154,7 +154,7 @@ func (c *UserController) parseQueryToUserFilters(ctx *gin.Context) (domain.UserF
 		if err != nil {
 			validationErr = append(validationErr, domain.NewValidationError("limit must be a number", nil))
 		} else {
-			filters.PagingFilter.Limit = parsedLimit
+			filters.Limit = parsedLimit
 		}
 	}
 
@@ -163,7 +163,7 @@ func (c *UserController) parseQueryToUserFilters(ctx *gin.Context) (domain.UserF
 		if err != nil {
 			validationErr = append(validationErr, domain.NewValidationError("offset must be a number", nil))
 		} else {
-			filters.PagingFilter.Offset = parsedOffset
+			filters.Offset = parsedOffset
 		}
 	}
 

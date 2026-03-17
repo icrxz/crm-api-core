@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS users
+  ADD COLUMN IF NOT EXISTS session_token TEXT;
