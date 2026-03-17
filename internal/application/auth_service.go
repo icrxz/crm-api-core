@@ -52,7 +52,7 @@ func (a *authService) Login(ctx context.Context, email, password, clientIP strin
 
 	users := searchResult.Result
 
-	if len(users) <= 0 {
+	if len(users) == 0 {
 		return "", nil, domain.NewValidationError("no user found", nil)
 	}
 	loggedUser := users[0]
