@@ -147,10 +147,6 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 	var crmCase *domain.Case
 	var comments []domain.Comment
 	var transactions []domain.Transaction
-	var product domain.Product
-	var partner domain.Partner
-	var customer domain.Customer
-	var contractor domain.Contractor
 
 	group.Go(func() error {
 		foundCase, err := c.caseRepository.GetByID(ctx, caseID)
@@ -171,42 +167,49 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 	})
 
 	group.Go(func() error {
-		transactionFilter := domain.TransactionFilters{
+		foundTransactions, err := c.transactionService.SearchTransactions(ctx, domain.TransactionFilters{
 			CaseIDs: []string{caseID},
-		}
-
-		foundTransactions, err := c.transactionService.SearchTransactions(ctx, transactionFilter)
+		})
 		if err != nil {
 			return err
 		}
-
 		transactions = foundTransactions
-
 		return nil
 	})
 
-	groupErr := group.Wait()
-	if groupErr != nil {
-		return nil, groupErr
+	if err := group.Wait(); err != nil {
+		return nil, err
 	}
+
+	product, customer, partner, contractor, err := c.getCaseRelatedEntities(ctx, crmCase)
+	if err != nil {
+		return nil, err
+	}
+
+	crmCaseFull := domain.NewCaseFull(*crmCase, comments, transactions, product, customer, partner, contractor)
+
+	return &crmCaseFull, nil
+}
+
+func (c *caseService) getCaseRelatedEntities(ctx context.Context, crmCase *domain.Case) (domain.Product, domain.Customer, domain.Partner, domain.Contractor, error) {
+	group := errgroup.Group{}
+
+	var product domain.Product
+	var customer domain.Customer
+	var partner domain.Partner
+	var contractor domain.Contractor
 
 	group.Go(func() error {
 		if crmCase.ProductID == "" {
 			return nil
 		}
-
-		foundProduct, err := c.productService.GetProductByID(ctx, crmCase.ProductID)
+		found, err := c.productService.GetProductByID(ctx, crmCase.ProductID)
 		if err != nil {
-			var customErr *domain.CustomError
-			if !errors.As(err, &customErr) || !customErr.IsNotFound() {
-				return err
-			}
+			return ignoreNotFound(err)
 		}
-
-		if foundProduct != nil {
-			product = *foundProduct
+		if found != nil {
+			product = *found
 		}
-
 		return nil
 	})
 
@@ -214,17 +217,12 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 		if crmCase.CustomerID == "" {
 			return nil
 		}
-
-		foundCustomer, err := c.customerService.GetByID(ctx, crmCase.CustomerID)
+		found, err := c.customerService.GetByID(ctx, crmCase.CustomerID)
 		if err != nil {
-			var customErr *domain.CustomError
-			if !errors.As(err, &customErr) || !customErr.IsNotFound() {
-				return err
-			}
+			return ignoreNotFound(err)
 		}
-
-		if foundCustomer != nil {
-			customer = *foundCustomer
+		if found != nil {
+			customer = *found
 		}
 		return nil
 	})
@@ -233,19 +231,13 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 		if crmCase.PartnerID == "" {
 			return nil
 		}
-
-		foundPartner, err := c.partnerService.GetByID(ctx, crmCase.PartnerID)
+		found, err := c.partnerService.GetByID(ctx, crmCase.PartnerID)
 		if err != nil {
-			var customErr *domain.CustomError
-			if !errors.As(err, &customErr) || !customErr.IsNotFound() {
-				return err
-			}
+			return ignoreNotFound(err)
 		}
-
-		if foundPartner != nil {
-			partner = *foundPartner
+		if found != nil {
+			partner = *found
 		}
-
 		return nil
 	})
 
@@ -253,28 +245,23 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 		if crmCase.ContractorID == "" {
 			return nil
 		}
-
-		foundContractor, err := c.contractorService.GetByID(ctx, crmCase.ContractorID)
+		found, err := c.contractorService.GetByID(ctx, crmCase.ContractorID)
 		if err != nil {
-			var customErr *domain.CustomError
-			if !errors.As(err, &customErr) || !customErr.IsNotFound() {
-				return err
-			}
+			return ignoreNotFound(err)
 		}
-
-		if foundContractor != nil {
-			contractor = *foundContractor
+		if found != nil {
+			contractor = *found
 		}
-
 		return nil
 	})
 
-	groupErr = group.Wait()
-	if groupErr != nil {
-		return nil, groupErr
+	return product, customer, partner, contractor, group.Wait()
+}
+
+func ignoreNotFound(err error) error {
+	var customErr *domain.CustomError
+	if errors.As(err, &customErr) && customErr.IsNotFound() {
+		return nil
 	}
-
-	crmCaseFull := domain.NewCaseFull(*crmCase, comments, transactions, product, customer, partner, contractor)
-
-	return &crmCaseFull, nil
+	return err
 }

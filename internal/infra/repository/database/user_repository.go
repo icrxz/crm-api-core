@@ -27,9 +27,9 @@ func (db *userDatabase) Create(ctx context.Context, user domain.User) (string, e
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO users "+
-			"(user_id, username, first_name, last_name, email, password, role, created_at, created_by, updated_at, updated_by, active, region, last_logged_ip) "+
+			"(user_id, username, first_name, last_name, email, password, role, created_at, created_by, updated_at, updated_by, active, region, last_logged_ip, session_token) "+
 			"VALUES "+
-			"(:user_id, :username, :first_name, :last_name, :email, :password, :role, :created_at, :created_by, :updated_at, :updated_by, :active, :region, :last_logged_ip)",
+			"(:user_id, :username, :first_name, :last_name, :email, :password, :role, :created_at, :created_by, :updated_at, :updated_by, :active, :region, :last_logged_ip, :session_token)",
 		userDTO,
 	)
 	if err != nil {
@@ -71,7 +71,8 @@ func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) 
 	}
 
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
-	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+	limitArgs = append(limitArgs, whereArgs...)
+	limitArgs = append(limitArgs, filters.Limit, filters.Offset)
 
 	query := fmt.Sprintf("SELECT * FROM users WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM users WHERE %s", strings.Join(whereQuery, " AND "))
@@ -117,7 +118,8 @@ func (db *userDatabase) Update(ctx context.Context, userToUpdate domain.User) er
 			"active = :active, "+
 			"region = :region, "+
 			"password = :password, "+
-			"last_logged_ip = :last_logged_ip "+
+			"last_logged_ip = :last_logged_ip, "+
+			"session_token = :session_token "+
 			"WHERE user_id = :user_id",
 		userDTO,
 	)

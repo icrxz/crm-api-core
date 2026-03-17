@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
+	"github.com/icrxz/crm-api-core/pkg/ptr"
 )
 
 type UserDTO struct {
@@ -16,6 +17,7 @@ type UserDTO struct {
 	Role         string    `db:"role"`
 	Region       int       `db:"region"`
 	LastLoggedIP string    `db:"last_logged_ip"`
+	SessionToken *string   `db:"session_token"`
 	Active       bool      `db:"active"`
 	CreatedAt    time.Time `db:"created_at"`
 	CreatedBy    string    `db:"created_by"`
@@ -34,6 +36,7 @@ func mapUserToUserDTO(user domain.User) UserDTO {
 		Region:       user.Region,
 		Password:     user.Password,
 		LastLoggedIP: user.LastLoggedIP,
+		SessionToken: &user.SessionToken,
 		Active:       user.Active,
 		CreatedAt:    user.CreatedAt,
 		CreatedBy:    user.CreatedBy,
@@ -57,6 +60,7 @@ func mapUserDTOToUser(userDTO UserDTO) domain.User {
 		UpdatedBy:    userDTO.UpdatedBy,
 		Password:     userDTO.Password,
 		LastLoggedIP: userDTO.LastLoggedIP,
+		SessionToken: ptr.ToString(userDTO.SessionToken),
 		Active:       userDTO.Active,
 	}
 }

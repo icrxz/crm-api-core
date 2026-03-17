@@ -86,7 +86,8 @@ func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerF
 	}
 
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
-	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+	limitArgs = append(limitArgs, whereArgs...)
+	limitArgs = append(limitArgs, filters.Limit, filters.Offset)
 
 	query := fmt.Sprintf("SELECT * FROM partners WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM partners WHERE %s", strings.Join(whereQuery, " AND "))
