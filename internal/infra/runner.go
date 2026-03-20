@@ -103,7 +103,11 @@ func RunApp() error {
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
 	router.Use(entrypoint.CustomErrorEncoder())
-	router.SetTrustedProxies(nil)
+
+	err = router.SetTrustedProxies(nil)
+	if err != nil {
+		return err
+	}
 
 	entrypoint.LoadRoutes(
 		router,
