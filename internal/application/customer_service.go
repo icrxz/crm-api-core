@@ -10,6 +10,7 @@ type customerService struct {
 	customerRepository domain.CustomerRepository
 }
 
+//go:generate mockgen -source=customer_service.go -destination=mock_application/mock_customer_service.go -package=mock_application
 type CustomerService interface {
 	Create(ctx context.Context, customer domain.Customer) (string, error)
 	GetByID(ctx context.Context, customerID string) (*domain.Customer, error)

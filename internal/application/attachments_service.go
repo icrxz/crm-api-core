@@ -12,6 +12,7 @@ type attachmentService struct {
 	attachmentBucket     domain.AttachmentBucket
 }
 
+//go:generate mockgen -source=attachments_service.go -destination=mock_application/mock_attachments_service.go -package=mock_application
 type AttachmentService interface {
 	GetByID(ctx context.Context, attachmentID string) (*domain.Attachment, error)
 	SearchByCommentID(ctx context.Context, commentID string) ([]domain.Attachment, error)

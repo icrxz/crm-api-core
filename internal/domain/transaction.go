@@ -47,15 +47,15 @@ type TransactionType string
 
 const (
 	INCOMING TransactionType = "incoming"
-	OUTGOING                 = "outgoing"
+	OUTGOING TransactionType = "outgoing"
 )
 
 type TransactionStatus string
 
 const (
-	PENDING  TransactionStatus = "pending"
-	APPROVED                   = "approved"
-	REJECTED                   = "rejected"
+	TRANSACTION_PENDING  TransactionStatus = "pending"
+	TRANSACTION_APPROVED TransactionStatus = "approved"
+	TRANSACTION_REJECTED TransactionStatus = "rejected"
 )
 
 func NewTransaction(
@@ -75,7 +75,7 @@ func NewTransaction(
 	return Transaction{
 		TransactionID: transactionID.String(),
 		Type:          transactionType,
-		Status:        PENDING,
+		Status:        TRANSACTION_PENDING,
 		Value:         value,
 		CaseID:        caseID,
 		CreatedBy:     createdBy,

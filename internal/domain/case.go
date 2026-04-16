@@ -72,6 +72,7 @@ type CaseFull struct {
 }
 
 type CaseFilters struct {
+	CaseID            []string
 	OwnerID           []string
 	PartnerID         []string
 	ContractorID      []string
@@ -111,6 +112,7 @@ const (
 	CLOSED          CaseStatus = "Closed"
 	CANCELED        CaseStatus = "Canceled"
 	DRAFT           CaseStatus = "Draft"
+	REJECTED        CaseStatus = "Rejected"
 )
 
 type CasePriority string

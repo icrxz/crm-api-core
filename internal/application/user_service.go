@@ -10,6 +10,7 @@ type userService struct {
 	userRepository domain.UserRepository
 }
 
+//go:generate mockgen -source=user_service.go -destination=mock_application/mock_user_service.go -package=mock_application
 type UserService interface {
 	Create(ctx context.Context, user domain.User) (string, error)
 	GetByID(ctx context.Context, userID string) (*domain.User, error)

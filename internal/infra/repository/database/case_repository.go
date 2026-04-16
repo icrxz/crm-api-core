@@ -63,6 +63,7 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereArgs := make([]any, 0)
 	var limitArgs []any
 
+	whereQuery, whereArgs = prepareInQuery(filters.CaseID, whereQuery, whereArgs, "case_id")
 	whereQuery, whereArgs = prepareInQuery(filters.ContractorID, whereQuery, whereArgs, "contractor_id")
 	whereQuery, whereArgs = prepareInQuery(filters.OwnerID, whereQuery, whereArgs, "owner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerID, whereQuery, whereArgs, "customer_id")
@@ -72,7 +73,8 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereQuery, whereArgs = prepareLikeQuery(filters.ExternalReference, whereQuery, whereArgs, "external_reference")
 
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
-	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+	limitArgs = append(limitArgs, whereArgs...)
+	limitArgs = append(limitArgs, filters.Limit, filters.Offset)
 
 	query := fmt.Sprintf("SELECT * FROM cases WHERE %s ORDER BY created_at DESC %s", strings.Join(whereQuery, " AND "), limitQuery)
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
@@ -174,6 +176,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 	whereArgs := make([]any, 0)
 	var limitArgs []any
 
+	whereQuery, whereArgs = prepareInQuery(filters.CaseID, whereQuery, whereArgs, "ca.case_id")
 	whereQuery, whereArgs = prepareInQuery(filters.ContractorID, whereQuery, whereArgs, "ca.contractor_id")
 	whereQuery, whereArgs = prepareInQuery(filters.OwnerID, whereQuery, whereArgs, "ca.owner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.CustomerID, whereQuery, whereArgs, "ca.customer_id")
@@ -192,7 +195,8 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 	}
 
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
-	limitArgs = append(whereArgs, filters.Limit, filters.Offset)
+	limitArgs = append(limitArgs, whereArgs...)
+	limitArgs = append(limitArgs, filters.Limit, filters.Offset)
 
 	query := fmt.Sprintf(`SELECT
 		ca.case_id,

@@ -179,12 +179,17 @@ func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) (domain.Partne
 		filters.State = states
 	}
 
-	if cities := ctx.QueryArray("city"); len(cities) > 0 {
-		filters.City = cities
-	}
+	firstName := ctx.QueryArray("first_name")
+	cities := ctx.QueryArray("city")
 
-	if firstName := ctx.QueryArray("first_name"); len(firstName) > 0 {
+	if len(firstName) > 0 && len(cities) > 0 {
+		filters.NameOrCity = &domain.NameOrCityFilter{
+			Name: firstName,
+			City: cities,
+		}
+	} else {
 		filters.FirstName = firstName
+		filters.City = cities
 	}
 
 	if lastName := ctx.QueryArray("last_name"); len(lastName) > 0 {
@@ -202,7 +207,7 @@ func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) (domain.Partne
 		if err != nil {
 			validationErr = append(validationErr, domain.NewValidationError("limit must be a number", nil))
 		} else {
-			filters.PagingFilter.Limit = parsedLimit
+			filters.Limit = parsedLimit
 		}
 	}
 
@@ -211,7 +216,7 @@ func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) (domain.Partne
 		if err != nil {
 			validationErr = append(validationErr, domain.NewValidationError("offset must be a number", nil))
 		} else {
-			filters.PagingFilter.Offset = parsedOffset
+			filters.Offset = parsedOffset
 		}
 	}
 

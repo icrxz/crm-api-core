@@ -46,6 +46,7 @@ type reportService struct {
 	attachmentBucket  domain.AttachmentBucket
 }
 
+//go:generate mockgen -source=report_service.go -destination=mock_application/mock_report_service.go -package=mock_application
 type ReportService interface {
 	GenerateReport(ctx context.Context, crmCase domain.Case) ([]byte, string, error)
 }
@@ -170,98 +171,70 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 	docEdit := file.Editable()
 	defer file.Close()
 
-	err = docEdit.Replace("$claim", reportData.CrmCase.ExternalReference, -1)
+	if err = s.replaceReportFields(docEdit, reportData); err != nil {
+		return err
+	}
+
+	resolution, resolutionAttachments, err := s.extractResolutionFromComments(ctx, reportData.Comments)
 	if err != nil {
 		return err
 	}
 
-	err = docEdit.Replace("$actual_date", time.Now().Format(dateReportLayout), -1)
-	if err != nil {
+	if err = docEdit.Replace("$resolution", fmt.Sprintf("%s\r\n", resolution), -1); err != nil {
 		return err
 	}
 
-	err = docEdit.Replace("$client", fmt.Sprintf("%s %s", reportData.Customer.FirstName, reportData.Customer.LastName), -1)
-	if err != nil {
-		return err
+	isAssurant := reportData.Contractor.CompanyName == "Assurant"
+	return s.replaceImages(docEdit, memDoc, resolutionAttachments, isAssurant)
+}
+
+func (s *reportService) replaceReportFields(docEdit *docx.Docx, reportData ReportData) error {
+	replacements := []struct {
+		placeholder string
+		value       string
+	}{
+		{"$claim", reportData.CrmCase.ExternalReference},
+		{"$actual_date", time.Now().Format(dateReportLayout)},
+		{"$client", fmt.Sprintf("%s %s", reportData.Customer.FirstName, reportData.Customer.LastName)},
+		{"$brand", reportData.Product.Brand},
+		{"$summary", reportData.CrmCase.Subject},
+		{"$partner", fmt.Sprintf("%s %s", reportData.Partner.FirstName, reportData.Partner.LastName)},
+		{"$target_date", reportData.CrmCase.TargetDate.Format(dateReportLayout)},
+		{"$document", ParseDocument(reportData.Customer.Document)},
+		{"$address", reportData.Customer.ShippingAddress.Address},
+		{"$zip_code", reportData.Customer.ShippingAddress.ZipCode},
+		{"$product", reportData.Product.Name},
+		{"$serial_number", reportData.Product.SerialNumber},
+		{"$model", reportData.Product.Model},
 	}
 
-	err = docEdit.Replace("$brand", reportData.Product.Brand, -1)
-	if err != nil {
-		return err
+	for _, r := range replacements {
+		if err := docEdit.Replace(r.placeholder, r.value, -1); err != nil {
+			return err
+		}
 	}
 
-	err = docEdit.Replace("$summary", reportData.CrmCase.Subject, -1)
-	if err != nil {
-		return err
-	}
+	return nil
+}
 
-	err = docEdit.Replace("$partner", fmt.Sprintf("%s %s", reportData.Partner.FirstName, reportData.Partner.LastName), -1)
-	if err != nil {
-		return err
-	}
-
-	err = docEdit.Replace("$target_date", reportData.CrmCase.TargetDate.Format(dateReportLayout), -1)
-	if err != nil {
-		return err
-	}
-
-	err = docEdit.Replace("$document", ParseDocument(reportData.Customer.Document), -1)
-	if err != nil {
-		return err
-	}
-
-	err = docEdit.Replace("$address", reportData.Customer.ShippingAddress.Address, -1)
-	if err != nil {
-		return err
-	}
-
-	err = docEdit.Replace("$zip_code", reportData.Customer.ShippingAddress.ZipCode, -1)
-	if err != nil {
-		return err
-	}
-
-	err = docEdit.Replace("$product", reportData.Product.Name, -1)
-	if err != nil {
-		return err
-	}
-
-	err = docEdit.Replace("$serial_number", reportData.Product.SerialNumber, -1)
-	if err != nil {
-		return err
-	}
-
-	err = docEdit.Replace("$model", reportData.Product.Model, -1)
-	if err != nil {
-		return err
-	}
-
+func (s *reportService) extractResolutionFromComments(ctx context.Context, comments []domain.Comment) (string, [][]byte, error) {
 	var resolution string
 	resolutionAttachments := make([][]byte, 0)
 
-	for _, comment := range reportData.Comments {
+	for _, comment := range comments {
 		switch comment.CommentType {
 		case domain.COMMENT_RESOLUTION:
-			resolutionAttachments, err = s.downloadFiles(ctx, comment.Attachments)
+			files, err := s.downloadFiles(ctx, comment.Attachments)
 			if err != nil {
-				return err
+				return "", nil, err
 			}
+			resolutionAttachments = files
 		case domain.COMMENT_REPORT:
 			resolution = comment.Content
 		}
 	}
 
-	err = docEdit.Replace("$resolution", fmt.Sprintf("%s\r\n", resolution), -1)
-	if err != nil {
-		return err
-	}
-
-	isAssurant := reportData.Contractor.CompanyName == "Assurant"
-	err = s.replaceImages(docEdit, memDoc, resolutionAttachments, isAssurant)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return resolution, resolutionAttachments, nil
 }
 
 func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attachment) ([][]byte, error) {
@@ -299,7 +272,10 @@ func (s *reportService) replaceImages(doc *docx.Docx, memDoc io.Writer, attachme
 		}
 
 		fileName := fmt.Sprintf("./resources/img_%s.png", uuid.NewString())
-		out, _ := os.Create(fileName)
+		out, err := os.Create(fileName)
+		if err != nil {
+			return err
+		}
 		attachmentNames = append(attachmentNames, fileName)
 
 		err = jpeg.Encode(out, img, nil)
