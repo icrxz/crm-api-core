@@ -179,17 +179,21 @@ func (c *PartnerController) parseQueryToFilters(ctx *gin.Context) (domain.Partne
 		filters.State = states
 	}
 
-	firstName := ctx.QueryArray("first_name")
+	name := ctx.QueryArray("name")
 	cities := ctx.QueryArray("city")
 
-	if len(firstName) > 0 && len(cities) > 0 {
+	if len(name) > 0 && len(cities) > 0 {
 		filters.NameOrCity = &domain.NameOrCityFilter{
-			Name: firstName,
+			Name: name,
 			City: cities,
 		}
 	} else {
-		filters.FirstName = firstName
+		filters.Name = name
 		filters.City = cities
+	}
+
+	if firstName := ctx.QueryArray("first_name"); len(firstName) > 0 {
+		filters.FirstName = firstName
 	}
 
 	if lastName := ctx.QueryArray("last_name"); len(lastName) > 0 {

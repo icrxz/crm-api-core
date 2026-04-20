@@ -77,9 +77,10 @@ func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerF
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerID, whereQuery, whereArgs, "partner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.State, whereQuery, whereArgs, "shipping_state")
 	if filters.NameOrCity != nil {
-		whereQuery, whereArgs = prepareOrLikeQuery(filters.NameOrCity.Name, filters.NameOrCity.City, whereQuery, whereArgs, "first_name", "shipping_city")
+		whereQuery, whereArgs = prepareOrLikeQuery(filters.NameOrCity.Name, filters.NameOrCity.City, whereQuery, whereArgs, "(first_name || ' ' || last_name)", "shipping_city")
 	} else {
 		whereQuery, whereArgs = prepareLikeQuery(filters.City, whereQuery, whereArgs, "shipping_city")
+		whereQuery, whereArgs = prepareLikeQuery(filters.Name, whereQuery, whereArgs, "(first_name || ' ' || last_name)")
 		whereQuery, whereArgs = prepareLikeQuery(filters.FirstName, whereQuery, whereArgs, "first_name")
 	}
 	whereQuery, whereArgs = prepareLikeQuery(filters.LastName, whereQuery, whereArgs, "last_name")
