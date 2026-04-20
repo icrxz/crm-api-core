@@ -72,6 +72,7 @@ type PartnerFilters struct {
 	City        []string
 	FirstName   []string
 	LastName    []string
+	Name        []string
 	Active      *bool
 	NameOrCity  *NameOrCityFilter
 	PagingFilter

@@ -217,7 +217,7 @@ func NewCaseFull(crmCase Case, comments []Comment, transactions []Transaction, p
 		CreatedBy:         crmCase.CreatedBy,
 		CreatedAt:         crmCase.CreatedAt,
 		UpdatedBy:         crmCase.UpdatedBy,
-		UpdatedAt:         crmCase.CreatedAt,
+		UpdatedAt:         crmCase.UpdatedAt,
 		Region:            crmCase.Region,
 		Product:           product,
 		ClosedAt:          crmCase.ClosedAt,

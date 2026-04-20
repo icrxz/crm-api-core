@@ -27,8 +27,8 @@ func TestPartnerController_parseQueryToFilters(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:        "both first_name and city — sets NameOrCity with OR intent",
-			queryParams: url.Values{"first_name": {"João"}, "city": {"São Paulo"}},
+			name:        "both name and city — sets NameOrCity with OR intent",
+			queryParams: url.Values{"name": {"João"}, "city": {"São Paulo"}},
 			wantFilters: domain.PartnerFilters{
 				NameOrCity: &domain.NameOrCityFilter{
 					Name: []string{"João"},
@@ -112,8 +112,8 @@ func TestPartnerController_SearchPartners(t *testing.T) {
 		wantStatusCode int
 	}{
 		{
-			name:        "both first_name and city — passes NameOrCity filter to service",
-			queryParams: url.Values{"first_name": {"João"}, "city": {"São Paulo"}},
+			name:        "both name and city — passes NameOrCity filter to service",
+			queryParams: url.Values{"name": {"João"}, "city": {"São Paulo"}},
 			mockSetup: func(mock *mock_application.MockPartnerService) {
 				expectedFilters := domain.PartnerFilters{
 					NameOrCity: &domain.NameOrCityFilter{
