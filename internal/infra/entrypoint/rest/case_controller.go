@@ -141,8 +141,10 @@ func (c *CaseController) CreateBatch(ctx *gin.Context) {
 func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilters {
 	filters := domain.CaseFilters{
 		PagingFilter: domain.PagingFilter{
-			Limit:  10,
-			Offset: 0,
+			Limit:     10,
+			Offset:    0,
+			SortBy:    "created_at",
+			SortOrder: "DESC",
 		},
 	}
 
@@ -202,6 +204,14 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 		if err == nil {
 			filters.Offset = parsedOffset
 		}
+	}
+
+	if sortBy := ctx.Query("sort_by"); sortBy != "" {
+		filters.SortBy = sortBy
+	}
+
+	if sortOrder := strings.ToUpper(ctx.Query("sort_order")); sortOrder == "ASC" || sortOrder == "DESC" {
+		filters.SortOrder = sortOrder
 	}
 
 	return filters

@@ -27,7 +27,7 @@ func TestCaseController_parseQueryToFilters(t *testing.T) {
 			query: url.Values{"case_id": {"abc-123"}},
 			expected: domain.CaseFilters{
 				CaseID:       []string{"abc-123"},
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 		},
 		{
@@ -35,7 +35,7 @@ func TestCaseController_parseQueryToFilters(t *testing.T) {
 			query: url.Values{"case_id": {"abc-123,def-456,ghi-789"}},
 			expected: domain.CaseFilters{
 				CaseID:       []string{"abc-123", "def-456", "ghi-789"},
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func TestCaseController_parseQueryToFilters(t *testing.T) {
 				CaseID:       []string{"abc-123", "def-456"},
 				Status:       []string{"New"},
 				Region:       []string{"1"},
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 		},
 		{
@@ -53,14 +53,14 @@ func TestCaseController_parseQueryToFilters(t *testing.T) {
 			query: url.Values{"status": {"New"}},
 			expected: domain.CaseFilters{
 				Status:       []string{"New"},
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 		},
 		{
 			name:  "empty query returns defaults",
 			query: url.Values{},
 			expected: domain.CaseFilters{
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 		},
 		{
@@ -68,7 +68,28 @@ func TestCaseController_parseQueryToFilters(t *testing.T) {
 			query: url.Values{"case_id": {"abc-123"}, "limit": {"20"}, "offset": {"5"}},
 			expected: domain.CaseFilters{
 				CaseID:       []string{"abc-123"},
-				PagingFilter: domain.PagingFilter{Limit: 20, Offset: 5},
+				PagingFilter: domain.PagingFilter{Limit: 20, Offset: 5, SortBy: "created_at", SortOrder: "DESC"},
+			},
+		},
+		{
+			name:  "sort_by updated_at",
+			query: url.Values{"sort_by": {"updated_at"}},
+			expected: domain.CaseFilters{
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "updated_at", SortOrder: "DESC"},
+			},
+		},
+		{
+			name:  "sort_by updated_at with sort_order ASC",
+			query: url.Values{"sort_by": {"updated_at"}, "sort_order": {"asc"}},
+			expected: domain.CaseFilters{
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "updated_at", SortOrder: "ASC"},
+			},
+		},
+		{
+			name:  "invalid sort_by falls back to default",
+			query: url.Values{"sort_by": {"drop table cases"}},
+			expected: domain.CaseFilters{
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "drop table cases", SortOrder: "DESC"},
 			},
 		},
 	}
@@ -102,7 +123,7 @@ func TestCaseController_SearchCases(t *testing.T) {
 			query: url.Values{"case_id": {"id-1,id-2"}},
 			expectedFilters: domain.CaseFilters{
 				CaseID:       []string{"id-1", "id-2"},
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 			serviceResult:  domain.PagingResult[domain.Case]{Result: []domain.Case{}, Paging: domain.Paging{Total: 0, Limit: 10, Offset: 0}},
 			expectedStatus: http.StatusOK,
@@ -112,7 +133,7 @@ func TestCaseController_SearchCases(t *testing.T) {
 			query: url.Values{"case_id": {"id-1"}},
 			expectedFilters: domain.CaseFilters{
 				CaseID:       []string{"id-1"},
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 			serviceResult:  domain.PagingResult[domain.Case]{Result: []domain.Case{}, Paging: domain.Paging{Total: 0, Limit: 10, Offset: 0}},
 			expectedStatus: http.StatusOK,
@@ -121,7 +142,7 @@ func TestCaseController_SearchCases(t *testing.T) {
 			name:  "no case_id filter passes empty slice",
 			query: url.Values{},
 			expectedFilters: domain.CaseFilters{
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 			serviceResult:  domain.PagingResult[domain.Case]{Result: []domain.Case{}, Paging: domain.Paging{Total: 0, Limit: 10, Offset: 0}},
 			expectedStatus: http.StatusOK,
