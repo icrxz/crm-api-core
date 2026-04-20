@@ -1,8 +1,10 @@
 package domain
 
 type PagingFilter struct {
-	Limit  int
-	Offset int
+	Limit     int
+	Offset    int
+	SortBy    string
+	SortOrder string
 }
 
 type Paging struct {

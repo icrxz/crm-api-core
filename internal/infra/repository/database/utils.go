@@ -100,6 +100,29 @@ func buildLikePart[S comparable](filters []S, startIdx int, key string) string {
 	return part
 }
 
+var validCaseSortColumns = map[string]bool{
+	"created_at":  true,
+	"updated_at":  true,
+	"due_date":    true,
+	"target_date": true,
+	"status":      true,
+	"priority":    true,
+}
+
+func buildOrderBy(sortBy, sortOrder string, allowedColumns map[string]bool) string {
+	col := "created_at"
+	if allowedColumns[sortBy] {
+		col = sortBy
+	}
+
+	ord := "DESC"
+	if sortOrder == "ASC" {
+		ord = "ASC"
+	}
+
+	return fmt.Sprintf("%s %s", col, ord)
+}
+
 func createChunks[T any](slice []T, size int) [][]T {
 	var chunks [][]T
 	for i := 0; i < len(slice); i += size {
