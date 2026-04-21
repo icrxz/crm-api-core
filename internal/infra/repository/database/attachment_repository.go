@@ -62,7 +62,7 @@ func (r *attachmentRepository) GetByCommentID(ctx context.Context, commentID str
 	}
 
 	var attachmentsDTO []AttachmentDTO
-	err := r.db.SelectContext(ctx, &attachmentsDTO, "SELECT * FROM attachments WHERE comment_id = $1", commentID)
+	err := r.db.SelectContext(ctx, &attachmentsDTO, "SELECT * FROM attachments WHERE comment_id = $1 ORDER BY created_at ASC", commentID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
