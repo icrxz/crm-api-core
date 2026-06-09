@@ -192,6 +192,14 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 		filters.EndDate = &endDate
 	}
 
+	if closedAtStart := ctx.Query("closed_at_start"); closedAtStart != "" {
+		filters.ClosedAtStart = &closedAtStart
+	}
+
+	if closedAtEnd := ctx.Query("closed_at_end"); closedAtEnd != "" {
+		filters.ClosedAtEnd = &closedAtEnd
+	}
+
 	if limit := ctx.Query("limit"); limit != "" {
 		parsedLimit, err := strconv.Atoi(limit)
 		if err == nil {

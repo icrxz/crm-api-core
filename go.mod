@@ -18,6 +18,7 @@ require (
 	github.com/thedatashed/xlsxreader v1.2.8
 	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.49.0
+	golang.org/x/image v0.39.0
 	golang.org/x/sync v0.20.0
 )
 
@@ -57,7 +58,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/image v0.39.0 // indirect
 	golang.org/x/mod v0.34.0 // indirect
 	golang.org/x/net v0.52.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
