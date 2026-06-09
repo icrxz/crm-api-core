@@ -72,6 +72,14 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "region")
 	whereQuery, whereArgs = prepareLikeQuery(filters.ExternalReference, whereQuery, whereArgs, "external_reference")
 
+	if filters.ClosedAtStart != nil {
+		whereQuery, whereArgs = prepareLesserEqualQuery(filters.ClosedAtStart, whereQuery, whereArgs, "closed_at")
+	}
+
+	if filters.ClosedAtEnd != nil {
+		whereQuery, whereArgs = prepareGreaterEqualQuery(filters.ClosedAtEnd, whereQuery, whereArgs, "closed_at")
+	}
+
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
 	limitArgs = append(limitArgs, whereArgs...)
 	limitArgs = append(limitArgs, filters.Limit, filters.Offset)
@@ -193,6 +201,14 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 
 	if filters.EndDate != nil {
 		whereQuery, whereArgs = prepareGreaterEqualQuery(filters.EndDate, whereQuery, whereArgs, "ca.created_at")
+	}
+
+	if filters.ClosedAtStart != nil {
+		whereQuery, whereArgs = prepareLesserEqualQuery(filters.ClosedAtStart, whereQuery, whereArgs, "ca.closed_at")
+	}
+
+	if filters.ClosedAtEnd != nil {
+		whereQuery, whereArgs = prepareGreaterEqualQuery(filters.ClosedAtEnd, whereQuery, whereArgs, "ca.closed_at")
 	}
 
 	limitQuery := fmt.Sprintf("LIMIT $%d OFFSET $%d", len(whereArgs)+1, len(whereArgs)+2)
