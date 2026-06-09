@@ -82,6 +82,8 @@ type CaseFilters struct {
 	ExternalReference []string
 	StartDate         *string
 	EndDate           *string
+	ClosedAtStart     *string
+	ClosedAtEnd       *string
 	ShippingState     []string
 	PagingFilter
 }
