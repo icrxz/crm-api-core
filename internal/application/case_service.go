@@ -10,14 +10,16 @@ import (
 )
 
 type caseService struct {
-	customerService    CustomerService
-	userService        UserService
-	caseRepository     domain.CaseRepository
-	productService     ProductService
-	commentService     CommentService
-	transactionService TransactionService
-	partnerService     PartnerService
-	contractorService  ContractorService
+	customerService       CustomerService
+	userService           UserService
+	caseRepository        domain.CaseRepository
+	caseHistoryRepository domain.CaseHistoryRepository
+	transactionManager    domain.TransactionManager
+	productService        ProductService
+	commentService        CommentService
+	transactionService    TransactionService
+	partnerService        PartnerService
+	contractorService     ContractorService
 }
 
 //go:generate mockgen -source=case_service.go -destination=mock_application/mock_case_service.go -package=mock_application
@@ -28,11 +30,14 @@ type CaseService interface {
 	UpdateCase(ctx context.Context, caseID string, newCase domain.CaseUpdate) error
 	GetCaseFullByID(ctx context.Context, caseID string) (*domain.CaseFull, error)
 	SearchCasesFull(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.CaseFull], error)
+	GetCaseHistory(ctx context.Context, caseID string) ([]domain.CaseHistory, error)
 }
 
 func NewCaseService(
 	customerService CustomerService,
 	caseRepository domain.CaseRepository,
+	caseHistoryRepository domain.CaseHistoryRepository,
+	transactionManager domain.TransactionManager,
 	productService ProductService,
 	userService UserService,
 	commentService CommentService,
@@ -41,14 +46,16 @@ func NewCaseService(
 	contractorService ContractorService,
 ) CaseService {
 	return &caseService{
-		customerService:    customerService,
-		caseRepository:     caseRepository,
-		productService:     productService,
-		userService:        userService,
-		commentService:     commentService,
-		transactionService: transactionService,
-		partnerService:     partnerService,
-		contractorService:  contractorService,
+		customerService:       customerService,
+		caseRepository:        caseRepository,
+		caseHistoryRepository: caseHistoryRepository,
+		transactionManager:    transactionManager,
+		productService:        productService,
+		userService:           userService,
+		commentService:        commentService,
+		transactionService:    transactionService,
+		partnerService:        partnerService,
+		contractorService:     contractorService,
 	}
 }
 
@@ -71,7 +78,21 @@ func (c *caseService) CreateCase(ctx context.Context, newCase domain.CreateCase)
 	}
 	crmCase.ProductID = productID
 
-	caseID, err := c.caseRepository.Create(ctx, crmCase)
+	var caseID string
+	err = c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		createdID, err := c.caseRepository.Create(txCtx, crmCase)
+		if err != nil {
+			return err
+		}
+		caseID = createdID
+
+		history, err := domain.NewCaseHistory(caseID, domain.CaseCreatedEvent, crmCase.CreatedBy, map[string]any{}, crmCase.Snapshot())
+		if err != nil {
+			return err
+		}
+
+		return c.caseHistoryRepository.Create(txCtx, history)
+	})
 	if err != nil {
 		return "", err
 	}
@@ -133,9 +154,34 @@ func (c *caseService) UpdateCase(ctx context.Context, caseID string, newCase dom
 		return err
 	}
 
+	eventName, oldValues, newValues := crmCase.DetectChanges(newCase)
+
 	crmCase.MergeUpdate(newCase)
 
-	return c.caseRepository.Update(ctx, *crmCase)
+	return c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := c.caseRepository.Update(txCtx, *crmCase); err != nil {
+			return err
+		}
+
+		if len(oldValues) == 0 {
+			return nil
+		}
+
+		history, err := domain.NewCaseHistory(caseID, eventName, newCase.UpdatedBy, oldValues, newValues)
+		if err != nil {
+			return err
+		}
+
+		return c.caseHistoryRepository.Create(txCtx, history)
+	})
+}
+
+func (c *caseService) GetCaseHistory(ctx context.Context, caseID string) ([]domain.CaseHistory, error) {
+	if caseID == "" {
+		return nil, domain.NewValidationError("case id cannot be empty", nil)
+	}
+
+	return c.caseHistoryRepository.GetByCaseID(ctx, caseID)
 }
 
 func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*domain.CaseFull, error) {

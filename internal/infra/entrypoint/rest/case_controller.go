@@ -249,6 +249,22 @@ func (c *CaseController) UpdateCase(ctx *gin.Context) {
 	ctx.JSON(http.StatusNoContent, nil)
 }
 
+func (c *CaseController) GetCaseHistory(ctx *gin.Context) {
+	caseID := ctx.Param("caseID")
+	if caseID == "" {
+		_ = ctx.Error(domain.NewValidationError("case_id is required", nil))
+		return
+	}
+
+	history, err := c.caseService.GetCaseHistory(ctx.Request.Context(), caseID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, mapCaseHistoriesToCaseHistoryDTOs(history))
+}
+
 func (c *CaseController) GetCaseFull(ctx *gin.Context) {
 	caseID := ctx.Param("caseID")
 	if caseID == "" {

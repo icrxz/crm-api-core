@@ -201,6 +201,118 @@ func (c *Case) MergeUpdate(updateCase CaseUpdate) {
 	}
 }
 
+// caseDiff accumulates the old/new values of fields changed by a CaseUpdate.
+type caseDiff struct {
+	oldValues map[string]any
+	newValues map[string]any
+	changed   map[string]bool
+}
+
+func newCaseDiff() *caseDiff {
+	return &caseDiff{
+		oldValues: map[string]any{},
+		newValues: map[string]any{},
+		changed:   map[string]bool{},
+	}
+}
+
+func (d *caseDiff) recordString(field string, current string, update *string) {
+	if update == nil || *update == current {
+		return
+	}
+
+	d.oldValues[field] = current
+	d.newValues[field] = *update
+	d.changed[field] = true
+}
+
+func (d *caseDiff) recordTime(field string, current *time.Time, update *time.Time) {
+	if update == nil || update.Equal(derefTime(current)) {
+		return
+	}
+
+	d.oldValues[field] = current
+	d.newValues[field] = *update
+	d.changed[field] = true
+}
+
+func (d *caseDiff) recordStatus(current CaseStatus, update *CaseStatus) {
+	if update == nil || *update == current {
+		return
+	}
+
+	d.oldValues["status"] = current
+	d.newValues["status"] = *update
+	d.changed["status"] = true
+}
+
+// DetectChanges compares the current case state against an update payload and
+// returns a semantic event name plus the old/new values of every field that
+// actually changed. It must be called before MergeUpdate mutates the case.
+func (c *Case) DetectChanges(update CaseUpdate) (string, map[string]any, map[string]any) {
+	diff := newCaseDiff()
+
+	diff.recordStatus(c.Status, update.Status)
+	diff.recordString("owner_id", c.OwnerID, update.OwnerID)
+	diff.recordString("partner_id", c.PartnerID, update.PartnerID)
+	diff.recordTime("target_date", c.TargetDate, update.TargetDate)
+	diff.recordTime("closed_at", c.ClosedAt, update.ClosedAt)
+	diff.recordString("customer_id", c.CustomerID, update.CustomerID)
+	diff.recordString("product_id", c.ProductID, update.ProductID)
+	diff.recordString("subject", c.Subject, update.Subject)
+	diff.recordString("type", c.Type, update.Type)
+
+	return resolveCaseEventName(diff.changed), diff.oldValues, diff.newValues
+}
+
+// resolveCaseEventName picks a single semantic event name for a set of
+// simultaneously changed fields, most specific business meaning first
+// (e.g. status+owner changing together means the case was assigned).
+func resolveCaseEventName(changed map[string]bool) string {
+	switch {
+	case changed["owner_id"] && changed["status"]:
+		return CaseAssignedEvent
+	case changed["owner_id"]:
+		return CaseOwnerChangedEvent
+	case changed["closed_at"]:
+		return CaseClosedEvent
+	case changed["status"]:
+		return CaseStatusChangedEvent
+	case changed["partner_id"]:
+		return CasePartnerChangedEvent
+	case changed["target_date"]:
+		return CaseTargetDateChangedEvent
+	case changed["customer_id"], changed["product_id"], changed["subject"], changed["type"]:
+		return CaseDetailsUpdatedEvent
+	default:
+		return CaseUpdatedEvent
+	}
+}
+
+func derefTime(t *time.Time) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return *t
+}
+
+// Snapshot returns the initial field values recorded on case creation.
+func (c Case) Snapshot() map[string]any {
+	return map[string]any{
+		"status":             c.Status,
+		"owner_id":           c.OwnerID,
+		"customer_id":        c.CustomerID,
+		"contractor_id":      c.ContractorID,
+		"partner_id":         c.PartnerID,
+		"product_id":         c.ProductID,
+		"type":               c.Type,
+		"subject":            c.Subject,
+		"priority":           c.Priority,
+		"due_date":           c.DueDate,
+		"external_reference": c.ExternalReference,
+	}
+}
+
 func NewCaseFull(crmCase Case, comments []Comment, transactions []Transaction, product Product, customer Customer, partner Partner, contractor Contractor) CaseFull {
 	return CaseFull{
 		CaseID:            crmCase.CaseID,

@@ -25,7 +25,7 @@ func NewCaseRepository(client *sqlx.DB) domain.CaseRepository {
 func (r *caseRepository) Create(ctx context.Context, crmCase domain.Case) (string, error) {
 	crmCaseDTO := mapCaseToCaseDTO(crmCase)
 
-	_, err := r.client.NamedExecContext(
+	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"INSERT INTO cases "+
 			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id) "+
@@ -46,7 +46,7 @@ func (r *caseRepository) GetByID(ctx context.Context, caseID string) (*domain.Ca
 	}
 
 	var crmCaseDTO CaseDTO
-	err := r.client.GetContext(ctx, &crmCaseDTO, "SELECT * FROM cases WHERE case_id=$1", caseID)
+	err := executor(ctx, r.client).GetContext(ctx, &crmCaseDTO, "SELECT * FROM cases WHERE case_id=$1", caseID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewNotFoundError("no case found with this id", map[string]any{"case_id": caseID})
@@ -89,13 +89,13 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM cases WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundCases []CaseDTO
-	err := r.client.SelectContext(ctx, &foundCases, query, limitArgs...)
+	err := executor(ctx, r.client).SelectContext(ctx, &foundCases, query, limitArgs...)
 	if err != nil {
 		return domain.PagingResult[domain.Case]{}, err
 	}
 
 	var countResult int
-	err = r.client.GetContext(ctx, &countResult, countQuery, whereArgs...)
+	err = executor(ctx, r.client).GetContext(ctx, &countResult, countQuery, whereArgs...)
 	if err != nil {
 		return domain.PagingResult[domain.Case]{}, err
 	}
@@ -117,7 +117,7 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 func (r *caseRepository) Update(ctx context.Context, crmCase domain.Case) error {
 	crmCaseDTO := mapCaseToCaseDTO(crmCase)
 
-	_, err := r.client.NamedExecContext(
+	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"UPDATE cases SET "+
 			"contractor_id = :contractor_id, "+
@@ -336,7 +336,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 		WHERE %s`, strings.Join(whereQuery, " AND "))
 
 	var foundCases []CaseFullDTO
-	rows, err := r.client.QueryxContext(ctx, query, limitArgs...)
+	rows, err := executor(ctx, r.client).QueryxContext(ctx, query, limitArgs...)
 	if err != nil {
 		return domain.PagingResult[domain.CaseFull]{}, err
 	}
@@ -474,7 +474,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 	}
 
 	var countResult int
-	err = r.client.GetContext(ctx, &countResult, countQuery, whereArgs...)
+	err = executor(ctx, r.client).GetContext(ctx, &countResult, countQuery, whereArgs...)
 	if err != nil {
 		return domain.PagingResult[domain.CaseFull]{}, err
 	}
@@ -506,7 +506,7 @@ func (r *caseRepository) getCaseTransactions(ctx context.Context, caseIDs []stri
 	query := fmt.Sprintf("SELECT * FROM transactions WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var transactions []TransactionDTO
-	err := r.client.SelectContext(ctx, &transactions, query, whereArgs...)
+	err := executor(ctx, r.client).SelectContext(ctx, &transactions, query, whereArgs...)
 	if err != nil {
 		return nil, err
 	}
