@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS case_history (
-    history_id UUID PRIMARY KEY,
-    case_id UUID NOT NULL REFERENCES cases(case_id),
+    history_id TEXT PRIMARY KEY,
+    case_id TEXT NOT NULL REFERENCES cases(case_id),
     event_name VARCHAR(100) NOT NULL,
     author_id VARCHAR(100) NOT NULL,
     old_values JSONB NOT NULL DEFAULT '{}',
