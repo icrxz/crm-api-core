@@ -22,7 +22,7 @@ func NewCommentRepository(db *sqlx.DB) domain.CommentRepository {
 func (r *commentRepository) Create(ctx context.Context, comment domain.Comment) (string, error) {
 	commentDTO := mapCommentToCommentDTO(comment)
 
-	_, err := r.db.NamedExecContext(
+	_, err := executor(ctx, r.db).NamedExecContext(
 		ctx, "INSERT INTO comments "+
 			"(comment_id, case_id, content, comment_type, created_by, created_at, updated_by, updated_at) "+
 			"VALUES "+
@@ -42,7 +42,7 @@ func (r *commentRepository) GetByID(ctx context.Context, commentID string) (*dom
 	}
 
 	var commentDTO CommentDTO
-	err := r.db.GetContext(ctx, &commentDTO, "SELECT * FROM comments WHERE comment_id = $1", commentID)
+	err := executor(ctx, r.db).GetContext(ctx, &commentDTO, "SELECT * FROM comments WHERE comment_id = $1", commentID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewNotFoundError("no comment found with this id", map[string]any{"comment_id": commentID})
@@ -61,7 +61,7 @@ func (r *commentRepository) GetByCaseID(ctx context.Context, caseID string) ([]d
 	}
 
 	var commentDTOs []CommentDTO
-	err := r.db.SelectContext(ctx, &commentDTOs, "SELECT * FROM comments WHERE case_id = $1", caseID)
+	err := executor(ctx, r.db).SelectContext(ctx, &commentDTOs, "SELECT * FROM comments WHERE case_id = $1", caseID)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (r *commentRepository) DeleteManyByCaseID(ctx context.Context, caseID strin
 		return domain.NewValidationError("caseID is required", nil)
 	}
 
-	_, err := r.db.ExecContext(ctx, "DELETE FROM comments WHERE case_id = $1", caseID)
+	_, err := executor(ctx, r.db).ExecContext(ctx, "DELETE FROM comments WHERE case_id = $1", caseID)
 	if err != nil {
 		return err
 	}

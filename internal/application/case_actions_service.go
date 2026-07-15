@@ -224,22 +224,19 @@ func (c *caseActionService) ResetCaseStatus(ctx context.Context, caseID, author 
 		commentIDs = append(commentIDs, comment.CommentID)
 	}
 
-	err = c.attachmentService.DeleteByComments(ctx, commentIDs)
-	if err != nil {
-		return err
-	}
-
-	err = c.transactionService.DeleteByCaseID(ctx, caseID)
-	if err != nil {
-		return err
-	}
-
-	err = c.commentService.DeleteByCaseID(ctx, caseID)
-	if err != nil {
-		return err
-	}
-
 	return c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := c.attachmentService.DeleteByComments(txCtx, commentIDs); err != nil {
+			return err
+		}
+
+		if err := c.transactionService.DeleteByCaseID(txCtx, caseID); err != nil {
+			return err
+		}
+
+		if err := c.commentService.DeleteByCaseID(txCtx, caseID); err != nil {
+			return err
+		}
+
 		if err := c.caseRepository.Update(txCtx, *crmCase); err != nil {
 			return err
 		}

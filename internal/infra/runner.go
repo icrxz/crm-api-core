@@ -60,7 +60,7 @@ func RunApp() error {
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
 	batchCaseService := application.NewBatchCaseService(customerService, productService, contractorService, caseRepository)
-	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket)
+	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket, transactionManager)
 	transactionService := application.NewTransactionService(transactionRepository, caseRepository)
 	caseService := application.NewCaseService(
 		customerService,
