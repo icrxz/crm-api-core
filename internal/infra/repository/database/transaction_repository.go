@@ -24,7 +24,7 @@ func NewTransactionRepository(client *sqlx.DB) domain.TransactionRepository {
 func (r *transactionRepository) CreateTransaction(ctx context.Context, transaction domain.Transaction) (string, error) {
 	transactionDTO := mapTransactionToTransactionDTO(transaction)
 
-	_, err := r.client.NamedExecContext(
+	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"INSERT INTO transactions "+
 			"(transaction_id, case_id, type, amount, status, attachment_id, created_at, updated_at, created_by, updated_by, description) "+
@@ -45,7 +45,7 @@ func (r *transactionRepository) GetTransaction(ctx context.Context, transactionI
 	}
 
 	var transactionDTO TransactionDTO
-	err := r.client.GetContext(ctx, &transactionDTO, "SELECT * FROM transactions WHERE transaction_id=$1", transactionID)
+	err := executor(ctx, r.client).GetContext(ctx, &transactionDTO, "SELECT * FROM transactions WHERE transaction_id=$1", transactionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Transaction{}, domain.NewNotFoundError("no transaction found with this id", map[string]any{"transaction_id": transactionID})
@@ -59,7 +59,7 @@ func (r *transactionRepository) GetTransaction(ctx context.Context, transactionI
 func (r *transactionRepository) UpdateTransaction(ctx context.Context, transaction domain.Transaction) error {
 	transactionDTO := mapTransactionToTransactionDTO(transaction)
 
-	_, err := r.client.NamedExecContext(
+	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"UPDATE transactions SET "+
 			"type = :type, "+
@@ -90,7 +90,7 @@ func (r *transactionRepository) SearchTransactions(ctx context.Context, filters 
 	query := fmt.Sprintf("SELECT * FROM transactions WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundTransactions []TransactionDTO
-	err := r.client.SelectContext(ctx, &foundTransactions, query, whereArgs...)
+	err := executor(ctx, r.client).SelectContext(ctx, &foundTransactions, query, whereArgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (r *transactionRepository) DeleteManyByCaseID(ctx context.Context, caseID s
 		return domain.NewValidationError("caseID is required", nil)
 	}
 
-	_, err := r.client.ExecContext(ctx, "DELETE FROM transactions WHERE case_id = $1", caseID)
+	_, err := executor(ctx, r.client).ExecContext(ctx, "DELETE FROM transactions WHERE case_id = $1", caseID)
 	if err != nil {
 		return err
 	}

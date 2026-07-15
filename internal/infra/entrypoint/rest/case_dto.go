@@ -212,3 +212,33 @@ func mapCasesFullToCasesFullDTOs(crmCases []domain.CaseFull) []CaseFullDTO {
 	}
 	return crmCasesDTO
 }
+
+type CaseHistoryDTO struct {
+	HistoryID string         `json:"history_id"`
+	CaseID    string         `json:"case_id"`
+	EventName string         `json:"event_name"`
+	AuthorID  string         `json:"author_id"`
+	OldValues map[string]any `json:"old_values"`
+	NewValues map[string]any `json:"new_values"`
+	CreatedAt time.Time      `json:"created_at"`
+}
+
+func mapCaseHistoryToCaseHistoryDTO(history domain.CaseHistory) CaseHistoryDTO {
+	return CaseHistoryDTO{
+		HistoryID: history.HistoryID,
+		CaseID:    history.CaseID,
+		EventName: history.EventName,
+		AuthorID:  history.AuthorID,
+		OldValues: history.OldValues,
+		NewValues: history.NewValues,
+		CreatedAt: history.CreatedAt,
+	}
+}
+
+func mapCaseHistoriesToCaseHistoryDTOs(histories []domain.CaseHistory) []CaseHistoryDTO {
+	historyDTOs := make([]CaseHistoryDTO, len(histories))
+	for i, history := range histories {
+		historyDTOs[i] = mapCaseHistoryToCaseHistoryDTO(history)
+	}
+	return historyDTOs
+}

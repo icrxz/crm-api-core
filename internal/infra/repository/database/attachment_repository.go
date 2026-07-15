@@ -30,7 +30,7 @@ func (r *attachmentRepository) SaveBatch(ctx context.Context, attachments []doma
 
 	attachmentsDTO := mapAttachmentsToAttachmentsDTO(attachments)
 
-	_, err := r.db.NamedExecContext(ctx, "INSERT INTO attachments (attachment_id, comment_id, key, file_name, attachment_url, file_extension, size, created_at, created_by) VALUES (:attachment_id, :comment_id, :key, :file_name, :attachment_url, :file_extension, :size, :created_at, :created_by)", attachmentsDTO)
+	_, err := executor(ctx, r.db).NamedExecContext(ctx, "INSERT INTO attachments (attachment_id, comment_id, key, file_name, attachment_url, file_extension, size, created_at, created_by) VALUES (:attachment_id, :comment_id, :key, :file_name, :attachment_url, :file_extension, :size, :created_at, :created_by)", attachmentsDTO)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (r *attachmentRepository) GetByID(ctx context.Context, attachmentID string)
 	}
 
 	var attachmentDTO AttachmentDTO
-	err := r.db.GetContext(ctx, &attachmentDTO, "SELECT * FROM attachments WHERE attachment_id = ?", attachmentID)
+	err := executor(ctx, r.db).GetContext(ctx, &attachmentDTO, "SELECT * FROM attachments WHERE attachment_id = ?", attachmentID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Attachment{}, domain.NewNotFoundError("attachment not found", map[string]any{"attachment_id": attachmentID})
@@ -62,7 +62,7 @@ func (r *attachmentRepository) GetByCommentID(ctx context.Context, commentID str
 	}
 
 	var attachmentsDTO []AttachmentDTO
-	err := r.db.SelectContext(ctx, &attachmentsDTO, "SELECT * FROM attachments WHERE comment_id = $1 ORDER BY created_at ASC", commentID)
+	err := executor(ctx, r.db).SelectContext(ctx, &attachmentsDTO, "SELECT * FROM attachments WHERE comment_id = $1 ORDER BY created_at ASC", commentID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -87,7 +87,7 @@ func (r *attachmentRepository) DeleteManyByComments(ctx context.Context, comment
 
 	query = r.db.Rebind(query)
 
-	_, err = r.db.ExecContext(ctx, query, args...)
+	_, err = executor(ctx, r.db).ExecContext(ctx, query, args...)
 	if err != nil {
 		return err
 	}

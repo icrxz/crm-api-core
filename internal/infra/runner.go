@@ -45,6 +45,8 @@ func RunApp() error {
 	customerRepository := database.NewCustomerRepository(sqlDB)
 	contractorRepository := database.NewContractorRepository(sqlDB)
 	caseRepository := database.NewCaseRepository(sqlDB)
+	caseHistoryRepository := database.NewCaseHistoryRepository(sqlDB)
+	transactionManager := database.NewTransactionManager(sqlDB)
 	productRepository := database.NewProductRepository(sqlDB)
 	commentRepository := database.NewCommentRepository(sqlDB)
 	transactionRepository := database.NewTransactionRepository(sqlDB)
@@ -58,11 +60,13 @@ func RunApp() error {
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
 	batchCaseService := application.NewBatchCaseService(customerService, productService, contractorService, caseRepository)
-	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket)
+	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket, transactionManager)
 	transactionService := application.NewTransactionService(transactionRepository, caseRepository)
 	caseService := application.NewCaseService(
 		customerService,
 		caseRepository,
+		caseHistoryRepository,
+		transactionManager,
 		productService,
 		userService,
 		commentService,
@@ -81,7 +85,7 @@ func RunApp() error {
 		attachmentBucket,
 	)
 	attachmentService := application.NewAttachmentService(attachmentRepository, attachmentBucket)
-	caseActionService := application.NewCaseActionService(caseRepository, commentService, reportService, attachmentService, transactionService)
+	caseActionService := application.NewCaseActionService(caseRepository, caseHistoryRepository, transactionManager, commentService, reportService, attachmentService, transactionService)
 
 	// controllers
 	pingController := rest.NewPingController()
