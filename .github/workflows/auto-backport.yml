@@ -28,6 +28,10 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           MERGED_BY: ${{ github.actor }}
         run: |
+          # 0. Identidade do committer (obrigatório para o merge criar commit)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           # 1. Definir os alvos (develop já é padrão)
           TARGETS=("develop")
 
@@ -50,16 +54,29 @@ jobs:
             git pull origin "$TARGET"
             git checkout -b "$BP_BRANCH"
 
-            # Tenta fazer o merge da main
-            git merge origin/main --no-ff -m "Auto-merge main into $TARGET" || true
+            # Tenta fazer o merge da main. Em conflito, commita os marcadores
+            # mesmo assim para o PR sempre existir e ser resolvido manualmente.
+            CONFLICT=false
+            if ! git merge origin/main --no-ff -m "Auto-merge main into $TARGET"; then
+              CONFLICT=true
+              git add -A
+              git commit -m "Auto-merge main into $TARGET (conflitos pendentes)"
+            fi
 
             git push origin "$BP_BRANCH"
+
+            PR_BODY="Este é um PR gerado automaticamente trazendo as alterações do PR #${PR_NUMBER} (main) para a branch \`${TARGET}\`."
+            PR_TITLE_PREFIX="🔄 Backport PR #${PR_NUMBER} para ${TARGET}"
+            if [ "$CONFLICT" = true ]; then
+              PR_TITLE_PREFIX="⚠️ $PR_TITLE_PREFIX (conflitos)"
+              PR_BODY="$PR_BODY Merge automático encontrou conflitos — resolva os marcadores antes de aprovar."
+            fi
 
             # Criar o Pull Request com a atribuição automática
             gh pr create \
               --base "$TARGET" \
               --head "$BP_BRANCH" \
-              --title "🔄 Backport PR #${PR_NUMBER} para ${TARGET}" \
-              --body "Este é um PR gerado automaticamente trazendo as alterações do PR #${PR_NUMBER} (main) para a branch \`${TARGET}\`. Por favor, verifique se há conflitos a serem resolvidos." \
+              --title "$PR_TITLE_PREFIX" \
+              --body "$PR_BODY" \
               --assignee "$MERGED_BY"
           done
