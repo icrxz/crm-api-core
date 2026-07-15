@@ -10,11 +10,13 @@ import (
 )
 
 type caseActionService struct {
-	caseRepository     domain.CaseRepository
-	commentService     CommentService
-	attachmentService  AttachmentService
-	transactionService TransactionService
-	reportService      ReportService
+	caseRepository        domain.CaseRepository
+	caseHistoryRepository domain.CaseHistoryRepository
+	transactionManager    domain.TransactionManager
+	commentService        CommentService
+	attachmentService     AttachmentService
+	transactionService    TransactionService
+	reportService         ReportService
 }
 
 //go:generate mockgen -source=case_actions_service.go -destination=mock_application/mock_case_actions_service.go -package=mock_application
@@ -28,18 +30,35 @@ type CaseActionService interface {
 
 func NewCaseActionService(
 	caseRepository domain.CaseRepository,
+	caseHistoryRepository domain.CaseHistoryRepository,
+	transactionManager domain.TransactionManager,
 	commentService CommentService,
 	reportService ReportService,
 	attachmentService AttachmentService,
 	transactionService TransactionService,
 ) CaseActionService {
 	return &caseActionService{
-		caseRepository:     caseRepository,
-		commentService:     commentService,
-		reportService:      reportService,
-		attachmentService:  attachmentService,
-		transactionService: transactionService,
+		caseRepository:        caseRepository,
+		caseHistoryRepository: caseHistoryRepository,
+		transactionManager:    transactionManager,
+		commentService:        commentService,
+		reportService:         reportService,
+		attachmentService:     attachmentService,
+		transactionService:    transactionService,
 	}
+}
+
+func (c *caseActionService) recordHistory(ctx context.Context, caseID, eventName, author string, oldValues, newValues map[string]any) error {
+	if len(oldValues) == 0 {
+		return nil
+	}
+
+	history, err := domain.NewCaseHistory(caseID, eventName, author, oldValues, newValues)
+	if err != nil {
+		return err
+	}
+
+	return c.caseHistoryRepository.Create(ctx, history)
 }
 
 func (c *caseActionService) ChangeOwner(ctx context.Context, caseID string, newOwner domain.ChangeOwner) error {
@@ -53,9 +72,18 @@ func (c *caseActionService) ChangeOwner(ctx context.Context, caseID string, newO
 		Status:    &newOwner.Status,
 		UpdatedBy: newOwner.UpdatedBy,
 	}
+
+	eventName, oldValues, newValues := crmCase.DetectChanges(caseUpdate)
+
 	crmCase.MergeUpdate(caseUpdate)
 
-	return c.caseRepository.Update(ctx, *crmCase)
+	return c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := c.caseRepository.Update(txCtx, *crmCase); err != nil {
+			return err
+		}
+
+		return c.recordHistory(txCtx, caseID, eventName, newOwner.UpdatedBy, oldValues, newValues)
+	})
 }
 
 func (c *caseActionService) ChangeStatus(ctx context.Context, caseID string, newStatus domain.ChangeStatus) error {
@@ -75,6 +103,8 @@ func (c *caseActionService) ChangeStatus(ctx context.Context, caseID string, new
 		caseUpdate.ClosedAt = &now
 	}
 
+	eventName, oldValues, newValues := crmCase.DetectChanges(caseUpdate)
+
 	crmCase.MergeUpdate(caseUpdate)
 
 	if newStatus.Content != nil {
@@ -84,7 +114,13 @@ func (c *caseActionService) ChangeStatus(ctx context.Context, caseID string, new
 		}
 	}
 
-	return c.caseRepository.Update(ctx, *crmCase)
+	return c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := c.caseRepository.Update(txCtx, *crmCase); err != nil {
+			return err
+		}
+
+		return c.recordHistory(txCtx, caseID, eventName, newStatus.UpdatedBy, oldValues, newValues)
+	})
 }
 
 func (c *caseActionService) ChangePartner(ctx context.Context, caseID string, newPartner domain.ChangePartner) error {
@@ -99,9 +135,18 @@ func (c *caseActionService) ChangePartner(ctx context.Context, caseID string, ne
 		TargetDate: &newPartner.TargetDate,
 		UpdatedBy:  newPartner.UpdatedBy,
 	}
+
+	eventName, oldValues, newValues := crmCase.DetectChanges(caseUpdate)
+
 	crmCase.MergeUpdate(caseUpdate)
 
-	return c.caseRepository.Update(ctx, *crmCase)
+	return c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := c.caseRepository.Update(txCtx, *crmCase); err != nil {
+			return err
+		}
+
+		return c.recordHistory(txCtx, caseID, eventName, newPartner.UpdatedBy, oldValues, newValues)
+	})
 }
 
 func (c *caseActionService) GenerateReport(ctx context.Context, caseID string) ([]byte, string, error) {
@@ -165,6 +210,8 @@ func (c *caseActionService) ResetCaseStatus(ctx context.Context, caseID, author 
 		UpdatedBy: author,
 	}
 
+	_, oldValues, newValues := crmCase.DetectChanges(cleanCase)
+
 	crmCase.MergeUpdate(cleanCase)
 
 	caseComments, err := c.commentService.GetByCaseID(ctx, caseID)
@@ -177,25 +224,23 @@ func (c *caseActionService) ResetCaseStatus(ctx context.Context, caseID, author 
 		commentIDs = append(commentIDs, comment.CommentID)
 	}
 
-	err = c.attachmentService.DeleteByComments(ctx, commentIDs)
-	if err != nil {
-		return err
-	}
+	return c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := c.attachmentService.DeleteByComments(txCtx, commentIDs); err != nil {
+			return err
+		}
 
-	err = c.transactionService.DeleteByCaseID(ctx, caseID)
-	if err != nil {
-		return err
-	}
+		if err := c.transactionService.DeleteByCaseID(txCtx, caseID); err != nil {
+			return err
+		}
 
-	err = c.commentService.DeleteByCaseID(ctx, caseID)
-	if err != nil {
-		return err
-	}
+		if err := c.commentService.DeleteByCaseID(txCtx, caseID); err != nil {
+			return err
+		}
 
-	err = c.caseRepository.Update(ctx, *crmCase)
-	if err != nil {
-		return err
-	}
+		if err := c.caseRepository.Update(txCtx, *crmCase); err != nil {
+			return err
+		}
 
-	return nil
+		return c.recordHistory(txCtx, caseID, domain.CaseResetEvent, author, oldValues, newValues)
+	})
 }

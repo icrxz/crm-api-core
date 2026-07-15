@@ -10,6 +10,7 @@ type commentService struct {
 	commentRepository    domain.CommentRepository
 	attachmentRepository domain.AttachmentRepository
 	attachmentBucket     domain.AttachmentBucket
+	transactionManager   domain.TransactionManager
 }
 
 //go:generate mockgen -source=comment_service.go -destination=mock_application/mock_comment_service.go -package=mock_application
@@ -24,29 +25,38 @@ func NewCommentService(
 	commentRepository domain.CommentRepository,
 	attachmentRepository domain.AttachmentRepository,
 	attachmentBucket domain.AttachmentBucket,
+	transactionManager domain.TransactionManager,
 ) CommentService {
 	return &commentService{
 		commentRepository:    commentRepository,
 		attachmentRepository: attachmentRepository,
 		attachmentBucket:     attachmentBucket,
+		transactionManager:   transactionManager,
 	}
 }
 
 func (s *commentService) Create(ctx context.Context, comment domain.Comment) (string, error) {
-	commentID, err := s.commentRepository.Create(ctx, comment)
-	if err != nil {
-		return "", err
-	}
+	var commentID string
 
-	if len(comment.Attachments) > 0 {
+	err := s.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		createdID, err := s.commentRepository.Create(txCtx, comment)
+		if err != nil {
+			return err
+		}
+		commentID = createdID
+
+		if len(comment.Attachments) == 0 {
+			return nil
+		}
+
 		for idx := range comment.Attachments {
 			comment.Attachments[idx].CommentID = commentID
 		}
 
-		err = s.attachmentRepository.SaveBatch(ctx, comment.Attachments)
-		if err != nil {
-			return commentID, err
-		}
+		return s.attachmentRepository.SaveBatch(txCtx, comment.Attachments)
+	})
+	if err != nil {
+		return "", err
 	}
 
 	return commentID, nil
