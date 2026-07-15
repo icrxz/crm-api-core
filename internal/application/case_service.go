@@ -72,14 +72,14 @@ func (c *caseService) CreateCase(ctx context.Context, newCase domain.CreateCase)
 		return "", err
 	}
 
-	productID, err := c.productService.CreateProduct(ctx, newCase.Product)
-	if err != nil {
-		return "", err
-	}
-	crmCase.ProductID = productID
-
 	var caseID string
 	err = c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		productID, err := c.productService.CreateProduct(txCtx, newCase.Product)
+		if err != nil {
+			return err
+		}
+		crmCase.ProductID = productID
+
 		createdID, err := c.caseRepository.Create(txCtx, crmCase)
 		if err != nil {
 			return err
