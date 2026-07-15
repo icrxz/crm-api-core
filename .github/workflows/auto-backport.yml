@@ -48,7 +48,7 @@ jobs:
           for TARGET in "${TARGETS[@]}"; do
             echo "Iniciando backport para $TARGET..."
 
-            BP_BRANCH="backport-pr-${PR_NUMBER}-to-${TARGET//\//-}"
+            BP_BRANCH="chore/backport-pr-${PR_NUMBER}-to-${TARGET//\//-}"
 
             git checkout "$TARGET"
             git pull origin "$TARGET"
@@ -66,17 +66,17 @@ jobs:
             git push origin "$BP_BRANCH"
 
             PR_BODY="Este é um PR gerado automaticamente trazendo as alterações do PR #${PR_NUMBER} (main) para a branch \`${TARGET}\`."
-            PR_TITLE_PREFIX="🔄 Backport PR #${PR_NUMBER} para ${TARGET}"
+            PR_TITLE="chore: backport PR #${PR_NUMBER} to ${TARGET}"
             if [ "$CONFLICT" = true ]; then
-              PR_TITLE_PREFIX="⚠️ $PR_TITLE_PREFIX (conflitos)"
-              PR_BODY="$PR_BODY Merge automático encontrou conflitos — resolva os marcadores antes de aprovar."
+              PR_TITLE="$PR_TITLE (conflicts)"
+              PR_BODY="$PR_BODY ⚠️ Merge automático encontrou conflitos — resolva os marcadores antes de aprovar."
             fi
 
             # Criar o Pull Request com a atribuição automática
             gh pr create \
               --base "$TARGET" \
               --head "$BP_BRANCH" \
-              --title "$PR_TITLE_PREFIX" \
+              --title "$PR_TITLE" \
               --body "$PR_BODY" \
               --assignee "$MERGED_BY"
           done
