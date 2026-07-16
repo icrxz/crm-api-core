@@ -25,3 +25,6 @@ tmp/
 go.work
 go.work.sum
 .idea
+
+# Local scripts
+scripts/*

@@ -21,6 +21,7 @@ func LoadRoutes(
 	commentController rest.CommentController,
 	transactionController rest.TransactionController,
 	caseActionController rest.CaseActionController,
+	queueController rest.QueueController,
 ) {
 	authGroup := app.Group("/crm/core/api/v1")
 	authGroup.Use(authMiddleware.Authenticate())
@@ -36,6 +37,7 @@ func LoadRoutes(
 	authGroup.GET("/users/:userID", userController.GetUser)
 	authGroup.PUT("/users/:userID", userController.UpdateUser)
 	authGroup.DELETE("/users/:userID", userController.DeleteUser)
+	authGroup.PUT("/users/:userID/password", userController.ChangePassword)
 
 	// partner
 	authGroup.POST("/partners", partnerController.CreatePartner)
@@ -99,4 +101,15 @@ func LoadRoutes(
 	authGroup.PATCH("/cases/:caseID/partner", caseActionController.ChangePartner)
 	authGroup.GET("/cases/:caseID/report", caseActionController.DownloadReport)
 	authGroup.PATCH("/cases/:caseID/reset", caseActionController.ResetCase)
+
+	// queues
+	authGroup.POST("/queues", queueController.CreateQueue)
+	authGroup.GET("/queues", queueController.SearchQueues)
+	authGroup.GET("/queues/:queueID", queueController.GetQueue)
+	authGroup.PUT("/queues/:queueID", queueController.UpdateQueue)
+	authGroup.DELETE("/queues/:queueID", queueController.DeleteQueue)
+	authGroup.GET("/queues/:queueID/members", queueController.GetMembers)
+	authGroup.POST("/queues/:queueID/members", queueController.AddMember)
+	authGroup.DELETE("/queues/:queueID/members/:userID", queueController.RemoveMember)
+	authGroup.GET("/users/:userID/queues", queueController.GetQueuesByUser)
 }

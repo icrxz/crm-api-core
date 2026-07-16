@@ -20,6 +20,7 @@ type caseService struct {
 	transactionService    TransactionService
 	partnerService        PartnerService
 	contractorService     ContractorService
+	queueService          QueueService
 }
 
 //go:generate mockgen -source=case_service.go -destination=mock_application/mock_case_service.go -package=mock_application
@@ -44,6 +45,7 @@ func NewCaseService(
 	transactionService TransactionService,
 	partnerService PartnerService,
 	contractorService ContractorService,
+	queueService QueueService,
 ) CaseService {
 	return &caseService{
 		customerService:       customerService,
@@ -56,6 +58,7 @@ func NewCaseService(
 		transactionService:    transactionService,
 		partnerService:        partnerService,
 		contractorService:     contractorService,
+		queueService:          queueService,
 	}
 }
 
@@ -228,81 +231,116 @@ func (c *caseService) GetCaseFullByID(ctx context.Context, caseID string) (*doma
 		return nil, err
 	}
 
-	product, customer, partner, contractor, err := c.getCaseRelatedEntities(ctx, crmCase)
+	product, customer, partner, contractor, queue, err := c.getCaseRelatedEntities(ctx, crmCase)
 	if err != nil {
 		return nil, err
 	}
 
-	crmCaseFull := domain.NewCaseFull(*crmCase, comments, transactions, product, customer, partner, contractor)
+	crmCaseFull := domain.NewCaseFull(*crmCase, comments, transactions, product, customer, partner, contractor, queue)
 
 	return &crmCaseFull, nil
 }
 
-func (c *caseService) getCaseRelatedEntities(ctx context.Context, crmCase *domain.Case) (domain.Product, domain.Customer, domain.Partner, domain.Contractor, error) {
+func (c *caseService) getCaseRelatedEntities(ctx context.Context, crmCase *domain.Case) (domain.Product, domain.Customer, domain.Partner, domain.Contractor, domain.Queue, error) {
 	group := errgroup.Group{}
 
 	var product domain.Product
 	var customer domain.Customer
 	var partner domain.Partner
 	var contractor domain.Contractor
+	var queue domain.Queue
 
-	group.Go(func() error {
-		if crmCase.ProductID == "" {
-			return nil
-		}
-		found, err := c.productService.GetProductByID(ctx, crmCase.ProductID)
-		if err != nil {
-			return ignoreNotFound(err)
-		}
-		if found != nil {
-			product = *found
-		}
-		return nil
+	group.Go(func() (err error) {
+		product, err = c.fetchProduct(ctx, crmCase.ProductID)
+		return err
 	})
 
-	group.Go(func() error {
-		if crmCase.CustomerID == "" {
-			return nil
-		}
-		found, err := c.customerService.GetByID(ctx, crmCase.CustomerID)
-		if err != nil {
-			return ignoreNotFound(err)
-		}
-		if found != nil {
-			customer = *found
-		}
-		return nil
+	group.Go(func() (err error) {
+		customer, err = c.fetchCustomer(ctx, crmCase.CustomerID)
+		return err
 	})
 
-	group.Go(func() error {
-		if crmCase.PartnerID == "" {
-			return nil
-		}
-		found, err := c.partnerService.GetByID(ctx, crmCase.PartnerID)
-		if err != nil {
-			return ignoreNotFound(err)
-		}
-		if found != nil {
-			partner = *found
-		}
-		return nil
+	group.Go(func() (err error) {
+		partner, err = c.fetchPartner(ctx, crmCase.PartnerID)
+		return err
 	})
 
-	group.Go(func() error {
-		if crmCase.ContractorID == "" {
-			return nil
-		}
-		found, err := c.contractorService.GetByID(ctx, crmCase.ContractorID)
-		if err != nil {
-			return ignoreNotFound(err)
-		}
-		if found != nil {
-			contractor = *found
-		}
-		return nil
+	group.Go(func() (err error) {
+		contractor, err = c.fetchContractor(ctx, crmCase.ContractorID)
+		return err
 	})
 
-	return product, customer, partner, contractor, group.Wait()
+	group.Go(func() (err error) {
+		queue, err = c.fetchQueue(ctx, crmCase.QueueID)
+		return err
+	})
+
+	return product, customer, partner, contractor, queue, group.Wait()
+}
+
+func (c *caseService) fetchProduct(ctx context.Context, productID string) (domain.Product, error) {
+	if productID == "" {
+		return domain.Product{}, nil
+	}
+
+	found, err := c.productService.GetProductByID(ctx, productID)
+	if err != nil || found == nil {
+		return domain.Product{}, ignoreNotFound(err)
+	}
+
+	return *found, nil
+}
+
+func (c *caseService) fetchCustomer(ctx context.Context, customerID string) (domain.Customer, error) {
+	if customerID == "" {
+		return domain.Customer{}, nil
+	}
+
+	found, err := c.customerService.GetByID(ctx, customerID)
+	if err != nil || found == nil {
+		return domain.Customer{}, ignoreNotFound(err)
+	}
+
+	return *found, nil
+}
+
+func (c *caseService) fetchPartner(ctx context.Context, partnerID string) (domain.Partner, error) {
+	if partnerID == "" {
+		return domain.Partner{}, nil
+	}
+
+	found, err := c.partnerService.GetByID(ctx, partnerID)
+	if err != nil || found == nil {
+		return domain.Partner{}, ignoreNotFound(err)
+	}
+
+	return *found, nil
+}
+
+func (c *caseService) fetchContractor(ctx context.Context, contractorID string) (domain.Contractor, error) {
+	if contractorID == "" {
+		return domain.Contractor{}, nil
+	}
+
+	found, err := c.contractorService.GetByID(ctx, contractorID)
+	if err != nil || found == nil {
+		return domain.Contractor{}, ignoreNotFound(err)
+	}
+
+	return *found, nil
+}
+
+func (c *caseService) fetchQueue(ctx context.Context, queueID string) (domain.Queue, error) {
+	if queueID == "" {
+		return domain.Queue{}, nil
+	}
+
+	found, err := c.queueService.GetByID(ctx, queueID)
+	if err != nil || found == nil {
+		return domain.Queue{}, ignoreNotFound(err)
+	}
+
+	return *found, nil
 }
 
 func ignoreNotFound(err error) error {

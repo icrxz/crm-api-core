@@ -44,6 +44,7 @@ type CaseDTO struct {
 	ProductID         string              `json:"product_id"`
 	ClosedAt          *time.Time          `json:"closed_at"`
 	TargetDate        *time.Time          `json:"target_date"`
+	QueueID           string              `json:"queue_id"`
 }
 
 type CaseFullDTO struct {
@@ -69,6 +70,7 @@ type CaseFullDTO struct {
 	ExternalReference string              `json:"external_reference"`
 	ClosedAt          *time.Time          `json:"closed_at"`
 	TargetDate        *time.Time          `json:"target_date"`
+	Queue             QueueDTO            `json:"queue"`
 }
 
 type UpdateCaseDTO struct {
@@ -80,6 +82,7 @@ type UpdateCaseDTO struct {
 	ProductID  *string    `json:"product_id"`
 	Subject    *string    `json:"subject"`
 	Type       *string    `json:"type"`
+	QueueID    *string    `json:"queue_id"`
 	UpdatedBy  string     `json:"updated_by" validate:"required"`
 }
 
@@ -139,6 +142,7 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		ProductID:         crmCase.ProductID,
 		ClosedAt:          crmCase.ClosedAt,
 		TargetDate:        crmCase.TargetDate,
+		QueueID:           crmCase.QueueID,
 	}
 }
 
@@ -167,6 +171,7 @@ func mapUpdateCaseDTOToUpdateCase(dto UpdateCaseDTO) domain.CaseUpdate {
 		Subject:    dto.Subject,
 		ProductID:  dto.ProductID,
 		Type:       dto.Type,
+		QueueID:    dto.QueueID,
 	}
 }
 
@@ -202,6 +207,7 @@ func mapCaseFullToCaseFullDTO(caseFull domain.CaseFull) CaseFullDTO {
 		ExternalReference: caseFull.ExternalReference,
 		ClosedAt:          caseFull.ClosedAt,
 		TargetDate:        caseFull.TargetDate,
+		Queue:             mapQueueToQueueDTO(caseFull.Queue),
 	}
 }
 

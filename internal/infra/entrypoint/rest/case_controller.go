@@ -148,6 +148,13 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 		},
 	}
 
+	parseCaseListFilters(ctx, &filters)
+	parseCasePagingFilters(ctx, &filters)
+
+	return filters
+}
+
+func parseCaseListFilters(ctx *gin.Context, filters *domain.CaseFilters) {
 	if caseIDParam := ctx.Query("case_id"); caseIDParam != "" {
 		filters.CaseID = strings.Split(caseIDParam, ",")
 	}
@@ -176,6 +183,10 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 		filters.Region = region
 	}
 
+	if queueID := ctx.QueryArray("queue_id"); len(queueID) > 0 {
+		filters.QueueID = queueID
+	}
+
 	if externalReference := ctx.QueryArray("external_reference"); len(externalReference) > 0 {
 		filters.ExternalReference = externalReference
 	}
@@ -183,7 +194,9 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 	if state := ctx.QueryArray("state"); len(state) > 0 {
 		filters.ShippingState = state
 	}
+}
 
+func parseCasePagingFilters(ctx *gin.Context, filters *domain.CaseFilters) {
 	if startDate := ctx.Query("start_date"); startDate != "" {
 		filters.StartDate = &startDate
 	}
@@ -221,8 +234,6 @@ func (c *CaseController) parseQueryToFilters(ctx *gin.Context) domain.CaseFilter
 	if sortOrder := strings.ToUpper(ctx.Query("sort_order")); sortOrder == "ASC" || sortOrder == "DESC" {
 		filters.SortOrder = sortOrder
 	}
-
-	return filters
 }
 
 func (c *CaseController) UpdateCase(ctx *gin.Context) {

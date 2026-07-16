@@ -18,15 +18,18 @@ type CreateUserDTO struct {
 }
 
 type UpdateUserDTO struct {
-	Username  *string          `json:"username"`
 	FirstName *string          `json:"first_name"`
 	LastName  *string          `json:"last_name"`
 	Email     *string          `json:"email"`
 	Role      *domain.UserRole `json:"role"`
 	Region    *int             `json:"region"`
-	Password  *string          `json:"password"`
 	Active    *bool            `json:"active"`
 	UpdatedBy string           `json:"created_by"`
+}
+
+type ChangePasswordDTO struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
 }
 
 type UserDTO struct {
@@ -93,11 +96,9 @@ func mapUpdateUserDTOToUserUpdate(dto UpdateUserDTO) domain.UserUpdate {
 	return domain.UserUpdate{
 		FirstName: dto.FirstName,
 		LastName:  dto.LastName,
-		Username:  dto.Username,
 		Email:     dto.Email,
 		Role:      dto.Role,
 		Region:    dto.Region,
-		Password:  dto.Password,
 		Active:    dto.Active,
 	}
 }
