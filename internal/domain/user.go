@@ -2,12 +2,35 @@ package domain
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
+const passwordMinLength = 8
+
+var (
+	passwordDigitRegex   = regexp.MustCompile(`[0-9]`)
+	passwordSpecialRegex = regexp.MustCompile(`[^A-Za-z0-9]`)
+)
+
+func ValidatePasswordComplexity(password string) error {
+	if len(password) < passwordMinLength {
+		return NewValidationError(fmt.Sprintf("new_password must be at least %d characters long", passwordMinLength), nil)
+	}
+	if !passwordDigitRegex.MatchString(password) {
+		return NewValidationError("new_password must contain at least 1 number", nil)
+	}
+	if !passwordSpecialRegex.MatchString(password) {
+		return NewValidationError("new_password must contain at least 1 special character", nil)
+	}
+	return nil
+}
+
+//go:generate mockgen -source=user.go -destination=mock_domain/mock_user_repository.go -package=mock_domain
 type UserRepository interface {
 	Create(ctx context.Context, user User) (string, error)
 	GetByID(ctx context.Context, userID string) (*User, error)
@@ -49,11 +72,9 @@ type UserFilters struct {
 type UserUpdate struct {
 	FirstName    *string
 	LastName     *string
-	Username     *string
 	Email        *string
 	Role         *UserRole
 	Region       *int
-	Password     *string
 	LastLoggedIP *string
 	SessionToken *string
 	Active       *bool
@@ -67,6 +88,10 @@ const (
 	OPERATOR       UserRole = "operator"
 	ADMIN_OPERATOR UserRole = "admin_operator"
 )
+
+func (r UserRole) IsAdmin() bool {
+	return r == ADMIN || r == THAVANNA_ADMIN || r == ADMIN_OPERATOR
+}
 
 func NewUser(firstName, lastName, email, password, author, username string, role UserRole, region int) (User, error) {
 	now := time.Now().UTC()
@@ -149,8 +174,14 @@ func (u *User) MergeUpdate(userUpdate UserUpdate, author string) {
 	if userUpdate.Role != nil {
 		u.Role = *userUpdate.Role
 	}
+}
 
-	if userUpdate.Password != nil {
-		u.Password, _ = encryptPassword(*userUpdate.Password)
+func (u *User) SetPassword(newPassword string) error {
+	encryptedPassword, err := encryptPassword(newPassword)
+	if err != nil {
+		return err
 	}
+
+	u.Password = encryptedPassword
+	return nil
 }

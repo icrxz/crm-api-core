@@ -37,6 +37,7 @@ func LoadRoutes(
 	authGroup.GET("/users/:userID", userController.GetUser)
 	authGroup.PUT("/users/:userID", userController.UpdateUser)
 	authGroup.DELETE("/users/:userID", userController.DeleteUser)
+	authGroup.PUT("/users/:userID/password", userController.ChangePassword)
 
 	// partner
 	authGroup.POST("/partners", partnerController.CreatePartner)
