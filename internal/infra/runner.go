@@ -51,6 +51,7 @@ func RunApp() error {
 	commentRepository := database.NewCommentRepository(sqlDB)
 	transactionRepository := database.NewTransactionRepository(sqlDB)
 	attachmentRepository := database.NewAttachmentRepository(sqlDB)
+	queueRepository := database.NewQueueRepository(sqlDB)
 
 	// services
 	userService := application.NewUserService(userRepository)
@@ -62,6 +63,7 @@ func RunApp() error {
 	batchCaseService := application.NewBatchCaseService(customerService, productService, contractorService, caseRepository)
 	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket, transactionManager)
 	transactionService := application.NewTransactionService(transactionRepository, caseRepository)
+	queueService := application.NewQueueService(queueRepository)
 	caseService := application.NewCaseService(
 		customerService,
 		caseRepository,
@@ -73,6 +75,7 @@ func RunApp() error {
 		transactionService,
 		partnerService,
 		contractorService,
+		queueService,
 	)
 	reportService := application.NewReportService(
 		appConfig.ReportFolder,
@@ -100,6 +103,7 @@ func RunApp() error {
 	commentController := rest.NewCommentController(commentService)
 	transactionController := rest.NewTransactionController(transactionService)
 	caseActionController := rest.NewCaseActionController(caseActionService)
+	queueController := rest.NewQueueController(queueService)
 
 	// middlewares
 	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
@@ -128,6 +132,7 @@ func RunApp() error {
 		commentController,
 		transactionController,
 		caseActionController,
+		queueController,
 	)
 
 	return router.Run()
