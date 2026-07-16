@@ -63,6 +63,34 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	ctx.JSON(204, nil)
 }
 
+func (c *UserController) ChangePassword(ctx *gin.Context) {
+	userID := ctx.Param("userID")
+	if userID == "" {
+		_ = ctx.Error(domain.NewValidationError("param userID cannot be empty", nil))
+		return
+	}
+
+	requesterID := ctx.GetString("user_id")
+	if requesterID != userID {
+		_ = ctx.Error(domain.NewUnauthorizedError("user cannot change another user's password"))
+		return
+	}
+
+	var changePasswordDTO ChangePasswordDTO
+	if err := ctx.BindJSON(&changePasswordDTO); err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	err := c.userService.ChangePassword(ctx.Request.Context(), userID, changePasswordDTO.OldPassword, changePasswordDTO.NewPassword)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(204, nil)
+}
+
 func (c *UserController) GetUser(ctx *gin.Context) {
 	userID := ctx.Param("userID")
 	if userID == "" {

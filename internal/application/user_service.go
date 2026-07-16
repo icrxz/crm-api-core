@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"time"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
@@ -17,6 +18,7 @@ type UserService interface {
 	Update(ctx context.Context, userID, author string, user domain.UserUpdate) error
 	Delete(ctx context.Context, userID string) error
 	Search(ctx context.Context, filters domain.UserFilters) (domain.PagingResult[domain.User], error)
+	ChangePassword(ctx context.Context, userID, oldPassword, newPassword string) error
 }
 
 func NewUserService(userRepository domain.UserRepository) UserService {
@@ -58,4 +60,27 @@ func (s *userService) Delete(ctx context.Context, userID string) error {
 
 func (s *userService) Search(ctx context.Context, filters domain.UserFilters) (domain.PagingResult[domain.User], error) {
 	return s.userRepository.Search(ctx, filters)
+}
+
+func (s *userService) ChangePassword(ctx context.Context, userID, oldPassword, newPassword string) error {
+	if newPassword == "" {
+		return domain.NewValidationError("new_password cannot be empty", nil)
+	}
+
+	user, err := s.userRepository.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if !user.ComparePassword(oldPassword) {
+		return domain.NewValidationError("old_password is incorrect", nil)
+	}
+
+	if err := user.SetPassword(newPassword); err != nil {
+		return err
+	}
+	user.UpdatedAt = time.Now().UTC()
+	user.UpdatedBy = userID
+
+	return s.userRepository.Update(ctx, *user)
 }

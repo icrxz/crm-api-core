@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//go:generate mockgen -source=user.go -destination=mock_domain/mock_user_repository.go -package=mock_domain
 type UserRepository interface {
 	Create(ctx context.Context, user User) (string, error)
 	GetByID(ctx context.Context, userID string) (*User, error)
@@ -53,7 +54,6 @@ type UserUpdate struct {
 	Email        *string
 	Role         *UserRole
 	Region       *int
-	Password     *string
 	LastLoggedIP *string
 	SessionToken *string
 	Active       *bool
@@ -149,8 +149,14 @@ func (u *User) MergeUpdate(userUpdate UserUpdate, author string) {
 	if userUpdate.Role != nil {
 		u.Role = *userUpdate.Role
 	}
+}
 
-	if userUpdate.Password != nil {
-		u.Password, _ = encryptPassword(*userUpdate.Password)
+func (u *User) SetPassword(newPassword string) error {
+	encryptedPassword, err := encryptPassword(newPassword)
+	if err != nil {
+		return err
 	}
+
+	u.Password = encryptedPassword
+	return nil
 }
