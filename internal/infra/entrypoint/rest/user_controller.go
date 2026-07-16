@@ -52,10 +52,27 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	var userDTO *UpdateUserDTO
 	ctx.BindJSON(&userDTO)
 
+	requesterID := ctx.GetString("user_id")
+	requester, err := c.userService.GetByID(ctx.Request.Context(), requesterID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	if !requester.Role.IsAdmin() {
+		if requesterID != userID {
+			_ = ctx.Error(domain.NewUnauthorizedError("user cannot update another user"))
+			return
+		}
+		if userDTO.Role != nil || userDTO.Region != nil || userDTO.Active != nil {
+			_ = ctx.Error(domain.NewValidationError("user cannot change role, region or active status", nil))
+			return
+		}
+	}
+
 	userUpdate := mapUpdateUserDTOToUserUpdate(*userDTO)
 
-	err := c.userService.Update(ctx.Request.Context(), userID, userDTO.UpdatedBy, userUpdate)
-	if err != nil {
+	if err := c.userService.Update(ctx.Request.Context(), userID, userDTO.UpdatedBy, userUpdate); err != nil {
 		ctx.Error(err)
 		return
 	}

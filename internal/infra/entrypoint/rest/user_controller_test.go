@@ -137,11 +137,14 @@ func TestUserController_CreateUser(t *testing.T) {
 func TestUserController_UpdateUser(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	t.Run("updates the user successfully", func(t *testing.T) {
+	t.Run("admin updates another user successfully", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		mockService := mock_application.NewMockUserService(ctrl)
+		mockService.EXPECT().
+			GetByID(gomock.Any(), "admin-1").
+			Return(&domain.User{UserID: "admin-1", Role: domain.ADMIN}, nil)
 		mockService.EXPECT().
 			Update(gomock.Any(), "user-1", "author-2", gomock.Any()).
 			Return(nil)
@@ -149,7 +152,7 @@ func TestUserController_UpdateUser(t *testing.T) {
 		c := NewUserController(mockService)
 
 		router := gin.New()
-		router.PUT("/users/:userID", c.UpdateUser)
+		router.PUT("/users/:userID", withUserID("admin-1"), c.UpdateUser)
 
 		body, _ := json.Marshal(UpdateUserDTO{UpdatedBy: "author-2"})
 		req := httptest.NewRequest(http.MethodPut, "/users/user-1", bytes.NewReader(body))
@@ -161,11 +164,117 @@ func TestUserController_UpdateUser(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, w.Code)
 	})
 
+	t.Run("operator updates their own profile fields successfully", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockService := mock_application.NewMockUserService(ctrl)
+		mockService.EXPECT().
+			GetByID(gomock.Any(), "user-1").
+			Return(&domain.User{UserID: "user-1", Role: domain.OPERATOR}, nil)
+		mockService.EXPECT().
+			Update(gomock.Any(), "user-1", "user-1", gomock.Any()).
+			Return(nil)
+
+		c := NewUserController(mockService)
+
+		router := gin.New()
+		router.PUT("/users/:userID", withUserID("user-1"), c.UpdateUser)
+
+		body, _ := json.Marshal(UpdateUserDTO{UpdatedBy: "user-1"})
+		req := httptest.NewRequest(http.MethodPut, "/users/user-1", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+	})
+
+	t.Run("rejects when an operator tries to update another user", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockService := mock_application.NewMockUserService(ctrl)
+		mockService.EXPECT().
+			GetByID(gomock.Any(), "user-2").
+			Return(&domain.User{UserID: "user-2", Role: domain.OPERATOR}, nil)
+
+		c := NewUserController(mockService)
+
+		router := gin.New()
+		router.Use(testErrorEncoder())
+		router.PUT("/users/:userID", withUserID("user-2"), c.UpdateUser)
+
+		body, _ := json.Marshal(UpdateUserDTO{UpdatedBy: "user-2"})
+		req := httptest.NewRequest(http.MethodPut, "/users/user-1", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("rejects when an operator tries to change role, region or active status", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockService := mock_application.NewMockUserService(ctrl)
+		mockService.EXPECT().
+			GetByID(gomock.Any(), "user-1").
+			Return(&domain.User{UserID: "user-1", Role: domain.OPERATOR}, nil)
+
+		c := NewUserController(mockService)
+
+		router := gin.New()
+		router.Use(testErrorEncoder())
+		router.PUT("/users/:userID", withUserID("user-1"), c.UpdateUser)
+
+		adminRole := domain.ADMIN
+		body, _ := json.Marshal(UpdateUserDTO{UpdatedBy: "user-1", Role: &adminRole})
+		req := httptest.NewRequest(http.MethodPut, "/users/user-1", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("returns error when the requester cannot be found", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockService := mock_application.NewMockUserService(ctrl)
+		mockService.EXPECT().
+			GetByID(gomock.Any(), "user-1").
+			Return(nil, domain.NewNotFoundError("user not found", nil))
+
+		c := NewUserController(mockService)
+
+		router := gin.New()
+		router.Use(testErrorEncoder())
+		router.PUT("/users/:userID", withUserID("user-1"), c.UpdateUser)
+
+		body, _ := json.Marshal(UpdateUserDTO{UpdatedBy: "user-1"})
+		req := httptest.NewRequest(http.MethodPut, "/users/user-1", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
 	t.Run("returns error when service fails", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		mockService := mock_application.NewMockUserService(ctrl)
+		mockService.EXPECT().
+			GetByID(gomock.Any(), "admin-1").
+			Return(&domain.User{UserID: "admin-1", Role: domain.ADMIN}, nil)
 		mockService.EXPECT().
 			Update(gomock.Any(), "user-1", "author-2", gomock.Any()).
 			Return(domain.NewNotFoundError("user not found", nil))
@@ -174,7 +283,7 @@ func TestUserController_UpdateUser(t *testing.T) {
 
 		router := gin.New()
 		router.Use(testErrorEncoder())
-		router.PUT("/users/:userID", c.UpdateUser)
+		router.PUT("/users/:userID", withUserID("admin-1"), c.UpdateUser)
 
 		body, _ := json.Marshal(UpdateUserDTO{UpdatedBy: "author-2"})
 		req := httptest.NewRequest(http.MethodPut, "/users/user-1", bytes.NewReader(body))

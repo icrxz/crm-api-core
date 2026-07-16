@@ -45,6 +45,22 @@ func (s *userService) Update(ctx context.Context, userID, author string, userUpd
 		return err
 	}
 
+	if userUpdate.Email != nil && *userUpdate.Email != user.Email {
+		existingUsers, err := s.userRepository.Search(ctx, domain.UserFilters{
+			Email:        []string{*userUpdate.Email},
+			PagingFilter: domain.PagingFilter{Limit: 1, Offset: 0},
+		})
+		if err != nil {
+			return err
+		}
+
+		for _, existing := range existingUsers.Result {
+			if existing.UserID != userID {
+				return domain.NewConflictError("email already in use", nil)
+			}
+		}
+	}
+
 	user.MergeUpdate(userUpdate, author)
 
 	return s.userRepository.Update(ctx, *user)
@@ -65,6 +81,10 @@ func (s *userService) Search(ctx context.Context, filters domain.UserFilters) (d
 func (s *userService) ChangePassword(ctx context.Context, userID, oldPassword, newPassword string) error {
 	if newPassword == "" {
 		return domain.NewValidationError("new_password cannot be empty", nil)
+	}
+
+	if err := domain.ValidatePasswordComplexity(newPassword); err != nil {
+		return err
 	}
 
 	user, err := s.userRepository.GetByID(ctx, userID)

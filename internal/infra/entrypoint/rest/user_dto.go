@@ -18,7 +18,6 @@ type CreateUserDTO struct {
 }
 
 type UpdateUserDTO struct {
-	Username  *string          `json:"username"`
 	FirstName *string          `json:"first_name"`
 	LastName  *string          `json:"last_name"`
 	Email     *string          `json:"email"`
@@ -97,7 +96,6 @@ func mapUpdateUserDTOToUserUpdate(dto UpdateUserDTO) domain.UserUpdate {
 	return domain.UserUpdate{
 		FirstName: dto.FirstName,
 		LastName:  dto.LastName,
-		Username:  dto.Username,
 		Email:     dto.Email,
 		Role:      dto.Role,
 		Region:    dto.Region,

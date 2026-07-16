@@ -96,6 +96,75 @@ func TestUserService_Update(t *testing.T) {
 
 		require.Error(t, err)
 	})
+
+	t.Run("does not check uniqueness when email is unchanged", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := mock_domain.NewMockUserRepository(ctrl)
+		service := NewUserService(mockRepo)
+
+		existing := &domain.User{UserID: "user-1", Email: "john@doe.com"}
+		sameEmail := "john@doe.com"
+
+		mockRepo.EXPECT().GetByID(gomock.Any(), "user-1").Return(existing, nil)
+		mockRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
+
+		err := service.Update(context.Background(), "user-1", "author-2", domain.UserUpdate{
+			Email: &sameEmail,
+		})
+
+		require.NoError(t, err)
+	})
+
+	t.Run("returns conflict when the new email belongs to another user", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := mock_domain.NewMockUserRepository(ctrl)
+		service := NewUserService(mockRepo)
+
+		existing := &domain.User{UserID: "user-1", Email: "john@doe.com"}
+		newEmail := "taken@doe.com"
+
+		mockRepo.EXPECT().GetByID(gomock.Any(), "user-1").Return(existing, nil)
+		mockRepo.EXPECT().Search(gomock.Any(), domain.UserFilters{
+			Email:        []string{newEmail},
+			PagingFilter: domain.PagingFilter{Limit: 1, Offset: 0},
+		}).Return(domain.PagingResult[domain.User]{
+			Result: []domain.User{{UserID: "user-2", Email: newEmail}},
+		}, nil)
+
+		err := service.Update(context.Background(), "user-1", "author-2", domain.UserUpdate{
+			Email: &newEmail,
+		})
+
+		require.Error(t, err)
+	})
+
+	t.Run("allows the new email when no other user has it", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := mock_domain.NewMockUserRepository(ctrl)
+		service := NewUserService(mockRepo)
+
+		existing := &domain.User{UserID: "user-1", Email: "john@doe.com"}
+		newEmail := "new@doe.com"
+
+		mockRepo.EXPECT().GetByID(gomock.Any(), "user-1").Return(existing, nil)
+		mockRepo.EXPECT().Search(gomock.Any(), domain.UserFilters{
+			Email:        []string{newEmail},
+			PagingFilter: domain.PagingFilter{Limit: 1, Offset: 0},
+		}).Return(domain.PagingResult[domain.User]{}, nil)
+		mockRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
+
+		err := service.Update(context.Background(), "user-1", "author-2", domain.UserUpdate{
+			Email: &newEmail,
+		})
+
+		require.NoError(t, err)
+	})
 }
 
 func TestUserService_Delete(t *testing.T) {
@@ -166,7 +235,18 @@ func TestUserService_ChangePassword(t *testing.T) {
 
 		mockRepo.EXPECT().GetByID(gomock.Any(), "user-1").Return(nil, domain.NewNotFoundError("user not found", nil))
 
-		err := service.ChangePassword(context.Background(), "user-1", "old-password", "new-password")
+		err := service.ChangePassword(context.Background(), "user-1", "old-password", "NewPass123!")
+
+		require.Error(t, err)
+	})
+
+	t.Run("returns validation error when new password does not meet complexity rules", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		service := NewUserService(mock_domain.NewMockUserRepository(ctrl))
+
+		err := service.ChangePassword(context.Background(), "user-1", "old-password", "weakpass")
 
 		require.Error(t, err)
 	})
@@ -183,7 +263,7 @@ func TestUserService_ChangePassword(t *testing.T) {
 
 		mockRepo.EXPECT().GetByID(gomock.Any(), "user-1").Return(&existing, nil)
 
-		err = service.ChangePassword(context.Background(), "user-1", "wrong-password", "new-password")
+		err = service.ChangePassword(context.Background(), "user-1", "wrong-password", "NewPass123!")
 
 		require.Error(t, err)
 	})
@@ -201,12 +281,12 @@ func TestUserService_ChangePassword(t *testing.T) {
 		mockRepo.EXPECT().GetByID(gomock.Any(), "user-1").Return(&existing, nil)
 		mockRepo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(_ context.Context, user domain.User) error {
-				assert.True(t, user.ComparePassword("new-password"))
+				assert.True(t, user.ComparePassword("NewPass123!"))
 				return nil
 			},
 		)
 
-		err = service.ChangePassword(context.Background(), "user-1", "current-password", "new-password")
+		err = service.ChangePassword(context.Background(), "user-1", "current-password", "NewPass123!")
 
 		require.NoError(t, err)
 	})
