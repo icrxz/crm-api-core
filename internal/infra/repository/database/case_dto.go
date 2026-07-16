@@ -52,6 +52,7 @@ type CaseFullDTO struct {
 	Partner           PartnerOptionalDTO  `db:"partners"`
 	Product           ProductDTO          `db:"products"`
 	Transactions      []TransactionDTO    `db:"transactions"`
+	Queue             QueueOptionalDTO    `db:"queues"`
 }
 
 func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
@@ -204,6 +205,7 @@ func mapCaseFullDTOToCaseFull(crmCaseFullDTO CaseFullDTO) domain.CaseFull {
 		Partner:           mapPartnerOptionalDTOToPartner(crmCaseFullDTO.Partner),
 		Product:           mapProductDTOToProduct(crmCaseFullDTO.Product),
 		Transactions:      mapTransactionDTOsToTransactions(crmCaseFullDTO.Transactions),
+		Queue:             mapQueueOptionalDTOToQueue(crmCaseFullDTO.Queue),
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=case_history.go -destination=mock_domain/mock_case_history_repository.go -package=mock_domain
 type CaseHistoryRepository interface {
 	Create(ctx context.Context, history CaseHistory) error
 	GetByCaseID(ctx context.Context, caseID string) ([]CaseHistory, error)

@@ -70,6 +70,7 @@ type CaseFullDTO struct {
 	ExternalReference string              `json:"external_reference"`
 	ClosedAt          *time.Time          `json:"closed_at"`
 	TargetDate        *time.Time          `json:"target_date"`
+	Queue             QueueDTO            `json:"queue"`
 }
 
 type UpdateCaseDTO struct {
@@ -206,6 +207,7 @@ func mapCaseFullToCaseFullDTO(caseFull domain.CaseFull) CaseFullDTO {
 		ExternalReference: caseFull.ExternalReference,
 		ClosedAt:          caseFull.ClosedAt,
 		TargetDate:        caseFull.TargetDate,
+		Queue:             mapQueueToQueueDTO(caseFull.Queue),
 	}
 }
 

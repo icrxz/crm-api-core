@@ -55,3 +55,57 @@ func mapQueueDTOsToQueues(queueDTOs []QueueDTO) []domain.Queue {
 
 	return queues
 }
+
+// QueueOptionalDTO scans a LEFT JOIN'd queue that may not exist for a given case.
+type QueueOptionalDTO struct {
+	QueueID   *string        `db:"queue_id"`
+	Name      *string        `db:"name"`
+	Category  *string        `db:"category"`
+	States    pq.StringArray `db:"states"`
+	Active    *bool          `db:"active"`
+	CreatedBy *string        `db:"created_by"`
+	CreatedAt *time.Time     `db:"created_at"`
+	UpdatedBy *string        `db:"updated_by"`
+	UpdatedAt *time.Time     `db:"updated_at"`
+}
+
+func mapQueueOptionalDTOToQueue(queueDTO QueueOptionalDTO) domain.Queue {
+	if queueDTO.QueueID == nil {
+		return domain.Queue{}
+	}
+
+	queue := domain.Queue{
+		QueueID: *queueDTO.QueueID,
+		States:  []string(queueDTO.States),
+	}
+
+	if queueDTO.Name != nil {
+		queue.Name = *queueDTO.Name
+	}
+
+	if queueDTO.Category != nil {
+		queue.Category = domain.QueueCategory(*queueDTO.Category)
+	}
+
+	if queueDTO.Active != nil {
+		queue.Active = *queueDTO.Active
+	}
+
+	if queueDTO.CreatedBy != nil {
+		queue.CreatedBy = *queueDTO.CreatedBy
+	}
+
+	if queueDTO.CreatedAt != nil {
+		queue.CreatedAt = *queueDTO.CreatedAt
+	}
+
+	if queueDTO.UpdatedBy != nil {
+		queue.UpdatedBy = *queueDTO.UpdatedBy
+	}
+
+	if queueDTO.UpdatedAt != nil {
+		queue.UpdatedAt = *queueDTO.UpdatedAt
+	}
+
+	return queue
+}

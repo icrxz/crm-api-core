@@ -1,7 +1,7 @@
 APP_NAME := crm-api-core
 GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/)
 
-.PHONY: help setup install-tools mod lint test format build clean
+.PHONY: help setup install-tools mod lint test format build clean db-sync-safe
 
 help:
 	@echo "Comandos disponíveis:"
@@ -45,3 +45,6 @@ clean: ## Limpa os arquivos compilados e cache
 	@echo "==> Limpando o projeto..."
 	rm -rf bin/
 	go clean -testcache
+
+db-sync-safe: ## Dump de base de dados
+	@bash ./scripts/db-sync/db_sync_safe.sh

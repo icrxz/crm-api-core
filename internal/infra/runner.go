@@ -63,6 +63,7 @@ func RunApp() error {
 	batchCaseService := application.NewBatchCaseService(customerService, productService, contractorService, caseRepository)
 	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket, transactionManager)
 	transactionService := application.NewTransactionService(transactionRepository, caseRepository)
+	queueService := application.NewQueueService(queueRepository)
 	caseService := application.NewCaseService(
 		customerService,
 		caseRepository,
@@ -74,6 +75,7 @@ func RunApp() error {
 		transactionService,
 		partnerService,
 		contractorService,
+		queueService,
 	)
 	reportService := application.NewReportService(
 		appConfig.ReportFolder,
@@ -86,7 +88,6 @@ func RunApp() error {
 		attachmentBucket,
 	)
 	attachmentService := application.NewAttachmentService(attachmentRepository, attachmentBucket)
-	queueService := application.NewQueueService(queueRepository)
 	caseActionService := application.NewCaseActionService(caseRepository, caseHistoryRepository, transactionManager, commentService, reportService, attachmentService, transactionService)
 
 	// controllers

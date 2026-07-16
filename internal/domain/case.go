@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=case.go -destination=mock_domain/mock_case_repository.go -package=mock_domain
 type CaseRepository interface {
 	Create(ctx context.Context, crmCase Case) (string, error)
 	GetByID(ctx context.Context, caseID string) (*Case, error)
@@ -70,7 +71,7 @@ type CaseFull struct {
 	ClosedAt          *time.Time
 	ExternalReference string
 	TargetDate        *time.Time
-	QueueID           string
+	Queue             Queue
 }
 
 type CaseFilters struct {
@@ -325,7 +326,7 @@ func (c Case) Snapshot() map[string]any {
 	}
 }
 
-func NewCaseFull(crmCase Case, comments []Comment, transactions []Transaction, product Product, customer Customer, partner Partner, contractor Contractor) CaseFull {
+func NewCaseFull(crmCase Case, comments []Comment, transactions []Transaction, product Product, customer Customer, partner Partner, contractor Contractor, queue Queue) CaseFull {
 	return CaseFull{
 		CaseID:            crmCase.CaseID,
 		Contractor:        contractor,
@@ -349,6 +350,6 @@ func NewCaseFull(crmCase Case, comments []Comment, transactions []Transaction, p
 		ClosedAt:          crmCase.ClosedAt,
 		ExternalReference: crmCase.ExternalReference,
 		TargetDate:        crmCase.TargetDate,
-		QueueID:           crmCase.QueueID,
+		Queue:             queue,
 	}
 }

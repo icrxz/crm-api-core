@@ -194,6 +194,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerID, whereQuery, whereArgs, "ca.partner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.Status, whereQuery, whereArgs, "ca.status")
 	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "ca.region")
+	whereQuery, whereArgs = prepareInQuery(filters.QueueID, whereQuery, whereArgs, "ca.queue_id")
 	whereQuery, whereArgs = prepareLikeQuery(filters.ExternalReference, whereQuery, whereArgs, "ca.external_reference")
 	whereQuery, whereArgs = prepareInQuery(filters.ShippingState, whereQuery, whereArgs, "cu.shipping_state")
 
@@ -318,12 +319,22 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 		pr.created_at,
 		pr.updated_at,
 		pr.created_by,
-		pr.updated_by
+		pr.updated_by,
+		qu.queue_id,
+		qu.name,
+		qu.category,
+		qu.states,
+		qu.active,
+		qu.created_by,
+		qu.created_at,
+		qu.updated_by,
+		qu.updated_at
 		FROM cases AS ca
 		LEFT JOIN contractors AS co ON ca.contractor_id = co.contractor_id
 		LEFT JOIN partners AS pa ON ca.partner_id = pa.partner_id
 		LEFT JOIN customers AS cu ON ca.customer_id = cu.customer_id
 		LEFT JOIN products AS pr ON ca.product_id = pr.product_id
+		LEFT JOIN queues AS qu ON ca.queue_id = qu.queue_id
 		WHERE %s
 		ORDER BY ca.%s
 		%s`, strings.Join(whereQuery, " AND "), buildOrderBy(filters.SortBy, filters.SortOrder, validCaseSortColumns), limitQuery)
@@ -335,6 +346,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 		LEFT JOIN partners AS pa ON ca.partner_id = pa.partner_id
 		LEFT JOIN customers AS cu ON ca.customer_id = cu.customer_id
 		LEFT JOIN products AS pr ON ca.product_id = pr.product_id
+		LEFT JOIN queues AS qu ON ca.queue_id = qu.queue_id
 		WHERE %s`, strings.Join(whereQuery, " AND "))
 
 	var foundCases []CaseFullDTO
@@ -450,6 +462,15 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 			&item.Product.UpdatedAt,
 			&item.Product.CreatedBy,
 			&item.Product.UpdatedBy,
+			&item.Queue.QueueID,
+			&item.Queue.Name,
+			&item.Queue.Category,
+			&item.Queue.States,
+			&item.Queue.Active,
+			&item.Queue.CreatedBy,
+			&item.Queue.CreatedAt,
+			&item.Queue.UpdatedBy,
+			&item.Queue.UpdatedAt,
 		)
 		if err != nil {
 			return domain.PagingResult[domain.CaseFull]{}, err
