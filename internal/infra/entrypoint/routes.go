@@ -110,4 +110,5 @@ func LoadRoutes(
 	authGroup.GET("/queues/:queueID/members", queueController.GetMembers)
 	authGroup.POST("/queues/:queueID/members", queueController.AddMember)
 	authGroup.DELETE("/queues/:queueID/members/:userID", queueController.RemoveMember)
+	authGroup.GET("/users/:userID/queues", queueController.GetQueuesByUser)
 }

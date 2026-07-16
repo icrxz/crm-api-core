@@ -260,6 +260,30 @@ func TestQueueController_GetMembers(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestQueueController_GetQueuesByUser(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mock_application.NewMockQueueService(ctrl)
+	mockService.EXPECT().
+		GetQueuesByUser(gomock.Any(), "user-1").
+		Return([]domain.Queue{{QueueID: "queue-1", Name: "SP Mobile"}}, nil)
+
+	c := NewQueueController(mockService)
+
+	router := gin.New()
+	router.GET("/users/:userID/queues", c.GetQueuesByUser)
+
+	req := httptest.NewRequest(http.MethodGet, "/users/user-1/queues", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestQueueController_UpdateQueue(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

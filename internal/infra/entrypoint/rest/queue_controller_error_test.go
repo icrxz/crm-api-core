@@ -36,6 +36,7 @@ func newQueueRouter(t *testing.T) (*gin.Engine, *mock_application.MockQueueServi
 	router.POST("/queues/:queueID/members", c.AddMember)
 	router.DELETE("/queues/:queueID/members/:userID", c.RemoveMember)
 	router.GET("/queues/:queueID/members", c.GetMembers)
+	router.GET("/users/:userID/queues", c.GetQueuesByUser)
 
 	return router, mockService
 }
@@ -183,6 +184,21 @@ func TestQueueController_GetMembers_ServiceError(t *testing.T) {
 		Return(nil, errors.New("boom"))
 
 	req := httptest.NewRequest(http.MethodGet, "/queues/queue-1/members", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestQueueController_GetQueuesByUser_ServiceError(t *testing.T) {
+	router, mockService := newQueueRouter(t)
+
+	mockService.EXPECT().
+		GetQueuesByUser(gomock.Any(), "user-1").
+		Return(nil, errors.New("boom"))
+
+	req := httptest.NewRequest(http.MethodGet, "/users/user-1/queues", nil)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, req)

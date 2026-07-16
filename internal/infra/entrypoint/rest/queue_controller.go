@@ -160,6 +160,22 @@ func (c *QueueController) GetMembers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, mapUsersToUserDTOs(members))
 }
 
+func (c *QueueController) GetQueuesByUser(ctx *gin.Context) {
+	userID := ctx.Param("userID")
+	if userID == "" {
+		_ = ctx.Error(domain.NewValidationError("param userID cannot be empty", nil))
+		return
+	}
+
+	queues, err := c.queueService.GetQueuesByUser(ctx.Request.Context(), userID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, mapQueuesToQueueDTOs(queues))
+}
+
 func (c *QueueController) parseQueryToFilters(ctx *gin.Context) domain.QueueFilters {
 	filters := domain.QueueFilters{
 		PagingFilter: domain.PagingFilter{
