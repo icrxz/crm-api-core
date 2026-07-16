@@ -28,9 +28,9 @@ func (r *caseRepository) Create(ctx context.Context, crmCase domain.Case) (strin
 	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"INSERT INTO cases "+
-			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id) "+
+			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id, queue_id) "+
 			"VALUES "+
-			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id)",
+			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id, :queue_id)",
 		crmCaseDTO,
 	)
 	if err != nil {
@@ -70,6 +70,7 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerID, whereQuery, whereArgs, "partner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.Status, whereQuery, whereArgs, "status")
 	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "region")
+	whereQuery, whereArgs = prepareInQuery(filters.QueueID, whereQuery, whereArgs, "queue_id")
 	whereQuery, whereArgs = prepareLikeQuery(filters.ExternalReference, whereQuery, whereArgs, "external_reference")
 
 	if filters.ClosedAtStart != nil {
@@ -133,7 +134,8 @@ func (r *caseRepository) Update(ctx context.Context, crmCase domain.Case) error 
 			"updated_by = :updated_by, "+
 			"updated_at = :updated_at, "+
 			"closed_at = :closed_at, "+
-			"target_date = :target_date "+
+			"target_date = :target_date, "+
+			"queue_id = :queue_id "+
 			"WHERE case_id = :case_id",
 		crmCaseDTO,
 	)
@@ -153,9 +155,9 @@ func (r *caseRepository) CreateBatch(ctx context.Context, cases []domain.Case) (
 		caseDTOs := mapCasesToCaseDTOs(chunk)
 
 		query := "INSERT INTO cases " +
-			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id) " +
+			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id, queue_id) " +
 			"VALUES " +
-			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id)" +
+			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id, :queue_id)" +
 			"ON CONFLICT DO NOTHING"
 
 		_, err := tx.NamedExecContext(

@@ -27,6 +27,7 @@ type CaseDTO struct {
 	Region            int        `db:"region"`
 	ClosedAt          *time.Time `db:"closed_at"`
 	TargetDate        *time.Time `db:"target_date"`
+	QueueID           *string    `db:"queue_id"`
 }
 
 type CaseFullDTO struct {
@@ -74,6 +75,11 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		productID = &crmCase.ProductID
 	}
 
+	var queueID *string
+	if crmCase.QueueID != "" {
+		queueID = &crmCase.QueueID
+	}
+
 	return CaseDTO{
 		CaseID:            crmCase.CaseID,
 		ContractorID:      crmCase.ContractorID,
@@ -95,6 +101,7 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		ProductID:         productID,
 		TargetDate:        crmCase.TargetDate,
 		ClosedAt:          crmCase.ClosedAt,
+		QueueID:           queueID,
 	}
 }
 
@@ -119,6 +126,11 @@ func mapCaseDTOToCase(crmCaseDTO CaseDTO) domain.Case {
 		productID = *crmCaseDTO.ProductID
 	}
 
+	var queueID string
+	if crmCaseDTO.QueueID != nil {
+		queueID = *crmCaseDTO.QueueID
+	}
+
 	return domain.Case{
 		CaseID:            crmCaseDTO.CaseID,
 		ContractorID:      crmCaseDTO.ContractorID,
@@ -140,6 +152,7 @@ func mapCaseDTOToCase(crmCaseDTO CaseDTO) domain.Case {
 		ProductID:         productID,
 		ClosedAt:          crmCaseDTO.ClosedAt,
 		TargetDate:        crmCaseDTO.TargetDate,
+		QueueID:           queueID,
 	}
 }
 

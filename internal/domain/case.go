@@ -44,6 +44,7 @@ type Case struct {
 	ClosedAt          *time.Time
 	ExternalReference string
 	TargetDate        *time.Time
+	QueueID           string
 }
 
 type CaseFull struct {
@@ -69,6 +70,7 @@ type CaseFull struct {
 	ClosedAt          *time.Time
 	ExternalReference string
 	TargetDate        *time.Time
+	QueueID           string
 }
 
 type CaseFilters struct {
@@ -85,6 +87,7 @@ type CaseFilters struct {
 	ClosedAtStart     *string
 	ClosedAtEnd       *string
 	ShippingState     []string
+	QueueID           []string
 	PagingFilter
 }
 
@@ -98,6 +101,7 @@ type CaseUpdate struct {
 	CustomerID *string
 	ProductID  *string
 	Subject    *string
+	QueueID    *string
 	UpdatedBy  string
 }
 
@@ -199,6 +203,10 @@ func (c *Case) MergeUpdate(updateCase CaseUpdate) {
 	if updateCase.Type != nil {
 		c.Type = *updateCase.Type
 	}
+
+	if updateCase.QueueID != nil {
+		c.QueueID = *updateCase.QueueID
+	}
 }
 
 // caseDiff accumulates the old/new values of fields changed by a CaseUpdate.
@@ -261,6 +269,7 @@ func (c *Case) DetectChanges(update CaseUpdate) (string, map[string]any, map[str
 	diff.recordString("product_id", c.ProductID, update.ProductID)
 	diff.recordString("subject", c.Subject, update.Subject)
 	diff.recordString("type", c.Type, update.Type)
+	diff.recordString("queue_id", c.QueueID, update.QueueID)
 
 	return resolveCaseEventName(diff.changed), diff.oldValues, diff.newValues
 }
@@ -282,6 +291,8 @@ func resolveCaseEventName(changed map[string]bool) string {
 		return CasePartnerChangedEvent
 	case changed["target_date"]:
 		return CaseTargetDateChangedEvent
+	case changed["queue_id"]:
+		return CaseQueueChangedEvent
 	case changed["customer_id"], changed["product_id"], changed["subject"], changed["type"]:
 		return CaseDetailsUpdatedEvent
 	default:
@@ -310,6 +321,7 @@ func (c Case) Snapshot() map[string]any {
 		"priority":           c.Priority,
 		"due_date":           c.DueDate,
 		"external_reference": c.ExternalReference,
+		"queue_id":           c.QueueID,
 	}
 }
 
@@ -337,5 +349,6 @@ func NewCaseFull(crmCase Case, comments []Comment, transactions []Transaction, p
 		ClosedAt:          crmCase.ClosedAt,
 		ExternalReference: crmCase.ExternalReference,
 		TargetDate:        crmCase.TargetDate,
+		QueueID:           crmCase.QueueID,
 	}
 }
