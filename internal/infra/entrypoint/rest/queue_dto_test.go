@@ -7,14 +7,12 @@ import (
 )
 
 func TestMapUpdateQueueDTOToUpdateQueue(t *testing.T) {
-	category := "digital"
-
 	update := mapUpdateQueueDTOToUpdateQueue(UpdateQueueDTO{
-		Category:  &category,
+		Criteria:  map[string]any{"category": "digital"},
 		UpdatedBy: "author-2",
 	})
 
-	assert.NotNil(t, update.Category)
-	assert.Equal(t, "digital", string(*update.Category))
+	assert.NotNil(t, update.Criteria)
+	assert.Equal(t, "digital", update.Criteria["category"])
 	assert.Equal(t, "author-2", update.UpdatedBy)
 }

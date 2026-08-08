@@ -13,8 +13,7 @@ func TestMapCaseFullToCaseFullDTO(t *testing.T) {
 		Queue: domain.Queue{
 			QueueID:  "queue-1",
 			Name:     "SP Mobile",
-			Category: domain.MobileQueueCategory,
-			States:   []string{"SP"},
+			Criteria: domain.Criteria{"category": "mobile", "state": []string{"SP"}},
 		},
 	}
 
@@ -23,7 +22,7 @@ func TestMapCaseFullToCaseFullDTO(t *testing.T) {
 	assert.Equal(t, "case-1", dto.CaseID)
 	assert.Equal(t, "queue-1", dto.Queue.QueueID)
 	assert.Equal(t, "SP Mobile", dto.Queue.Name)
-	assert.Equal(t, []string{"SP"}, dto.Queue.States)
+	assert.Equal(t, []string{"SP"}, dto.Queue.Criteria["state"])
 }
 
 func TestMapCaseFullToCaseFullDTO_EmptyQueue(t *testing.T) {

@@ -77,6 +77,7 @@ func LoadRoutes(
 	authGroup.POST("/cases/batch", caseController.CreateBatch)
 	authGroup.GET("/cases/:caseID/full", caseController.GetCaseFull)
 	authGroup.GET("/cases/:caseID/history", caseController.GetCaseHistory)
+	authGroup.PATCH("/cases/:caseID/metadata", caseController.UpdateCaseMetadata)
 
 	// products
 	authGroup.GET("/products/:productID", productController.GetProductByID)

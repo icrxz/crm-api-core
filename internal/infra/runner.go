@@ -64,6 +64,7 @@ func RunApp() error {
 	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket, transactionManager)
 	transactionService := application.NewTransactionService(transactionRepository, caseRepository)
 	queueService := application.NewQueueService(queueRepository)
+	queueResolver := application.NewQueueResolver(queueService)
 	caseService := application.NewCaseService(
 		customerService,
 		caseRepository,
@@ -76,6 +77,7 @@ func RunApp() error {
 		partnerService,
 		contractorService,
 		queueService,
+		queueResolver,
 	)
 	reportService := application.NewReportService(
 		appConfig.ReportFolder,

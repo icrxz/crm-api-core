@@ -58,6 +58,7 @@ func (b *luizaSegBuilder) BuildCase(row []string, contractors []domain.Contracto
 		dueDate,
 		b.author,
 		row[b.columnsIndex["SINISTRO"]+1],
+		nil,
 	)
 	if err != nil {
 		return nil, err

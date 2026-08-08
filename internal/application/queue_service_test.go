@@ -130,7 +130,7 @@ func TestQueueService_Search(t *testing.T) {
 	mockRepo := mock_domain.NewMockQueueRepository(ctrl)
 	service := NewQueueService(mockRepo)
 
-	filters := domain.QueueFilters{Category: []string{"mobile"}}
+	filters := domain.QueueFilters{Criteria: domain.Criteria{"category": "mobile"}}
 	expected := domain.PagingResult[domain.Queue]{
 		Result: []domain.Queue{{QueueID: "queue-1"}},
 	}

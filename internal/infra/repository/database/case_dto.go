@@ -28,6 +28,7 @@ type CaseDTO struct {
 	ClosedAt          *time.Time `db:"closed_at"`
 	TargetDate        *time.Time `db:"target_date"`
 	QueueID           *string    `db:"queue_id"`
+	Metadata          JSONMap    `db:"metadata"`
 }
 
 type CaseFullDTO struct {
@@ -53,6 +54,7 @@ type CaseFullDTO struct {
 	Product           ProductDTO          `db:"products"`
 	Transactions      []TransactionDTO    `db:"transactions"`
 	Queue             QueueOptionalDTO    `db:"queues"`
+	Metadata          JSONMap             `db:"metadata"`
 }
 
 func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
@@ -103,6 +105,7 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		TargetDate:        crmCase.TargetDate,
 		ClosedAt:          crmCase.ClosedAt,
 		QueueID:           queueID,
+		Metadata:          JSONMap(crmCase.Metadata),
 	}
 }
 
@@ -154,6 +157,7 @@ func mapCaseDTOToCase(crmCaseDTO CaseDTO) domain.Case {
 		ClosedAt:          crmCaseDTO.ClosedAt,
 		TargetDate:        crmCaseDTO.TargetDate,
 		QueueID:           queueID,
+		Metadata:          map[string]any(crmCaseDTO.Metadata),
 	}
 }
 
@@ -206,6 +210,7 @@ func mapCaseFullDTOToCaseFull(crmCaseFullDTO CaseFullDTO) domain.CaseFull {
 		Product:           mapProductDTOToProduct(crmCaseFullDTO.Product),
 		Transactions:      mapTransactionDTOsToTransactions(crmCaseFullDTO.Transactions),
 		Queue:             mapQueueOptionalDTOToQueue(crmCaseFullDTO.Queue),
+		Metadata:          map[string]any(crmCaseFullDTO.Metadata),
 	}
 }
 

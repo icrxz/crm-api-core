@@ -23,6 +23,7 @@ type caseServiceMocks struct {
 	partnerService        *mock_application.MockPartnerService
 	contractorService     *mock_application.MockContractorService
 	queueService          *mock_application.MockQueueService
+	queueResolver         *mock_application.MockQueueResolver
 }
 
 func newCaseServiceForTest(t *testing.T) (CaseService, *caseServiceMocks) {
@@ -41,6 +42,7 @@ func newCaseServiceForTest(t *testing.T) (CaseService, *caseServiceMocks) {
 		partnerService:        mock_application.NewMockPartnerService(ctrl),
 		contractorService:     mock_application.NewMockContractorService(ctrl),
 		queueService:          mock_application.NewMockQueueService(ctrl),
+		queueResolver:         mock_application.NewMockQueueResolver(ctrl),
 	}
 
 	service := NewCaseService(
@@ -55,6 +57,7 @@ func newCaseServiceForTest(t *testing.T) (CaseService, *caseServiceMocks) {
 		mocks.partnerService,
 		mocks.contractorService,
 		mocks.queueService,
+		mocks.queueResolver,
 	)
 
 	return service, mocks

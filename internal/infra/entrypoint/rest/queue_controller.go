@@ -188,14 +188,6 @@ func (c *QueueController) parseQueryToFilters(ctx *gin.Context) domain.QueueFilt
 		filters.QueueID = queueIDs
 	}
 
-	if categories := ctx.QueryArray("category"); len(categories) > 0 {
-		filters.Category = categories
-	}
-
-	if states := ctx.QueryArray("state"); len(states) > 0 {
-		filters.State = states
-	}
-
 	if active := ctx.Query("active"); active != "" {
 		activeBool, err := strconv.ParseBool(active)
 		if err == nil {

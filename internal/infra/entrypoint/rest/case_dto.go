@@ -7,20 +7,21 @@ import (
 )
 
 type CreateCaseDTO struct {
-	ContractorID       string    `json:"contractor_id" validate:"required"`
-	CustomerID         string    `json:"customer_id" validate:"required"`
-	OriginChannel      string    `json:"origin_channel" validate:"required"`
-	CaseType           string    `json:"case_type" validate:"required"`
-	Subject            string    `json:"subject" validate:"required"`
-	DueDate            time.Time `json:"due_date" validate:"required"`
-	CreatedBy          string    `json:"created_by" validate:"required"`
-	ExternalReference  string    `json:"external_reference"`
-	ProductName        string    `json:"product_name"`
-	Brand              string    `json:"brand" validate:"required"`
-	Model              string    `json:"model" validate:"required"`
-	ProductDescription string    `json:"product_description"`
-	Value              float64   `json:"value"`
-	SerialNumber       string    `json:"serial_number"`
+	ContractorID       string         `json:"contractor_id" validate:"required"`
+	CustomerID         string         `json:"customer_id" validate:"required"`
+	OriginChannel      string         `json:"origin_channel" validate:"required"`
+	CaseType           string         `json:"case_type" validate:"required"`
+	Subject            string         `json:"subject" validate:"required"`
+	DueDate            time.Time      `json:"due_date" validate:"required"`
+	CreatedBy          string         `json:"created_by" validate:"required"`
+	ExternalReference  string         `json:"external_reference"`
+	ProductName        string         `json:"product_name"`
+	Brand              string         `json:"brand" validate:"required"`
+	Model              string         `json:"model" validate:"required"`
+	ProductDescription string         `json:"product_description"`
+	Value              float64        `json:"value"`
+	SerialNumber       string         `json:"serial_number"`
+	Metadata           map[string]any `json:"metadata"`
 }
 
 type CaseDTO struct {
@@ -45,6 +46,13 @@ type CaseDTO struct {
 	ClosedAt          *time.Time          `json:"closed_at"`
 	TargetDate        *time.Time          `json:"target_date"`
 	QueueID           string              `json:"queue_id"`
+	Metadata          map[string]any      `json:"metadata"`
+}
+
+type UpdateCaseMetadataDTO struct {
+	Operation string         `json:"operation"`
+	Data      map[string]any `json:"data" validate:"required"`
+	UpdatedBy string         `json:"updated_by" validate:"required"`
 }
 
 type CaseFullDTO struct {
@@ -71,6 +79,7 @@ type CaseFullDTO struct {
 	ClosedAt          *time.Time          `json:"closed_at"`
 	TargetDate        *time.Time          `json:"target_date"`
 	Queue             QueueDTO            `json:"queue"`
+	Metadata          map[string]any      `json:"metadata"`
 }
 
 type UpdateCaseDTO struct {
@@ -82,7 +91,6 @@ type UpdateCaseDTO struct {
 	ProductID  *string    `json:"product_id"`
 	Subject    *string    `json:"subject"`
 	Type       *string    `json:"type"`
-	QueueID    *string    `json:"queue_id"`
 	UpdatedBy  string     `json:"updated_by" validate:"required"`
 }
 
@@ -96,6 +104,7 @@ func mapCreateCaseDTOToCreateCase(createCaseDTO CreateCaseDTO) (domain.CreateCas
 		createCaseDTO.DueDate,
 		createCaseDTO.CreatedBy,
 		createCaseDTO.ExternalReference,
+		createCaseDTO.Metadata,
 	)
 	if err != nil {
 		return domain.CreateCase{}, err
@@ -143,6 +152,7 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		ClosedAt:          crmCase.ClosedAt,
 		TargetDate:        crmCase.TargetDate,
 		QueueID:           crmCase.QueueID,
+		Metadata:          crmCase.Metadata,
 	}
 }
 
@@ -171,7 +181,6 @@ func mapUpdateCaseDTOToUpdateCase(dto UpdateCaseDTO) domain.CaseUpdate {
 		Subject:    dto.Subject,
 		ProductID:  dto.ProductID,
 		Type:       dto.Type,
-		QueueID:    dto.QueueID,
 	}
 }
 
@@ -208,6 +217,7 @@ func mapCaseFullToCaseFullDTO(caseFull domain.CaseFull) CaseFullDTO {
 		ClosedAt:          caseFull.ClosedAt,
 		TargetDate:        caseFull.TargetDate,
 		Queue:             mapQueueToQueueDTO(caseFull.Queue),
+		Metadata:          caseFull.Metadata,
 	}
 }
 

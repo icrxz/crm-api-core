@@ -41,6 +41,7 @@ func (b *ezzeBuilder) BuildCase(row []string, contractors []domain.Contractor, c
 		dueDate,
 		b.author,
 		row[b.columnsIndex["Ticket"]],
+		nil,
 	)
 	if err != nil {
 		return nil, err

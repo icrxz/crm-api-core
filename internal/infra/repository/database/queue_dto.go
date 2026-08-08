@@ -4,27 +4,24 @@ import (
 	"time"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
-	"github.com/lib/pq"
 )
 
 type QueueDTO struct {
-	QueueID   string         `db:"queue_id"`
-	Name      string         `db:"name"`
-	Category  string         `db:"category"`
-	States    pq.StringArray `db:"states"`
-	Active    bool           `db:"active"`
-	CreatedBy string         `db:"created_by"`
-	CreatedAt time.Time      `db:"created_at"`
-	UpdatedBy string         `db:"updated_by"`
-	UpdatedAt time.Time      `db:"updated_at"`
+	QueueID   string    `db:"queue_id"`
+	Name      string    `db:"name"`
+	Criteria  JSONMap   `db:"criteria"`
+	Active    bool      `db:"active"`
+	CreatedBy string    `db:"created_by"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedBy string    `db:"updated_by"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 func mapQueueToQueueDTO(queue domain.Queue) QueueDTO {
 	return QueueDTO{
 		QueueID:   queue.QueueID,
 		Name:      queue.Name,
-		Category:  string(queue.Category),
-		States:    pq.StringArray(queue.States),
+		Criteria:  JSONMap(queue.Criteria),
 		Active:    queue.Active,
 		CreatedBy: queue.CreatedBy,
 		CreatedAt: queue.CreatedAt,
@@ -37,8 +34,7 @@ func mapQueueDTOToQueue(queueDTO QueueDTO) domain.Queue {
 	return domain.Queue{
 		QueueID:   queueDTO.QueueID,
 		Name:      queueDTO.Name,
-		Category:  domain.QueueCategory(queueDTO.Category),
-		States:    []string(queueDTO.States),
+		Criteria:  domain.Criteria(queueDTO.Criteria),
 		Active:    queueDTO.Active,
 		CreatedBy: queueDTO.CreatedBy,
 		CreatedAt: queueDTO.CreatedAt,
@@ -58,15 +54,14 @@ func mapQueueDTOsToQueues(queueDTOs []QueueDTO) []domain.Queue {
 
 // QueueOptionalDTO scans a LEFT JOIN'd queue that may not exist for a given case.
 type QueueOptionalDTO struct {
-	QueueID   *string        `db:"queue_id"`
-	Name      *string        `db:"name"`
-	Category  *string        `db:"category"`
-	States    pq.StringArray `db:"states"`
-	Active    *bool          `db:"active"`
-	CreatedBy *string        `db:"created_by"`
-	CreatedAt *time.Time     `db:"created_at"`
-	UpdatedBy *string        `db:"updated_by"`
-	UpdatedAt *time.Time     `db:"updated_at"`
+	QueueID   *string    `db:"queue_id"`
+	Name      *string    `db:"name"`
+	Criteria  JSONMap    `db:"criteria"`
+	Active    *bool      `db:"active"`
+	CreatedBy *string    `db:"created_by"`
+	CreatedAt *time.Time `db:"created_at"`
+	UpdatedBy *string    `db:"updated_by"`
+	UpdatedAt *time.Time `db:"updated_at"`
 }
 
 func mapQueueOptionalDTOToQueue(queueDTO QueueOptionalDTO) domain.Queue {
@@ -75,16 +70,12 @@ func mapQueueOptionalDTOToQueue(queueDTO QueueOptionalDTO) domain.Queue {
 	}
 
 	queue := domain.Queue{
-		QueueID: *queueDTO.QueueID,
-		States:  []string(queueDTO.States),
+		QueueID:  *queueDTO.QueueID,
+		Criteria: domain.Criteria(queueDTO.Criteria),
 	}
 
 	if queueDTO.Name != nil {
 		queue.Name = *queueDTO.Name
-	}
-
-	if queueDTO.Category != nil {
-		queue.Category = domain.QueueCategory(*queueDTO.Category)
 	}
 
 	if queueDTO.Active != nil {

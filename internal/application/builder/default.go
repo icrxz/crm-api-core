@@ -41,6 +41,7 @@ func (b *defaultBuilder) BuildCase(row []string, contractors []domain.Contractor
 		dueDate,
 		b.author,
 		row[b.columnsIndex["Sinistro"]],
+		nil,
 	)
 	if err != nil {
 		return nil, err
