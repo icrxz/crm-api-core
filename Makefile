@@ -15,7 +15,7 @@ setup: install-tools mod ## Prepara o ambiente local instalando todas as depend�
 install-tools: ## Instala as ferramentas globais necessárias (linter, formatador)
 	@echo "==> Instalando ferramentas de desenvolvimento Go..."
 	go install golang.org/x/tools/cmd/goimports@latest
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 	@echo "⚠️  Nota: Certifique-se de ter o 'pre-commit' instalado na sua máquina (via apt, brew ou pip)."
 
 mod: ## Baixa e atualiza as dependências do Go (go.mod)
@@ -48,3 +48,6 @@ clean: ## Limpa os arquivos compilados e cache
 
 db-sync-safe: ## Dump de base de dados
 	@bash ./scripts/db-sync/db_sync_safe.sh
+
+run:
+	docker compose up

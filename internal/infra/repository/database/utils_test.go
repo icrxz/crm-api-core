@@ -45,6 +45,52 @@ func TestBuildLikePart(t *testing.T) {
 	}
 }
 
+func TestPrepareLesserEqualQuery(t *testing.T) {
+	t.Run("appends a >= clause when filter is set", func(t *testing.T) {
+		query, args := prepareLesserEqualQuery("2026-08-01", []string{"1=1"}, []any{}, "created_at")
+
+		assert.Equal(t, []string{"1=1", "created_at >= $1"}, query)
+		assert.Equal(t, []any{"2026-08-01"}, args)
+	})
+
+	t.Run("accounts for existing args when building the placeholder index", func(t *testing.T) {
+		query, args := prepareLesserEqualQuery("2026-08-01", []string{"1=1"}, []any{"queue-1"}, "created_at")
+
+		assert.Equal(t, []string{"1=1", "created_at >= $2"}, query)
+		assert.Equal(t, []any{"queue-1", "2026-08-01"}, args)
+	})
+
+	t.Run("does nothing when filter is nil", func(t *testing.T) {
+		query, args := prepareLesserEqualQuery(nil, []string{"1=1"}, []any{}, "created_at")
+
+		assert.Equal(t, []string{"1=1"}, query)
+		assert.Empty(t, args)
+	})
+}
+
+func TestPrepareGreaterEqualQuery(t *testing.T) {
+	t.Run("appends a <= clause when filter is set", func(t *testing.T) {
+		query, args := prepareGreaterEqualQuery("2026-08-31", []string{"1=1"}, []any{}, "created_at")
+
+		assert.Equal(t, []string{"1=1", "created_at <= $1"}, query)
+		assert.Equal(t, []any{"2026-08-31"}, args)
+	})
+
+	t.Run("accounts for existing args when building the placeholder index", func(t *testing.T) {
+		query, args := prepareGreaterEqualQuery("2026-08-31", []string{"1=1"}, []any{"queue-1"}, "created_at")
+
+		assert.Equal(t, []string{"1=1", "created_at <= $2"}, query)
+		assert.Equal(t, []any{"queue-1", "2026-08-31"}, args)
+	})
+
+	t.Run("does nothing when filter is nil", func(t *testing.T) {
+		query, args := prepareGreaterEqualQuery(nil, []string{"1=1"}, []any{}, "created_at")
+
+		assert.Equal(t, []string{"1=1"}, query)
+		assert.Empty(t, args)
+	})
+}
+
 func TestPrepareOrLikeQuery(t *testing.T) {
 	tests := []struct {
 		name      string
