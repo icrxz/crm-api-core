@@ -3,7 +3,10 @@ package application
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"maps"
 	"strconv"
+	"time"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"golang.org/x/sync/errgroup"
@@ -21,6 +24,7 @@ type caseService struct {
 	partnerService        PartnerService
 	contractorService     ContractorService
 	queueService          QueueService
+	queueResolver         QueueResolver
 }
 
 //go:generate mockgen -source=case_service.go -destination=mock_application/mock_case_service.go -package=mock_application
@@ -32,6 +36,7 @@ type CaseService interface {
 	GetCaseFullByID(ctx context.Context, caseID string) (*domain.CaseFull, error)
 	SearchCasesFull(ctx context.Context, filters domain.CaseFilters) (domain.PagingResult[domain.CaseFull], error)
 	GetCaseHistory(ctx context.Context, caseID string) ([]domain.CaseHistory, error)
+	UpdateCaseMetadata(ctx context.Context, caseID string, operation string, data map[string]any, updatedBy string) error
 }
 
 func NewCaseService(
@@ -46,6 +51,7 @@ func NewCaseService(
 	partnerService PartnerService,
 	contractorService ContractorService,
 	queueService QueueService,
+	queueResolver QueueResolver,
 ) CaseService {
 	return &caseService{
 		customerService:       customerService,
@@ -59,6 +65,7 @@ func NewCaseService(
 		partnerService:        partnerService,
 		contractorService:     contractorService,
 		queueService:          queueService,
+		queueResolver:         queueResolver,
 	}
 }
 
@@ -69,6 +76,10 @@ func (c *caseService) CreateCase(ctx context.Context, newCase domain.CreateCase)
 		return "", err
 	}
 	crmCase.Region = customer.GetRegion()
+
+	if err := c.resolveCaseQueue(ctx, &crmCase); err != nil {
+		return "", err
+	}
 
 	err = c.assignOwnerToNewCase(ctx, &crmCase)
 	if err != nil {
@@ -119,7 +130,37 @@ func (c *caseService) SearchCasesFull(ctx context.Context, filters domain.CaseFi
 	return c.caseRepository.SearchFull(ctx, filters)
 }
 
+// resolveCaseQueue recalculates crmCase.QueueID from its current typed fields
+// and metadata. Called on creation and whenever a matching field is updated,
+// so QueueID always reflects a decision made now, never a stale cache.
+func (c *caseService) resolveCaseQueue(ctx context.Context, crmCase *domain.Case) error {
+	queue, err := c.queueResolver.Resolve(ctx, *crmCase)
+	if err != nil {
+		return err
+	}
+
+	if queue != nil {
+		crmCase.QueueID = queue.QueueID
+	}
+
+	return nil
+}
+
 func (c *caseService) assignOwnerToNewCase(ctx context.Context, crmCase *domain.Case) error {
+	if crmCase.QueueID != "" {
+		members, err := c.queueService.GetMembers(ctx, crmCase.QueueID)
+		if err != nil {
+			slog.WarnContext(ctx, "failed to fetch queue members, falling back to region-based assignment",
+				"queue_id", crmCase.QueueID, "error", err)
+		}
+
+		if len(members) > 0 {
+			crmCase.OwnerID = members[0].UserID
+			crmCase.Status = domain.CUSTOMER_INFO
+			return nil
+		}
+	}
+
 	regionStringified := strconv.Itoa(crmCase.Region)
 
 	searchResult, err := c.userService.Search(ctx, domain.UserFilters{
@@ -157,6 +198,15 @@ func (c *caseService) UpdateCase(ctx context.Context, caseID string, newCase dom
 		return err
 	}
 
+	updatedCase := *crmCase
+	updatedCase.MergeUpdate(newCase)
+
+	if err := c.resolveCaseQueue(ctx, &updatedCase); err != nil {
+		return err
+	}
+	resolvedQueueID := updatedCase.QueueID
+	newCase.QueueID = &resolvedQueueID
+
 	eventName, oldValues, newValues := crmCase.DetectChanges(newCase)
 
 	crmCase.MergeUpdate(newCase)
@@ -171,6 +221,59 @@ func (c *caseService) UpdateCase(ctx context.Context, caseID string, newCase dom
 		}
 
 		history, err := domain.NewCaseHistory(caseID, eventName, newCase.UpdatedBy, oldValues, newValues)
+		if err != nil {
+			return err
+		}
+
+		return c.caseHistoryRepository.Create(txCtx, history)
+	})
+}
+
+const metadataOverwriteOperation = "overwrite"
+
+// UpdateCaseMetadata applies a partial change to a case's metadata and
+// recalculates its queue, since metadata is part of the queue matching
+// criteria. Only "overwrite" (shallow key replace, the default) is supported
+// today.
+func (c *caseService) UpdateCaseMetadata(ctx context.Context, caseID string, operation string, data map[string]any, updatedBy string) error {
+	if caseID == "" {
+		return domain.NewValidationError("case id cannot be empty", nil)
+	}
+
+	if operation == "" {
+		operation = metadataOverwriteOperation
+	}
+
+	if operation != metadataOverwriteOperation {
+		return domain.NewValidationError("unsupported metadata operation", map[string]any{"operation": operation})
+	}
+
+	crmCase, err := c.caseRepository.GetByID(ctx, caseID)
+	if err != nil {
+		return err
+	}
+
+	oldMetadata := make(map[string]any, len(crmCase.Metadata))
+	maps.Copy(oldMetadata, crmCase.Metadata)
+
+	if crmCase.Metadata == nil {
+		crmCase.Metadata = map[string]any{}
+	}
+	maps.Copy(crmCase.Metadata, data)
+
+	if err := c.resolveCaseQueue(ctx, crmCase); err != nil {
+		return err
+	}
+
+	crmCase.UpdatedBy = updatedBy
+	crmCase.UpdatedAt = time.Now().UTC()
+
+	return c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := c.caseRepository.Update(txCtx, *crmCase); err != nil {
+			return err
+		}
+
+		history, err := domain.NewCaseHistory(caseID, domain.CaseMetadataUpdatedEvent, updatedBy, oldMetadata, crmCase.Metadata)
 		if err != nil {
 			return err
 		}

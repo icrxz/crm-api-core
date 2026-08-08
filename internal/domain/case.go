@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"maps"
 	"time"
 
 	"github.com/google/uuid"
@@ -46,6 +47,24 @@ type Case struct {
 	ExternalReference string
 	TargetDate        *time.Time
 	QueueID           string
+	Metadata          map[string]any
+}
+
+// MatchableFields returns the case's typed fields merged with its metadata,
+// as a flat key/value set for Queue.Criteria matching. Typed fields win over
+// metadata keys with the same name.
+func (c Case) MatchableFields() map[string]any {
+	fields := make(map[string]any, len(c.Metadata)+6)
+	maps.Copy(fields, c.Metadata)
+
+	fields["status"] = string(c.Status)
+	fields["region"] = c.Region
+	fields["partner_id"] = c.PartnerID
+	fields["type"] = c.Type
+	fields["product_id"] = c.ProductID
+	fields["origin_channel"] = c.OriginChannel
+
+	return fields
 }
 
 type CaseFull struct {
@@ -72,6 +91,7 @@ type CaseFull struct {
 	ExternalReference string
 	TargetDate        *time.Time
 	Queue             Queue
+	Metadata          map[string]any
 }
 
 type CaseFilters struct {
@@ -139,12 +159,17 @@ func NewCase(
 	dueDate time.Time,
 	author string,
 	externalReference string,
+	metadata map[string]any,
 ) (Case, error) {
 	now := time.Now().UTC()
 
 	caseID, err := uuid.NewUUID()
 	if err != nil {
 		return Case{}, err
+	}
+
+	if metadata == nil {
+		metadata = map[string]any{}
 	}
 
 	return Case{
@@ -162,6 +187,7 @@ func NewCase(
 		UpdatedAt:         now,
 		UpdatedBy:         author,
 		ExternalReference: externalReference,
+		Metadata:          metadata,
 	}, nil
 }
 
@@ -351,5 +377,6 @@ func NewCaseFull(crmCase Case, comments []Comment, transactions []Transaction, p
 		ExternalReference: crmCase.ExternalReference,
 		TargetDate:        crmCase.TargetDate,
 		Queue:             queue,
+		Metadata:          crmCase.Metadata,
 	}
 }

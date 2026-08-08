@@ -3,7 +3,6 @@ package database
 import (
 	"testing"
 
-	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,9 +14,9 @@ func TestMapCaseFullDTOToCaseFull(t *testing.T) {
 		dto := CaseFullDTO{
 			CaseID: "case-1",
 			Queue: QueueOptionalDTO{
-				QueueID: &queueID,
-				Name:    &name,
-				States:  pq.StringArray{"SP"},
+				QueueID:  &queueID,
+				Name:     &name,
+				Criteria: JSONMap{"state": []any{"SP"}},
 			},
 		}
 

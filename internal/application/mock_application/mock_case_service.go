@@ -144,3 +144,17 @@ func (mr *MockCaseServiceMockRecorder) UpdateCase(ctx, caseID, newCase any) *gom
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCase", reflect.TypeOf((*MockCaseService)(nil).UpdateCase), ctx, caseID, newCase)
 }
+
+// UpdateCaseMetadata mocks base method.
+func (m *MockCaseService) UpdateCaseMetadata(ctx context.Context, caseID, operation string, data map[string]any, updatedBy string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCaseMetadata", ctx, caseID, operation, data, updatedBy)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateCaseMetadata indicates an expected call of UpdateCaseMetadata.
+func (mr *MockCaseServiceMockRecorder) UpdateCaseMetadata(ctx, caseID, operation, data, updatedBy any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCaseMetadata", reflect.TypeOf((*MockCaseService)(nil).UpdateCaseMetadata), ctx, caseID, operation, data, updatedBy)
+}

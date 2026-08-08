@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 )
 
 type queueRepository struct {
@@ -29,9 +29,9 @@ func (r *queueRepository) Create(ctx context.Context, queue domain.Queue) (strin
 	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"INSERT INTO queues "+
-			"(queue_id, name, category, states, active, created_at, created_by, updated_at, updated_by) "+
+			"(queue_id, name, criteria, active, created_at, created_by, updated_at, updated_by) "+
 			"VALUES "+
-			"(:queue_id, :name, :category, :states, :active, :created_at, :created_by, :updated_at, :updated_by)",
+			"(:queue_id, :name, :criteria, :active, :created_at, :created_by, :updated_at, :updated_by)",
 		queueDTO,
 	)
 	if err != nil {
@@ -48,8 +48,7 @@ func (r *queueRepository) Update(ctx context.Context, queue domain.Queue) error 
 		ctx,
 		"UPDATE queues SET "+
 			"name = :name, "+
-			"category = :category, "+
-			"states = :states, "+
+			"criteria = :criteria, "+
 			"active = :active, "+
 			"updated_at = :updated_at, "+
 			"updated_by = :updated_by "+
@@ -90,10 +89,13 @@ func (r *queueRepository) Search(ctx context.Context, filters domain.QueueFilter
 	whereArgs := make([]any, 0)
 
 	whereQuery, whereArgs = prepareInQuery(filters.QueueID, whereQuery, whereArgs, "queue_id")
-	whereQuery, whereArgs = prepareInQuery(filters.Category, whereQuery, whereArgs, "category")
-	if len(filters.State) > 0 {
-		whereQuery = append(whereQuery, fmt.Sprintf("states && $%d", len(whereArgs)+1))
-		whereArgs = append(whereArgs, pq.StringArray(filters.State))
+	if len(filters.Criteria) > 0 {
+		criteriaJSON, err := json.Marshal(map[string]any(filters.Criteria))
+		if err != nil {
+			return domain.PagingResult[domain.Queue]{}, err
+		}
+		whereQuery = append(whereQuery, fmt.Sprintf("criteria @> $%d", len(whereArgs)+1))
+		whereArgs = append(whereArgs, string(criteriaJSON))
 	}
 	if filters.Active != nil {
 		whereQuery = append(whereQuery, fmt.Sprintf("active = $%d", len(whereArgs)+1))

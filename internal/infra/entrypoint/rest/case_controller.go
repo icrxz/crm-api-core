@@ -260,6 +260,28 @@ func (c *CaseController) UpdateCase(ctx *gin.Context) {
 	ctx.JSON(http.StatusNoContent, nil)
 }
 
+func (c *CaseController) UpdateCaseMetadata(ctx *gin.Context) {
+	caseID := ctx.Param("caseID")
+	if caseID == "" {
+		_ = ctx.Error(domain.NewValidationError("case_id is required", nil))
+		return
+	}
+
+	var metadataDTO *UpdateCaseMetadataDTO
+	if err := ctx.BindJSON(&metadataDTO); err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	err := c.caseService.UpdateCaseMetadata(ctx.Request.Context(), caseID, metadataDTO.Operation, metadataDTO.Data, metadataDTO.UpdatedBy)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
+}
+
 func (c *CaseController) GetCaseHistory(ctx *gin.Context) {
 	caseID := ctx.Param("caseID")
 	if caseID == "" {

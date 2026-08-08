@@ -34,15 +34,6 @@ func TestQueueController_parseQueryToFilters(t *testing.T) {
 			},
 		},
 		{
-			name:        "category and state filters",
-			queryParams: url.Values{"category": {"mobile"}, "state": {"SP"}},
-			wantFilters: domain.QueueFilters{
-				Category:     []string{"mobile"},
-				State:        []string{"SP"},
-				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
-			},
-		},
-		{
 			name:        "active filter",
 			queryParams: url.Values{"active": {"false"}},
 			wantFilters: domain.QueueFilters{
@@ -67,8 +58,6 @@ func TestQueueController_parseQueryToFilters(t *testing.T) {
 
 			got := c.parseQueryToFilters(ctx)
 
-			assert.Equal(t, tt.wantFilters.Category, got.Category)
-			assert.Equal(t, tt.wantFilters.State, got.State)
 			assert.Equal(t, tt.wantFilters.Active, got.Active)
 			assert.Equal(t, tt.wantFilters.Limit, got.Limit)
 			assert.Equal(t, tt.wantFilters.Offset, got.Offset)
@@ -85,7 +74,6 @@ func TestQueueController_SearchQueues(t *testing.T) {
 	mockService := mock_application.NewMockQueueService(ctrl)
 	mockService.EXPECT().
 		Search(gomock.Any(), domain.QueueFilters{
-			Category:     []string{"mobile"},
 			PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0},
 		}).
 		Return(domain.PagingResult[domain.Queue]{
@@ -98,7 +86,7 @@ func TestQueueController_SearchQueues(t *testing.T) {
 	router := gin.New()
 	router.GET("/queues", c.SearchQueues)
 
-	req := httptest.NewRequest(http.MethodGet, "/queues?category=mobile", nil)
+	req := httptest.NewRequest(http.MethodGet, "/queues", nil)
 	req = req.WithContext(context.Background())
 	w := httptest.NewRecorder()
 
@@ -126,8 +114,7 @@ func TestQueueController_CreateQueue(t *testing.T) {
 
 		body, _ := json.Marshal(CreateQueueDTO{
 			Name:      "SP Mobile",
-			Category:  "mobile",
-			States:    []string{"SP"},
+			Criteria:  map[string]any{"category": "mobile", "state": []string{"SP"}},
 			CreatedBy: "author-1",
 		})
 
@@ -150,7 +137,7 @@ func TestQueueController_CreateQueue(t *testing.T) {
 		router := gin.New()
 		router.POST("/queues", c.CreateQueue)
 
-		body, _ := json.Marshal(CreateQueueDTO{Name: "", Category: "", CreatedBy: "author-1"})
+		body, _ := json.Marshal(CreateQueueDTO{Name: "", CreatedBy: "author-1"})
 
 		req := httptest.NewRequest(http.MethodPost, "/queues", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")

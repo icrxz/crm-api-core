@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +18,6 @@ func TestMapQueueOptionalDTOToQueue(t *testing.T) {
 	t.Run("maps a fully populated joined queue", func(t *testing.T) {
 		queueID := "queue-1"
 		name := "SP Mobile"
-		category := "mobile"
 		active := true
 		createdBy := "author-1"
 		updatedBy := "author-2"
@@ -29,8 +27,7 @@ func TestMapQueueOptionalDTOToQueue(t *testing.T) {
 		dto := QueueOptionalDTO{
 			QueueID:   &queueID,
 			Name:      &name,
-			Category:  &category,
-			States:    pq.StringArray{"SP", "RJ"},
+			Criteria:  JSONMap{"category": "mobile", "state": []any{"SP", "RJ"}},
 			Active:    &active,
 			CreatedBy: &createdBy,
 			CreatedAt: &createdAt,
@@ -42,8 +39,8 @@ func TestMapQueueOptionalDTOToQueue(t *testing.T) {
 
 		assert.Equal(t, queueID, queue.QueueID)
 		assert.Equal(t, name, queue.Name)
-		assert.EqualValues(t, category, queue.Category)
-		assert.Equal(t, []string{"SP", "RJ"}, queue.States)
+		assert.Equal(t, "mobile", queue.Criteria["category"])
+		assert.Equal(t, []any{"SP", "RJ"}, queue.Criteria["state"])
 		assert.True(t, queue.Active)
 		assert.Equal(t, createdBy, queue.CreatedBy)
 		assert.Equal(t, updatedBy, queue.UpdatedBy)
