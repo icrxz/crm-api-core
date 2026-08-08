@@ -35,6 +35,7 @@ const (
 	CaseUpdatedEvent           = "case_updated"
 	CaseResetEvent             = "case_reset"
 	CaseQueueChangedEvent      = "case_queue_changed"
+	CaseMetadataUpdatedEvent   = "case_metadata_updated"
 )
 
 func NewCaseHistory(

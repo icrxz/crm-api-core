@@ -48,7 +48,7 @@ func TestQueueController_CreateQueue_ServiceError(t *testing.T) {
 		Create(gomock.Any(), gomock.Any()).
 		Return("", errors.New("boom"))
 
-	body, _ := json.Marshal(rest.CreateQueueDTO{Name: "SP Mobile", Category: "mobile", CreatedBy: "author-1"})
+	body, _ := json.Marshal(rest.CreateQueueDTO{Name: "SP Mobile", Criteria: map[string]any{"category": "mobile"}, CreatedBy: "author-1"})
 	req := httptest.NewRequest(http.MethodPost, "/queues", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()

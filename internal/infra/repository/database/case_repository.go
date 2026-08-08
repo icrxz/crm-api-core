@@ -28,9 +28,9 @@ func (r *caseRepository) Create(ctx context.Context, crmCase domain.Case) (strin
 	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"INSERT INTO cases "+
-			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id, queue_id) "+
+			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id, queue_id, metadata) "+
 			"VALUES "+
-			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id, :queue_id)",
+			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id, :queue_id, :metadata)",
 		crmCaseDTO,
 	)
 	if err != nil {
@@ -143,7 +143,8 @@ func (r *caseRepository) Update(ctx context.Context, crmCase domain.Case) error 
 			"updated_at = :updated_at, "+
 			"closed_at = :closed_at, "+
 			"target_date = :target_date, "+
-			"queue_id = :queue_id "+
+			"queue_id = :queue_id, "+
+			"metadata = :metadata "+
 			"WHERE case_id = :case_id",
 		crmCaseDTO,
 	)
@@ -243,6 +244,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 		ca.target_date,
 		ca.external_reference,
 		ca.region,
+		ca.metadata,
 		co.contractor_id,
 		co.company_name,
 		co.legal_name,
@@ -330,8 +332,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 		pr.updated_by,
 		qu.queue_id,
 		qu.name,
-		qu.category,
-		qu.states,
+		qu.criteria,
 		qu.active,
 		qu.created_by,
 		qu.created_at,
@@ -385,6 +386,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 			&item.TargetDate,
 			&item.ExternalReference,
 			&item.Region,
+			&item.Metadata,
 			&item.Contractor.ContractorID,
 			&item.Contractor.CompanyName,
 			&item.Contractor.LegalName,
@@ -472,8 +474,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 			&item.Product.UpdatedBy,
 			&item.Queue.QueueID,
 			&item.Queue.Name,
-			&item.Queue.Category,
-			&item.Queue.States,
+			&item.Queue.Criteria,
 			&item.Queue.Active,
 			&item.Queue.CreatedBy,
 			&item.Queue.CreatedAt,

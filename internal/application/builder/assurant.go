@@ -43,6 +43,7 @@ func (b *assurantBuilder) BuildCase(row []string, contractors []domain.Contracto
 		dueDate,
 		b.author,
 		row[b.columnsIndex["Número Sinistro"]],
+		nil,
 	)
 	if err != nil {
 		return nil, err

@@ -9,13 +9,13 @@ import (
 
 func TestNewQueue(t *testing.T) {
 	t.Run("creates a queue successfully", func(t *testing.T) {
-		queue, err := NewQueue("SP Mobile", MobileQueueCategory, []string{"SP", "RJ"}, "author-1")
+		queue, err := NewQueue("SP Mobile", Criteria{"category": "mobile", "state": []string{"SP", "RJ"}}, "author-1")
 
 		require.NoError(t, err)
 		assert.NotEmpty(t, queue.QueueID)
 		assert.Equal(t, "SP Mobile", queue.Name)
-		assert.Equal(t, MobileQueueCategory, queue.Category)
-		assert.Equal(t, []string{"SP", "RJ"}, queue.States)
+		assert.Equal(t, "mobile", queue.Criteria["category"])
+		assert.Equal(t, []string{"SP", "RJ"}, queue.Criteria["state"])
 		assert.True(t, queue.Active)
 		assert.Equal(t, "author-1", queue.CreatedBy)
 		assert.Equal(t, "author-1", queue.UpdatedBy)
@@ -24,30 +24,23 @@ func TestNewQueue(t *testing.T) {
 	})
 
 	t.Run("returns validation error when name is empty", func(t *testing.T) {
-		_, err := NewQueue("", MobileQueueCategory, []string{"SP"}, "author-1")
+		_, err := NewQueue("", Criteria{"category": "mobile"}, "author-1")
 
 		require.Error(t, err)
 		assert.IsType(t, &CustomError{}, err)
 	})
 
-	t.Run("returns validation error when category is empty", func(t *testing.T) {
-		_, err := NewQueue("SP Mobile", "", []string{"SP"}, "author-1")
+	t.Run("returns validation error when criteria is empty", func(t *testing.T) {
+		_, err := NewQueue("SP Mobile", nil, "author-1")
 
 		require.Error(t, err)
 		assert.IsType(t, &CustomError{}, err)
-	})
-
-	t.Run("allows an empty states list", func(t *testing.T) {
-		queue, err := NewQueue("Digital", DigitalQueueCategory, nil, "author-1")
-
-		require.NoError(t, err)
-		assert.Empty(t, queue.States)
 	})
 }
 
 func TestQueue_MergeUpdate(t *testing.T) {
 	t.Run("updates only the provided fields", func(t *testing.T) {
-		queue, err := NewQueue("SP Mobile", MobileQueueCategory, []string{"SP"}, "author-1")
+		queue, err := NewQueue("SP Mobile", Criteria{"category": "mobile", "state": []string{"SP"}}, "author-1")
 		require.NoError(t, err)
 
 		newName := "SP Mobile Updated"
@@ -61,37 +54,65 @@ func TestQueue_MergeUpdate(t *testing.T) {
 
 		assert.Equal(t, newName, queue.Name)
 		assert.False(t, queue.Active)
-		assert.Equal(t, MobileQueueCategory, queue.Category)
-		assert.Equal(t, []string{"SP"}, queue.States)
+		assert.Equal(t, "mobile", queue.Criteria["category"])
+		assert.Equal(t, []string{"SP"}, queue.Criteria["state"])
 		assert.Equal(t, "author-2", queue.UpdatedBy)
 	})
 
-	t.Run("replaces category and states when provided", func(t *testing.T) {
-		queue, err := NewQueue("SP Mobile", MobileQueueCategory, []string{"SP"}, "author-1")
+	t.Run("replaces criteria when provided", func(t *testing.T) {
+		queue, err := NewQueue("SP Mobile", Criteria{"category": "mobile", "state": []string{"SP"}}, "author-1")
 		require.NoError(t, err)
 
-		newCategory := DigitalQueueCategory
-		newStates := []string{"RJ", "MG"}
+		newCriteria := Criteria{"category": "digital", "state": []string{"RJ", "MG"}}
 
 		queue.MergeUpdate(UpdateQueue{
-			Category:  &newCategory,
-			States:    newStates,
+			Criteria:  newCriteria,
 			UpdatedBy: "author-2",
 		})
 
-		assert.Equal(t, DigitalQueueCategory, queue.Category)
-		assert.Equal(t, newStates, queue.States)
+		assert.Equal(t, newCriteria, queue.Criteria)
 	})
 
 	t.Run("leaves fields untouched when update is empty", func(t *testing.T) {
-		queue, err := NewQueue("SP Mobile", MobileQueueCategory, []string{"SP"}, "author-1")
+		queue, err := NewQueue("SP Mobile", Criteria{"category": "mobile", "state": []string{"SP"}}, "author-1")
 		require.NoError(t, err)
 
 		queue.MergeUpdate(UpdateQueue{UpdatedBy: "author-2"})
 
 		assert.Equal(t, "SP Mobile", queue.Name)
-		assert.Equal(t, MobileQueueCategory, queue.Category)
-		assert.Equal(t, []string{"SP"}, queue.States)
+		assert.Equal(t, "mobile", queue.Criteria["category"])
+		assert.Equal(t, []string{"SP"}, queue.Criteria["state"])
 		assert.True(t, queue.Active)
+	})
+}
+
+func TestCriteria_Matches(t *testing.T) {
+	t.Run("matches scalar equality", func(t *testing.T) {
+		criteria := Criteria{"category": "mobile"}
+		assert.True(t, criteria.Matches(map[string]any{"category": "mobile"}))
+		assert.False(t, criteria.Matches(map[string]any{"category": "digital"}))
+	})
+
+	t.Run("matches when case field is a member of the criteria list", func(t *testing.T) {
+		criteria := Criteria{"status": []string{"New", "Ongoing"}}
+		assert.True(t, criteria.Matches(map[string]any{"status": "Ongoing"}))
+		assert.False(t, criteria.Matches(map[string]any{"status": "Closed"}))
+	})
+
+	t.Run("matches when the case field list intersects the criteria list", func(t *testing.T) {
+		criteria := Criteria{"state": []string{"SP", "RJ"}}
+		assert.True(t, criteria.Matches(map[string]any{"state": []string{"RJ", "MG"}}))
+		assert.False(t, criteria.Matches(map[string]any{"state": []string{"BA"}}))
+	})
+
+	t.Run("requires every criteria key to match (AND)", func(t *testing.T) {
+		criteria := Criteria{"category": "mobile", "state": []string{"SP"}}
+		assert.True(t, criteria.Matches(map[string]any{"category": "mobile", "state": []string{"SP"}}))
+		assert.False(t, criteria.Matches(map[string]any{"category": "mobile", "state": []string{"RJ"}}))
+	})
+
+	t.Run("fails when the field is missing entirely", func(t *testing.T) {
+		criteria := Criteria{"partner_id": "partner-1"}
+		assert.False(t, criteria.Matches(map[string]any{}))
 	})
 }

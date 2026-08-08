@@ -12,7 +12,7 @@ func TestNewCaseFull(t *testing.T) {
 		OwnerID: "user-1",
 		QueueID: "queue-1",
 	}
-	queue := Queue{QueueID: "queue-1", Name: "SP Mobile", Category: MobileQueueCategory}
+	queue := Queue{QueueID: "queue-1", Name: "SP Mobile", Criteria: Criteria{"category": "mobile"}}
 
 	caseFull := NewCaseFull(crmCase, nil, nil, Product{}, Customer{}, Partner{}, Contractor{}, queue)
 
