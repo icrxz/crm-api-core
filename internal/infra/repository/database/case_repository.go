@@ -73,6 +73,14 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereQuery, whereArgs = prepareInQuery(filters.QueueID, whereQuery, whereArgs, "queue_id")
 	whereQuery, whereArgs = prepareLikeQuery(filters.ExternalReference, whereQuery, whereArgs, "external_reference")
 
+	if filters.StartDate != nil {
+		whereQuery, whereArgs = prepareLesserEqualQuery(filters.StartDate, whereQuery, whereArgs, "created_at")
+	}
+
+	if filters.EndDate != nil {
+		whereQuery, whereArgs = prepareGreaterEqualQuery(filters.EndDate, whereQuery, whereArgs, "created_at")
+	}
+
 	if filters.ClosedAtStart != nil {
 		whereQuery, whereArgs = prepareLesserEqualQuery(filters.ClosedAtStart, whereQuery, whereArgs, "closed_at")
 	}

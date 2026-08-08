@@ -2,6 +2,7 @@ package domain
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -117,5 +118,44 @@ func TestUser_MergeUpdate(t *testing.T) {
 		user.MergeUpdate(UserUpdate{}, "")
 
 		assert.Equal(t, "author-1", user.UpdatedBy)
+	})
+
+	t.Run("sets last absence at when present", func(t *testing.T) {
+		user, err := NewUser("John", "Doe", "john@doe.com", "s3cr3t", "author-1", "johndoe", OPERATOR, 1)
+		require.NoError(t, err)
+
+		absenceAt := time.Date(2026, 8, 7, 10, 0, 0, 0, time.UTC)
+
+		user.MergeUpdate(UserUpdate{
+			LastAbsenceAt: OptionalTime{Present: true, Value: &absenceAt},
+		}, "author-2")
+
+		require.NotNil(t, user.LastAbsenceAt)
+		assert.Equal(t, absenceAt, *user.LastAbsenceAt)
+	})
+
+	t.Run("clears last absence at when present with nil value", func(t *testing.T) {
+		user, err := NewUser("John", "Doe", "john@doe.com", "s3cr3t", "author-1", "johndoe", OPERATOR, 1)
+		require.NoError(t, err)
+		absenceAt := time.Now().UTC()
+		user.LastAbsenceAt = &absenceAt
+
+		user.MergeUpdate(UserUpdate{
+			LastAbsenceAt: OptionalTime{Present: true, Value: nil},
+		}, "author-2")
+
+		assert.Nil(t, user.LastAbsenceAt)
+	})
+
+	t.Run("leaves last absence at untouched when not present", func(t *testing.T) {
+		user, err := NewUser("John", "Doe", "john@doe.com", "s3cr3t", "author-1", "johndoe", OPERATOR, 1)
+		require.NoError(t, err)
+		absenceAt := time.Now().UTC()
+		user.LastAbsenceAt = &absenceAt
+
+		user.MergeUpdate(UserUpdate{}, "author-2")
+
+		require.NotNil(t, user.LastAbsenceAt)
+		assert.Equal(t, absenceAt, *user.LastAbsenceAt)
 	})
 }
