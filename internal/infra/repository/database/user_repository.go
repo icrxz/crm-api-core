@@ -74,7 +74,11 @@ func (db *userDatabase) Search(ctx context.Context, filters domain.UserFilters) 
 	limitArgs = append(limitArgs, whereArgs...)
 	limitArgs = append(limitArgs, filters.Limit, filters.Offset)
 
-	query := fmt.Sprintf("SELECT * FROM users WHERE %s %s", strings.Join(whereQuery, " AND "), limitQuery)
+	query := fmt.Sprintf(
+		"SELECT * FROM users WHERE %s ORDER BY active DESC, first_name ASC, last_name ASC %s",
+		strings.Join(whereQuery, " AND "),
+		limitQuery,
+	)
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM users WHERE %s", strings.Join(whereQuery, " AND "))
 
 	var foundUsers []UserDTO
