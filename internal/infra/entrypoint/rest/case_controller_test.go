@@ -14,6 +14,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func testStringPtr(s string) *string {
+	return &s
+}
+
 func TestCaseController_parseQueryToFilters(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -90,6 +94,14 @@ func TestCaseController_parseQueryToFilters(t *testing.T) {
 			query: url.Values{"sort_by": {"drop table cases"}},
 			expected: domain.CaseFilters{
 				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "drop table cases", SortOrder: "DESC"},
+			},
+		},
+		{
+			name:  "category filter",
+			query: url.Values{"category": {"d+"}},
+			expected: domain.CaseFilters{
+				Category:     testStringPtr("d+"),
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
 			},
 		},
 	}
