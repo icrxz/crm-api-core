@@ -195,8 +195,8 @@ func parseCaseListFilters(ctx *gin.Context, filters *domain.CaseFilters) {
 		filters.ShippingState = state
 	}
 
-	if category := ctx.Query("category"); category != "" {
-		filters.Category = &category
+	if metadata := ctx.QueryMap("metadata"); len(metadata) > 0 {
+		filters.Metadata = metadata
 	}
 }
 

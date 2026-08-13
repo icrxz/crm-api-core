@@ -72,7 +72,7 @@ func (r *caseRepository) Search(ctx context.Context, filters domain.CaseFilters)
 	whereQuery, whereArgs = prepareInQuery(filters.Region, whereQuery, whereArgs, "region")
 	whereQuery, whereArgs = prepareInQuery(filters.QueueID, whereQuery, whereArgs, "queue_id")
 	whereQuery, whereArgs = prepareLikeQuery(filters.ExternalReference, whereQuery, whereArgs, "external_reference")
-	whereQuery, whereArgs = prepareMetadataContainsQuery(filters.Category, whereQuery, whereArgs, "metadata", "category")
+	whereQuery, whereArgs = prepareMetadataContainsQuery(filters.Metadata, whereQuery, whereArgs, "metadata")
 
 	if filters.StartDate != nil {
 		whereQuery, whereArgs = prepareLesserEqualQuery(filters.StartDate, whereQuery, whereArgs, "created_at")
@@ -207,7 +207,7 @@ func (r *caseRepository) SearchFull(ctx context.Context, filters domain.CaseFilt
 	whereQuery, whereArgs = prepareInQuery(filters.QueueID, whereQuery, whereArgs, "ca.queue_id")
 	whereQuery, whereArgs = prepareLikeQuery(filters.ExternalReference, whereQuery, whereArgs, "ca.external_reference")
 	whereQuery, whereArgs = prepareInQuery(filters.ShippingState, whereQuery, whereArgs, "cu.shipping_state")
-	whereQuery, whereArgs = prepareMetadataContainsQuery(filters.Category, whereQuery, whereArgs, "ca.metadata", "category")
+	whereQuery, whereArgs = prepareMetadataContainsQuery(filters.Metadata, whereQuery, whereArgs, "ca.metadata")
 
 	if filters.StartDate != nil {
 		whereQuery, whereArgs = prepareLesserEqualQuery(filters.StartDate, whereQuery, whereArgs, "ca.created_at")

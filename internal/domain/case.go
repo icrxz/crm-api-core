@@ -109,7 +109,7 @@ type CaseFilters struct {
 	ClosedAtEnd       *string
 	ShippingState     []string
 	QueueID           []string
-	Category          *string
+	Metadata          map[string]string
 	PagingFilter
 }
 
