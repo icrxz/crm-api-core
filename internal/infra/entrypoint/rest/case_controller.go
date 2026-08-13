@@ -194,6 +194,10 @@ func parseCaseListFilters(ctx *gin.Context, filters *domain.CaseFilters) {
 	if state := ctx.QueryArray("state"); len(state) > 0 {
 		filters.ShippingState = state
 	}
+
+	if metadata := ctx.QueryMap("metadata"); len(metadata) > 0 {
+		filters.Metadata = metadata
+	}
 }
 
 func parseCasePagingFilters(ctx *gin.Context, filters *domain.CaseFilters) {

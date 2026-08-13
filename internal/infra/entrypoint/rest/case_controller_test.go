@@ -92,6 +92,22 @@ func TestCaseController_parseQueryToFilters(t *testing.T) {
 				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "drop table cases", SortOrder: "DESC"},
 			},
 		},
+		{
+			name:  "metadata filter",
+			query: url.Values{"metadata[category]": {"d+"}},
+			expected: domain.CaseFilters{
+				Metadata:     map[string]string{"category": "d+"},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
+			},
+		},
+		{
+			name:  "multiple metadata filters",
+			query: url.Values{"metadata[category]": {"d+"}, "metadata[origin]": {"batch"}},
+			expected: domain.CaseFilters{
+				Metadata:     map[string]string{"category": "d+", "origin": "batch"},
+				PagingFilter: domain.PagingFilter{Limit: 10, Offset: 0, SortBy: "created_at", SortOrder: "DESC"},
+			},
+		},
 	}
 
 	for _, tc := range tests {
