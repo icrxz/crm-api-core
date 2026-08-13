@@ -18,6 +18,7 @@ type CreateCustomerDTO struct {
 	BillingAddress  AddressDTO `json:"billing"`
 	PersonalContact ContactDTO `json:"personal_contact"`
 	BusinessContact ContactDTO `json:"business_contact"`
+	OrganizationID  *string    `json:"organization_id"`
 	CreatedBy       string     `json:"created_by"`
 }
 
@@ -34,6 +35,7 @@ type CustomerDTO struct {
 	PersonalContact ContactDTO `json:"personal_contact"`
 	BusinessContact ContactDTO `json:"business_contact"`
 	Cases           []any      `json:"cases"`
+	OrganizationID  *string    `json:"organization_id"`
 	CreatedBy       string     `json:"created_by"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedBy       string     `json:"updated_by"`
@@ -54,6 +56,7 @@ type UpdateCustomerDTO struct {
 	BillingAddress  *UpdateAddressDTO `json:"billing"`
 	PersonalContact *UpdateContactDTO `json:"personal_contact"`
 	BusinessContact *UpdateContactDTO `json:"business_contact"`
+	OrganizationID  *string           `json:"organization_id"`
 	UpdatedBy       string            `json:"updated_by"`
 }
 
@@ -70,6 +73,7 @@ func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
 		BillingAddress:  mapAddressToAddressDTO(customer.BillingAddress),
 		PersonalContact: mapContactToContactDTO(customer.PersonalContact),
 		BusinessContact: mapContactToContactDTO(customer.BusinessContact),
+		OrganizationID:  customer.OrganizationID,
 		CreatedBy:       customer.CreatedBy,
 		CreatedAt:       customer.CreatedAt,
 		UpdatedBy:       customer.UpdatedBy,
@@ -80,7 +84,7 @@ func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
 }
 
 func mapCreateCustomerDTOToCustomer(customerDTO CreateCustomerDTO) (domain.Customer, error) {
-	return domain.NewCustomer(
+	customer, err := domain.NewCustomer(
 		customerDTO.FirstName,
 		customerDTO.LastName,
 		customerDTO.CompanyName,
@@ -93,6 +97,13 @@ func mapCreateCustomerDTOToCustomer(customerDTO CreateCustomerDTO) (domain.Custo
 		mapAddressDTOToAddress(customerDTO.ShippingAddress),
 		mapAddressDTOToAddress(customerDTO.BillingAddress),
 	)
+	if err != nil {
+		return domain.Customer{}, err
+	}
+
+	customer.OrganizationID = customerDTO.OrganizationID
+
+	return customer, nil
 }
 
 func mapCustomersToCustomerDTOs(customers []domain.Customer) []CustomerDTO {
@@ -141,6 +152,7 @@ func mapUpdateCustomerDTOToUpdateCustomer(updateCustomerDTO UpdateCustomerDTO) d
 		BillingAddress:  parsedBillingAddress,
 		PersonalContact: parsedPersonalContact,
 		BusinessContact: parsedBusinessContact,
+		OrganizationID:  updateCustomerDTO.OrganizationID,
 		UpdatedBy:       updateCustomerDTO.UpdatedBy,
 	}
 }

@@ -18,6 +18,7 @@ type CreatePartnerDTO struct {
 	BillingAddress         AddressDTO `json:"billing"`
 	PersonalContact        ContactDTO `json:"personal_contact"`
 	BusinessContact        ContactDTO `json:"business_contact"`
+	OrganizationID         *string    `json:"organization_id"`
 	CreatedBy              string     `json:"created_by"`
 	Description            string     `json:"description"`
 	PaymentKey             string     `json:"payment_key"`
@@ -42,6 +43,7 @@ type PartnerDTO struct {
 	BusinessContact        ContactDTO `json:"business_contact"`
 	Region                 int        `json:"region"`
 	Cases                  []any      `json:"cases"`
+	OrganizationID         *string    `json:"organization_id"`
 	CreatedBy              string     `json:"created_by"`
 	CreatedAt              time.Time  `json:"created_at"`
 	UpdatedBy              string     `json:"updated_by"`
@@ -75,6 +77,7 @@ type EditPartnerDTO struct {
 	PaymentType            *string     `json:"payment_type"`
 	PaymentOwner           *string     `json:"payment_owner"`
 	PaymentIsFromSameOwner *bool       `json:"payment_is_from_same_owner"`
+	OrganizationID         *string     `json:"organization_id"`
 }
 
 func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
@@ -92,6 +95,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		Region:                 partner.GetRegion(),
 		PersonalContact:        mapContactToContactDTO(partner.PersonalContact),
 		BusinessContact:        mapContactToContactDTO(partner.BusinessContact),
+		OrganizationID:         partner.OrganizationID,
 		CreatedBy:              partner.CreatedBy,
 		CreatedAt:              partner.CreatedAt,
 		UpdatedBy:              partner.UpdatedBy,
@@ -107,7 +111,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 }
 
 func mapCreatePartnerDTOToPartner(partnerDTO CreatePartnerDTO) (domain.Partner, error) {
-	return domain.NewPartner(
+	partner, err := domain.NewPartner(
 		partnerDTO.FirstName,
 		partnerDTO.LastName,
 		partnerDTO.CompanyName,
@@ -129,6 +133,13 @@ func mapCreatePartnerDTOToPartner(partnerDTO CreatePartnerDTO) (domain.Partner, 
 			IsSameFromOwner: partnerDTO.PaymentIsFromSameOwner,
 		},
 	)
+	if err != nil {
+		return domain.Partner{}, err
+	}
+
+	partner.OrganizationID = partnerDTO.OrganizationID
+
+	return partner, nil
 }
 
 func mapPartnersToPartnerDTOs(partners []domain.Partner) []PartnerDTO {
@@ -210,5 +221,6 @@ func mapEditPartnerDTOToEditPartner(editPartnerDTO EditPartnerDTO) domain.EditPa
 		UpdatedBy:       editPartnerDTO.UpdatedBy,
 		Description:     editPartnerDTO.Description,
 		Billing:         parsedBilling,
+		OrganizationID:  editPartnerDTO.OrganizationID,
 	}
 }

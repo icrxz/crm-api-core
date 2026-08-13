@@ -22,6 +22,7 @@ func LoadRoutes(
 	transactionController rest.TransactionController,
 	caseActionController rest.CaseActionController,
 	queueController rest.QueueController,
+	organizationController rest.OrganizationController,
 ) {
 	authGroup := app.Group("/crm/core/api/v1")
 	authGroup.Use(authMiddleware.Authenticate())
@@ -113,4 +114,11 @@ func LoadRoutes(
 	authGroup.POST("/queues/:queueID/members", queueController.AddMember)
 	authGroup.DELETE("/queues/:queueID/members/:userID", queueController.RemoveMember)
 	authGroup.GET("/users/:userID/queues", queueController.GetQueuesByUser)
+
+	// organizations
+	authGroup.POST("/organizations", organizationController.CreateOrganization)
+	authGroup.GET("/organizations", organizationController.SearchOrganizations)
+	authGroup.GET("/organizations/:organizationID", organizationController.GetOrganization)
+	authGroup.PUT("/organizations/:organizationID", organizationController.UpdateOrganization)
+	authGroup.DELETE("/organizations/:organizationID", organizationController.DeleteOrganization)
 }

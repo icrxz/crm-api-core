@@ -14,17 +14,18 @@ type ProductRepository interface {
 }
 
 type Product struct {
-	ProductID    string
-	Name         string
-	Description  string
-	Value        float64
-	Brand        string
-	Model        string
-	SerialNumber string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	CreatedBy    string
-	UpdatedBy    string
+	ProductID      string
+	Name           string
+	Description    string
+	Value          float64
+	Brand          string
+	Model          string
+	SerialNumber   string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	CreatedBy      string
+	UpdatedBy      string
+	OrganizationID *string
 }
 
 func NewProduct(
@@ -58,13 +59,14 @@ func NewProduct(
 }
 
 type UpdateProduct struct {
-	Name         *string
-	Description  *string
-	Value        *float64
-	Brand        *string
-	Model        *string
-	SerialNumber *string
-	UpdatedBy    string
+	Name           *string
+	Description    *string
+	Value          *float64
+	Brand          *string
+	Model          *string
+	SerialNumber   *string
+	OrganizationID *string
+	UpdatedBy      string
 }
 
 func (p *Product) MergeUpdate(updateProduct UpdateProduct) {
@@ -93,5 +95,9 @@ func (p *Product) MergeUpdate(updateProduct UpdateProduct) {
 
 	if updateProduct.SerialNumber != nil {
 		p.SerialNumber = *updateProduct.SerialNumber
+	}
+
+	if updateProduct.OrganizationID != nil {
+		p.OrganizationID = updateProduct.OrganizationID
 	}
 }

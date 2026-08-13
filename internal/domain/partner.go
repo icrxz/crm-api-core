@@ -32,6 +32,7 @@ type Partner struct {
 	BusinessContact Contact
 	PersonalContact Contact
 	Cases           []Case
+	OrganizationID  *string
 	CreatedBy       string
 	CreatedAt       time.Time
 	UpdatedBy       string
@@ -57,6 +58,7 @@ type EditPartner struct {
 	UpdatedBy       string
 	Description     *string
 	Billing         *Billing
+	OrganizationID  *string
 }
 
 type NameOrCityFilter struct {
@@ -178,6 +180,10 @@ func (p *Partner) MergeUpdate(updatePartner EditPartner) {
 
 	if updatePartner.Billing != nil {
 		p.Billing = *updatePartner.Billing
+	}
+
+	if updatePartner.OrganizationID != nil {
+		p.OrganizationID = updatePartner.OrganizationID
 	}
 }
 

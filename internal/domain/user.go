@@ -40,23 +40,24 @@ type UserRepository interface {
 }
 
 type User struct {
-	UserID        string
-	Username      string
-	FirstName     string
-	LastName      string
-	Email         string
-	Role          UserRole
-	Region        int
-	Password      string
-	LastLoggedIP  string
-	SessionToken  string
-	Active        bool
-	Cases         []Case
-	LastAbsenceAt *time.Time
-	CreatedBy     string
-	CreatedAt     time.Time
-	UpdatedBy     string
-	UpdatedAt     time.Time
+	UserID         string
+	Username       string
+	FirstName      string
+	LastName       string
+	Email          string
+	Role           UserRole
+	Region         int
+	Password       string
+	LastLoggedIP   string
+	SessionToken   string
+	Active         bool
+	Cases          []Case
+	LastAbsenceAt  *time.Time
+	OrganizationID *string
+	CreatedBy      string
+	CreatedAt      time.Time
+	UpdatedBy      string
+	UpdatedAt      time.Time
 }
 
 type UserFilters struct {
@@ -71,15 +72,16 @@ type UserFilters struct {
 }
 
 type UserUpdate struct {
-	FirstName     *string
-	LastName      *string
-	Email         *string
-	Role          *UserRole
-	Region        *int
-	LastLoggedIP  *string
-	SessionToken  *string
-	Active        *bool
-	LastAbsenceAt OptionalTime
+	FirstName      *string
+	LastName       *string
+	Email          *string
+	Role           *UserRole
+	Region         *int
+	LastLoggedIP   *string
+	SessionToken   *string
+	Active         *bool
+	LastAbsenceAt  OptionalTime
+	OrganizationID *string
 }
 
 // OptionalTime distinguishes "field not sent" (Present=false, no change)
@@ -186,6 +188,10 @@ func (u *User) MergeUpdate(userUpdate UserUpdate, author string) {
 
 	if userUpdate.LastAbsenceAt.Present {
 		u.LastAbsenceAt = userUpdate.LastAbsenceAt.Value
+	}
+
+	if userUpdate.OrganizationID != nil {
+		u.OrganizationID = userUpdate.OrganizationID
 	}
 }
 

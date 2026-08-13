@@ -24,6 +24,7 @@ type Contractor struct {
 	BusinessContact Contact
 	Template        ContractorPlatformTemplate
 	Cases           []Case
+	OrganizationID  *string
 	CreatedBy       string
 	CreatedAt       time.Time
 	UpdatedBy       string
@@ -37,6 +38,7 @@ type UpdateContractor struct {
 	Document        *string
 	DocumentType    *DocumentType
 	BusinessContact *Contact
+	OrganizationID  *string
 	UpdatedBy       string
 }
 
@@ -63,6 +65,10 @@ func (c *Contractor) MergeUpdate(newContractor UpdateContractor) {
 
 	if newContractor.BusinessContact != nil {
 		c.BusinessContact = *newContractor.BusinessContact
+	}
+
+	if newContractor.OrganizationID != nil {
+		c.OrganizationID = newContractor.OrganizationID
 	}
 }
 

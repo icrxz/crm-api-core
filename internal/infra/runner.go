@@ -52,6 +52,7 @@ func RunApp() error {
 	transactionRepository := database.NewTransactionRepository(sqlDB)
 	attachmentRepository := database.NewAttachmentRepository(sqlDB)
 	queueRepository := database.NewQueueRepository(sqlDB)
+	organizationRepository := database.NewOrganizationRepository(sqlDB)
 
 	// services
 	userService := application.NewUserService(userRepository)
@@ -64,6 +65,7 @@ func RunApp() error {
 	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket, transactionManager)
 	transactionService := application.NewTransactionService(transactionRepository, caseRepository)
 	queueService := application.NewQueueService(queueRepository)
+	organizationService := application.NewOrganizationService(organizationRepository)
 	queueResolver := application.NewQueueResolver(queueService)
 	caseService := application.NewCaseService(
 		customerService,
@@ -106,6 +108,7 @@ func RunApp() error {
 	transactionController := rest.NewTransactionController(transactionService)
 	caseActionController := rest.NewCaseActionController(caseActionService)
 	queueController := rest.NewQueueController(queueService)
+	organizationController := rest.NewOrganizationController(organizationService)
 
 	// middlewares
 	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
@@ -135,6 +138,7 @@ func RunApp() error {
 		transactionController,
 		caseActionController,
 		queueController,
+		organizationController,
 	)
 
 	return router.Run()

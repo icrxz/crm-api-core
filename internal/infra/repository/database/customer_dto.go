@@ -30,6 +30,7 @@ type CustomerDTO struct {
 	PersonalEmail   string    `db:"personal_email"`
 	BusinessEmail   string    `db:"business_email"`
 	OwnerID         *string   `db:"owner_id"`
+	OrganizationID  *string   `db:"organization_id"`
 	CreatedBy       string    `db:"created_by"`
 	CreatedAt       time.Time `db:"created_at"`
 	UpdatedBy       string    `db:"updated_by"`
@@ -93,6 +94,7 @@ func mapCustomerToCustomerDTO(customer domain.Customer) CustomerDTO {
 		BusinessPhone:   customer.BusinessContact.PhoneNumber,
 		PersonalEmail:   customer.PersonalContact.Email,
 		BusinessEmail:   customer.BusinessContact.Email,
+		OrganizationID:  customer.OrganizationID,
 		CreatedBy:       customer.CreatedBy,
 		CreatedAt:       customer.CreatedAt,
 		UpdatedBy:       customer.UpdatedBy,
@@ -139,11 +141,12 @@ func mapCustomerDTOToCustomer(customerDTO CustomerDTO) domain.Customer {
 			PhoneNumber: customerDTO.BusinessPhone,
 			Email:       customerDTO.BusinessEmail,
 		},
-		CreatedBy: customerDTO.CreatedBy,
-		CreatedAt: customerDTO.CreatedAt,
-		UpdatedBy: customerDTO.UpdatedBy,
-		UpdatedAt: customerDTO.UpdatedAt,
-		Active:    customerDTO.Active,
+		OrganizationID: customerDTO.OrganizationID,
+		CreatedBy:      customerDTO.CreatedBy,
+		CreatedAt:      customerDTO.CreatedAt,
+		UpdatedBy:      customerDTO.UpdatedBy,
+		UpdatedAt:      customerDTO.UpdatedAt,
+		Active:         customerDTO.Active,
 	}
 }
 

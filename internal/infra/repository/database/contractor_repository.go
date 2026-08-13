@@ -28,9 +28,9 @@ func (db *contractorRepository) Create(ctx context.Context, contractor domain.Co
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO contractors "+
-			"(contractor_id, company_name, legal_name, document, document_type, business_phone, business_email, created_at, created_by, updated_at, updated_by, active) "+
+			"(contractor_id, company_name, legal_name, document, document_type, business_phone, business_email, organization_id, created_at, created_by, updated_at, updated_by, active) "+
 			"VALUES "+
-			"(:contractor_id, :company_name, :legal_name, :document, :document_type, :business_phone, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active)",
+			"(:contractor_id, :company_name, :legal_name, :document, :document_type, :business_phone, :business_email, :organization_id, :created_at, :created_by, :updated_at, :updated_by, :active)",
 		contractorDTO,
 	)
 	if err != nil {
@@ -126,6 +126,7 @@ func (db *contractorRepository) Update(ctx context.Context, contractor domain.Co
 			"document_type = :document_type, "+
 			"business_phone = :business_phone, "+
 			"business_email = :business_email, "+
+			"organization_id = :organization_id, "+
 			"updated_at = :updated_at, "+
 			"updated_by = :updated_by, "+
 			"active = :active "+

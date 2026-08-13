@@ -7,39 +7,42 @@ import (
 )
 
 type QueueDTO struct {
-	QueueID   string    `db:"queue_id"`
-	Name      string    `db:"name"`
-	Criteria  JSONMap   `db:"criteria"`
-	Active    bool      `db:"active"`
-	CreatedBy string    `db:"created_by"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedBy string    `db:"updated_by"`
-	UpdatedAt time.Time `db:"updated_at"`
+	QueueID        string    `db:"queue_id"`
+	Name           string    `db:"name"`
+	Criteria       JSONMap   `db:"criteria"`
+	Active         bool      `db:"active"`
+	CreatedBy      string    `db:"created_by"`
+	CreatedAt      time.Time `db:"created_at"`
+	UpdatedBy      string    `db:"updated_by"`
+	UpdatedAt      time.Time `db:"updated_at"`
+	OrganizationID *string   `db:"organization_id"`
 }
 
 func mapQueueToQueueDTO(queue domain.Queue) QueueDTO {
 	return QueueDTO{
-		QueueID:   queue.QueueID,
-		Name:      queue.Name,
-		Criteria:  JSONMap(queue.Criteria),
-		Active:    queue.Active,
-		CreatedBy: queue.CreatedBy,
-		CreatedAt: queue.CreatedAt,
-		UpdatedBy: queue.UpdatedBy,
-		UpdatedAt: queue.UpdatedAt,
+		QueueID:        queue.QueueID,
+		Name:           queue.Name,
+		Criteria:       JSONMap(queue.Criteria),
+		Active:         queue.Active,
+		CreatedBy:      queue.CreatedBy,
+		CreatedAt:      queue.CreatedAt,
+		UpdatedBy:      queue.UpdatedBy,
+		UpdatedAt:      queue.UpdatedAt,
+		OrganizationID: queue.OrganizationID,
 	}
 }
 
 func mapQueueDTOToQueue(queueDTO QueueDTO) domain.Queue {
 	return domain.Queue{
-		QueueID:   queueDTO.QueueID,
-		Name:      queueDTO.Name,
-		Criteria:  domain.Criteria(queueDTO.Criteria),
-		Active:    queueDTO.Active,
-		CreatedBy: queueDTO.CreatedBy,
-		CreatedAt: queueDTO.CreatedAt,
-		UpdatedBy: queueDTO.UpdatedBy,
-		UpdatedAt: queueDTO.UpdatedAt,
+		QueueID:        queueDTO.QueueID,
+		Name:           queueDTO.Name,
+		Criteria:       domain.Criteria(queueDTO.Criteria),
+		Active:         queueDTO.Active,
+		CreatedBy:      queueDTO.CreatedBy,
+		CreatedAt:      queueDTO.CreatedAt,
+		UpdatedBy:      queueDTO.UpdatedBy,
+		UpdatedAt:      queueDTO.UpdatedAt,
+		OrganizationID: queueDTO.OrganizationID,
 	}
 }
 
