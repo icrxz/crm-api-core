@@ -72,6 +72,33 @@ func prepareLesserEqualQuery(filter any, query []string, args []any, key string)
 	return query, args
 }
 
+// prepareMetadataContainsQuery filters a jsonb column by containment
+// (metadata @> {"field": value, ...}), which can use a GIN jsonb_path_ops
+// index. All entries in fields are ANDed together by JSONB containment
+// semantics, so arbitrary metadata keys can be filtered in a single check.
+func prepareMetadataContainsQuery(fields map[string]string, query []string, args []any, column string) ([]string, []any) {
+	if len(fields) == 0 {
+		return query, args
+	}
+
+	metadataMap := make(JSONMap, len(fields))
+	for field, value := range fields {
+		metadataMap[field] = value
+	}
+
+	metadataJSON, err := metadataMap.Value()
+	if err != nil {
+		return query, args
+	}
+
+	queryFormatted := fmt.Sprintf("%s @> $%d::jsonb", column, len(args)+1)
+
+	query = append(query, queryFormatted)
+	args = append(args, metadataJSON)
+
+	return query, args
+}
+
 func prepareOrLikeQuery[S comparable](filters1 []S, filters2 []S, query []string, args []any, key1, key2 string) ([]string, []any) {
 	if len(filters1) == 0 || len(filters2) == 0 {
 		return query, args
