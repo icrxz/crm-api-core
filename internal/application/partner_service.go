@@ -29,6 +29,26 @@ func NewPartnerService(partnerRepository domain.PartnerRepository) PartnerServic
 }
 
 func (s *partnerService) Create(ctx context.Context, partner domain.Partner) (string, error) {
+	if partner.Document == "" {
+		return "", domain.NewValidationError("document is required", nil)
+	}
+
+	if partner.DocumentType != domain.CPF && partner.DocumentType != domain.CNPJ {
+		return "", domain.NewValidationError("document_type must be CPF or CNPJ", nil)
+	}
+
+	existingPartners, err := s.partnerRepository.Search(ctx, domain.PartnerFilters{
+		DocumentExact: []string{partner.Document},
+		PagingFilter:  domain.PagingFilter{Limit: 1, Offset: 0},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	if existingPartners.Paging.Total > 0 {
+		return "", domain.NewConflictError("document already in use", nil)
+	}
+
 	return s.partnerRepository.Create(ctx, partner)
 }
 

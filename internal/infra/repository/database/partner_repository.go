@@ -73,6 +73,7 @@ func (db *partnerRepository) Search(ctx context.Context, filters domain.PartnerF
 	var limitArgs []any
 
 	whereQuery, whereArgs = prepareLikeQuery(filters.Document, whereQuery, whereArgs, "document")
+	whereQuery, whereArgs = prepareInQuery(filters.DocumentExact, whereQuery, whereArgs, "document")
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerType, whereQuery, whereArgs, "partner_type")
 	whereQuery, whereArgs = prepareInQuery(filters.PartnerID, whereQuery, whereArgs, "partner_id")
 	whereQuery, whereArgs = prepareInQuery(filters.State, whereQuery, whereArgs, "shipping_state")

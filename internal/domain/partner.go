@@ -65,16 +65,19 @@ type NameOrCityFilter struct {
 }
 
 type PartnerFilters struct {
-	PartnerID   []string
-	State       []string
-	Document    []string
-	PartnerType []string
-	City        []string
-	FirstName   []string
-	LastName    []string
-	Name        []string
-	Active      *bool
-	NameOrCity  *NameOrCityFilter
+	PartnerID []string
+	State     []string
+	Document  []string
+	// DocumentExact matches the document field exactly (unlike Document,
+	// which does a partial/LIKE match for search-as-you-type UX).
+	DocumentExact []string
+	PartnerType   []string
+	City          []string
+	FirstName     []string
+	LastName      []string
+	Name          []string
+	Active        *bool
+	NameOrCity    *NameOrCityFilter
 	PagingFilter
 }
 
