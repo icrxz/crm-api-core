@@ -41,25 +41,27 @@ func (n *NullableTime) UnmarshalJSON(data []byte) error {
 }
 
 type CreateUserDTO struct {
-	Username  string          `json:"username"`
-	FirstName string          `json:"first_name"`
-	LastName  string          `json:"last_name"`
-	Email     string          `json:"email"`
-	Role      domain.UserRole `json:"role"`
-	Region    int             `json:"region"`
-	Password  string          `json:"password"`
-	CreatedBy string          `json:"created_by"`
+	Username       string          `json:"username"`
+	FirstName      string          `json:"first_name"`
+	LastName       string          `json:"last_name"`
+	Email          string          `json:"email"`
+	Role           domain.UserRole `json:"role"`
+	Region         int             `json:"region"`
+	Password       string          `json:"password"`
+	OrganizationID *string         `json:"organization_id"`
+	CreatedBy      string          `json:"created_by"`
 }
 
 type UpdateUserDTO struct {
-	FirstName     *string          `json:"first_name"`
-	LastName      *string          `json:"last_name"`
-	Email         *string          `json:"email"`
-	Role          *domain.UserRole `json:"role"`
-	Region        *int             `json:"region"`
-	Active        *bool            `json:"active"`
-	LastAbsenceAt NullableTime     `json:"last_absence_at"`
-	UpdatedBy     string           `json:"created_by"`
+	FirstName      *string          `json:"first_name"`
+	LastName       *string          `json:"last_name"`
+	Email          *string          `json:"email"`
+	Role           *domain.UserRole `json:"role"`
+	Region         *int             `json:"region"`
+	Active         *bool            `json:"active"`
+	LastAbsenceAt  NullableTime     `json:"last_absence_at"`
+	OrganizationID *string          `json:"organization_id"`
+	UpdatedBy      string           `json:"created_by"`
 }
 
 type ChangePasswordDTO struct {
@@ -68,19 +70,20 @@ type ChangePasswordDTO struct {
 }
 
 type UserDTO struct {
-	UserID        string          `json:"user_id"`
-	Username      string          `json:"username"`
-	FirstName     string          `json:"first_name"`
-	LastName      string          `json:"last_name"`
-	Email         string          `json:"email"`
-	Role          domain.UserRole `json:"role"`
-	Region        int             `json:"region"`
-	CreatedAt     time.Time       `json:"created_at"`
-	CreatedBy     string          `json:"created_by"`
-	UpdatedAt     time.Time       `json:"updated_at"`
-	UpdatedBy     string          `json:"updated_by"`
-	Active        bool            `json:"active"`
-	LastAbsenceAt *time.Time      `json:"last_absence_at"`
+	UserID         string          `json:"user_id"`
+	Username       string          `json:"username"`
+	FirstName      string          `json:"first_name"`
+	LastName       string          `json:"last_name"`
+	Email          string          `json:"email"`
+	Role           domain.UserRole `json:"role"`
+	Region         int             `json:"region"`
+	CreatedAt      time.Time       `json:"created_at"`
+	CreatedBy      string          `json:"created_by"`
+	UpdatedAt      time.Time       `json:"updated_at"`
+	UpdatedBy      string          `json:"updated_by"`
+	Active         bool            `json:"active"`
+	LastAbsenceAt  *time.Time      `json:"last_absence_at"`
+	OrganizationID *string         `json:"organization_id"`
 }
 
 func mapCreateUserDTOToUser(userDTO CreateUserDTO) (domain.User, error) {
@@ -98,24 +101,27 @@ func mapCreateUserDTOToUser(userDTO CreateUserDTO) (domain.User, error) {
 		return domain.User{}, err
 	}
 
+	user.OrganizationID = userDTO.OrganizationID
+
 	return user, nil
 }
 
 func mapUserToUserDTO(user domain.User) UserDTO {
 	return UserDTO{
-		UserID:        user.UserID,
-		Username:      user.Username,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		Email:         user.Email,
-		Role:          user.Role,
-		CreatedAt:     user.CreatedAt,
-		CreatedBy:     user.CreatedBy,
-		UpdatedAt:     user.UpdatedAt,
-		UpdatedBy:     user.UpdatedBy,
-		Region:        user.Region,
-		Active:        user.Active,
-		LastAbsenceAt: user.LastAbsenceAt,
+		UserID:         user.UserID,
+		Username:       user.Username,
+		FirstName:      user.FirstName,
+		LastName:       user.LastName,
+		Email:          user.Email,
+		Role:           user.Role,
+		CreatedAt:      user.CreatedAt,
+		CreatedBy:      user.CreatedBy,
+		UpdatedAt:      user.UpdatedAt,
+		UpdatedBy:      user.UpdatedBy,
+		Region:         user.Region,
+		Active:         user.Active,
+		LastAbsenceAt:  user.LastAbsenceAt,
+		OrganizationID: user.OrganizationID,
 	}
 }
 
@@ -131,12 +137,13 @@ func mapUsersToUserDTOs(users []domain.User) []UserDTO {
 
 func mapUpdateUserDTOToUserUpdate(dto UpdateUserDTO) domain.UserUpdate {
 	return domain.UserUpdate{
-		FirstName:     dto.FirstName,
-		LastName:      dto.LastName,
-		Email:         dto.Email,
-		Role:          dto.Role,
-		Region:        dto.Region,
-		Active:        dto.Active,
-		LastAbsenceAt: domain.OptionalTime{Present: dto.LastAbsenceAt.Set, Value: dto.LastAbsenceAt.Value},
+		FirstName:      dto.FirstName,
+		LastName:       dto.LastName,
+		Email:          dto.Email,
+		Role:           dto.Role,
+		Region:         dto.Region,
+		Active:         dto.Active,
+		LastAbsenceAt:  domain.OptionalTime{Present: dto.LastAbsenceAt.Set, Value: dto.LastAbsenceAt.Value},
+		OrganizationID: dto.OrganizationID,
 	}
 }

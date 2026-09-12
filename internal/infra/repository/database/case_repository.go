@@ -28,9 +28,9 @@ func (r *caseRepository) Create(ctx context.Context, crmCase domain.Case) (strin
 	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"INSERT INTO cases "+
-			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id, queue_id, metadata) "+
+			"(case_id, contractor_id, customer_id, origin, type, subject, priority, status, due_date, created_by, created_at, updated_by, updated_at, external_reference, product_id, region, owner_id, queue_id, metadata, organization_id) "+
 			"VALUES "+
-			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id, :queue_id, :metadata)",
+			"(:case_id, :contractor_id, :customer_id, :origin, :type, :subject, :priority, :status, :due_date, :created_by, :created_at, :updated_by, :updated_at, :external_reference, :product_id, :region, :owner_id, :queue_id, :metadata, :organization_id)",
 		crmCaseDTO,
 	)
 	if err != nil {
@@ -145,7 +145,8 @@ func (r *caseRepository) Update(ctx context.Context, crmCase domain.Case) error 
 			"closed_at = :closed_at, "+
 			"target_date = :target_date, "+
 			"queue_id = :queue_id, "+
-			"metadata = :metadata "+
+			"metadata = :metadata, "+
+			"organization_id = :organization_id "+
 			"WHERE case_id = :case_id",
 		crmCaseDTO,
 	)

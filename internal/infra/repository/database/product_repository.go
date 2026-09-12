@@ -25,9 +25,9 @@ func (r *productRepository) CreateProduct(ctx context.Context, product domain.Pr
 	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"INSERT INTO products "+
-			"(product_id, name, description, brand, model, value, serial_number, created_at, updated_at, created_by, updated_by) "+
+			"(product_id, name, description, brand, model, value, serial_number, created_at, updated_at, created_by, updated_by, organization_id) "+
 			"VALUES "+
-			"(:product_id, :name, :description, :brand, :model, :value, :serial_number, :created_at, :updated_at, :created_by, :updated_by)",
+			"(:product_id, :name, :description, :brand, :model, :value, :serial_number, :created_at, :updated_at, :created_by, :updated_by, :organization_id)",
 		productDTO,
 	)
 	if err != nil {
@@ -61,7 +61,7 @@ func (r *productRepository) UpdateProduct(ctx context.Context, product domain.Pr
 	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"UPDATE products "+
-			"SET name=:name, description=:description, brand=:brand, model=:model, value=:value, serial_number=:serial_number, updated_at=:updated_at, updated_by=:updated_by "+
+			"SET name=:name, description=:description, brand=:brand, model=:model, value=:value, serial_number=:serial_number, updated_at=:updated_at, updated_by=:updated_by, organization_id=:organization_id "+
 			"WHERE product_id=:product_id",
 		productDTO,
 	)

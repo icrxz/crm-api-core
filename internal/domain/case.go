@@ -48,6 +48,7 @@ type Case struct {
 	TargetDate        *time.Time
 	QueueID           string
 	Metadata          map[string]any
+	OrganizationID    *string
 }
 
 // MatchableFields returns the case's typed fields merged with its metadata,
@@ -92,6 +93,7 @@ type CaseFull struct {
 	TargetDate        *time.Time
 	Queue             Queue
 	Metadata          map[string]any
+	OrganizationID    *string
 }
 
 type CaseFilters struct {
@@ -114,17 +116,18 @@ type CaseFilters struct {
 }
 
 type CaseUpdate struct {
-	Status     *CaseStatus
-	PartnerID  *string
-	OwnerID    *string
-	TargetDate *time.Time
-	ClosedAt   *time.Time
-	Type       *string
-	CustomerID *string
-	ProductID  *string
-	Subject    *string
-	QueueID    *string
-	UpdatedBy  string
+	Status         *CaseStatus
+	PartnerID      *string
+	OwnerID        *string
+	TargetDate     *time.Time
+	ClosedAt       *time.Time
+	Type           *string
+	CustomerID     *string
+	ProductID      *string
+	Subject        *string
+	QueueID        *string
+	OrganizationID *string
+	UpdatedBy      string
 }
 
 type CaseStatus string
@@ -234,6 +237,10 @@ func (c *Case) MergeUpdate(updateCase CaseUpdate) {
 
 	if updateCase.QueueID != nil {
 		c.QueueID = *updateCase.QueueID
+	}
+
+	if updateCase.OrganizationID != nil {
+		c.OrganizationID = updateCase.OrganizationID
 	}
 }
 

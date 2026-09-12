@@ -22,6 +22,7 @@ type CreateCaseDTO struct {
 	Value              float64        `json:"value"`
 	SerialNumber       string         `json:"serial_number"`
 	Metadata           map[string]any `json:"metadata"`
+	OrganizationID     *string        `json:"organization_id"`
 }
 
 type CaseDTO struct {
@@ -47,6 +48,7 @@ type CaseDTO struct {
 	TargetDate        *time.Time          `json:"target_date"`
 	QueueID           string              `json:"queue_id"`
 	Metadata          map[string]any      `json:"metadata"`
+	OrganizationID    *string             `json:"organization_id"`
 }
 
 type UpdateCaseMetadataDTO struct {
@@ -83,15 +85,16 @@ type CaseFullDTO struct {
 }
 
 type UpdateCaseDTO struct {
-	TargetDate *time.Time `json:"target_date"`
-	Status     *string    `json:"status"`
-	PartnerID  *string    `json:"partner_id"`
-	OwnerID    *string    `json:"owner_id"`
-	CustomerID *string    `json:"customer_id"`
-	ProductID  *string    `json:"product_id"`
-	Subject    *string    `json:"subject"`
-	Type       *string    `json:"type"`
-	UpdatedBy  string     `json:"updated_by" validate:"required"`
+	TargetDate     *time.Time `json:"target_date"`
+	Status         *string    `json:"status"`
+	PartnerID      *string    `json:"partner_id"`
+	OwnerID        *string    `json:"owner_id"`
+	CustomerID     *string    `json:"customer_id"`
+	ProductID      *string    `json:"product_id"`
+	Subject        *string    `json:"subject"`
+	Type           *string    `json:"type"`
+	OrganizationID *string    `json:"organization_id"`
+	UpdatedBy      string     `json:"updated_by" validate:"required"`
 }
 
 func mapCreateCaseDTOToCreateCase(createCaseDTO CreateCaseDTO) (domain.CreateCase, error) {
@@ -123,6 +126,8 @@ func mapCreateCaseDTOToCreateCase(createCaseDTO CreateCaseDTO) (domain.CreateCas
 		return domain.CreateCase{}, err
 	}
 
+	crmCase.OrganizationID = createCaseDTO.OrganizationID
+
 	return domain.CreateCase{
 		Case:    crmCase,
 		Product: product,
@@ -153,6 +158,7 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		TargetDate:        crmCase.TargetDate,
 		QueueID:           crmCase.QueueID,
 		Metadata:          crmCase.Metadata,
+		OrganizationID:    crmCase.OrganizationID,
 	}
 }
 
@@ -172,15 +178,16 @@ func mapUpdateCaseDTOToUpdateCase(dto UpdateCaseDTO) domain.CaseUpdate {
 	}
 
 	return domain.CaseUpdate{
-		TargetDate: dto.TargetDate,
-		UpdatedBy:  dto.UpdatedBy,
-		Status:     status,
-		PartnerID:  dto.PartnerID,
-		OwnerID:    dto.OwnerID,
-		CustomerID: dto.CustomerID,
-		Subject:    dto.Subject,
-		ProductID:  dto.ProductID,
-		Type:       dto.Type,
+		TargetDate:     dto.TargetDate,
+		UpdatedBy:      dto.UpdatedBy,
+		Status:         status,
+		PartnerID:      dto.PartnerID,
+		OwnerID:        dto.OwnerID,
+		CustomerID:     dto.CustomerID,
+		Subject:        dto.Subject,
+		ProductID:      dto.ProductID,
+		Type:           dto.Type,
+		OrganizationID: dto.OrganizationID,
 	}
 }
 

@@ -91,14 +91,15 @@ func anySliceIntersects(a []any, b []any) bool {
 }
 
 type Queue struct {
-	QueueID   string
-	Name      string
-	Criteria  Criteria
-	Active    bool
-	CreatedBy string
-	CreatedAt time.Time
-	UpdatedBy string
-	UpdatedAt time.Time
+	QueueID        string
+	Name           string
+	Criteria       Criteria
+	Active         bool
+	CreatedBy      string
+	CreatedAt      time.Time
+	UpdatedBy      string
+	UpdatedAt      time.Time
+	OrganizationID *string
 }
 
 type QueueFilters struct {
@@ -109,10 +110,11 @@ type QueueFilters struct {
 }
 
 type UpdateQueue struct {
-	Name      *string
-	Criteria  Criteria
-	Active    *bool
-	UpdatedBy string
+	Name           *string
+	Criteria       Criteria
+	Active         *bool
+	OrganizationID *string
+	UpdatedBy      string
 }
 
 func NewQueue(name string, criteria Criteria, author string) (Queue, error) {
@@ -156,5 +158,9 @@ func (q *Queue) MergeUpdate(update UpdateQueue) {
 
 	if update.Active != nil {
 		q.Active = *update.Active
+	}
+
+	if update.OrganizationID != nil {
+		q.OrganizationID = update.OrganizationID
 	}
 }

@@ -30,6 +30,7 @@ type Customer struct {
 	BusinessContact Contact
 	PersonalContact Contact
 	Cases           []Case
+	OrganizationID  *string
 	CreatedBy       string
 	CreatedAt       time.Time
 	UpdatedBy       string
@@ -108,6 +109,7 @@ type UpdateCustomer struct {
 	BillingAddress  *UpdateAddress
 	BusinessContact *UpdateContact
 	PersonalContact *UpdateContact
+	OrganizationID  *string
 	UpdatedBy       string
 }
 
@@ -153,6 +155,10 @@ func (c *Customer) MergeUpdate(updateCustomer UpdateCustomer) {
 
 	if updateCustomer.PersonalContact != nil {
 		c.PersonalContact.MergeUpdate(*updateCustomer.PersonalContact)
+	}
+
+	if updateCustomer.OrganizationID != nil {
+		c.OrganizationID = updateCustomer.OrganizationID
 	}
 }
 

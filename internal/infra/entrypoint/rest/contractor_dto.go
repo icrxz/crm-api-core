@@ -12,6 +12,7 @@ type CreateContractorDTO struct {
 	Document                      string                        `json:"document"`
 	BusinessContact               ContactDTO                    `json:"business_contact"`
 	ContractorPlatformTemplateDTO ContractorPlatformTemplateDTO `json:"template"`
+	OrganizationID                *string                       `json:"organization_id"`
 	CreatedBy                     string                        `json:"created_by"`
 }
 
@@ -22,6 +23,7 @@ type ContractorDTO struct {
 	Document        string     `json:"document"`
 	DocumentType    string     `json:"document_type"`
 	BusinessContact ContactDTO `json:"business_contact"`
+	OrganizationID  *string    `json:"organization_id"`
 	CreatedBy       string     `json:"created_by"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedBy       string     `json:"updated_by"`
@@ -35,6 +37,7 @@ type UpdateContractorDTO struct {
 	Document        *string     `json:"document"`
 	DocumentType    *string     `json:"document_type"`
 	BusinessContact *ContactDTO `json:"business_contact"`
+	OrganizationID  *string     `json:"organization_id"`
 	UpdatedBy       string      `json:"updated_by"`
 }
 
@@ -46,6 +49,7 @@ func mapContractorToContractorDTO(contractor domain.Contractor) ContractorDTO {
 		Document:        contractor.Document,
 		DocumentType:    string(contractor.DocumentType),
 		BusinessContact: mapContactToContactDTO(contractor.BusinessContact),
+		OrganizationID:  contractor.OrganizationID,
 		CreatedBy:       contractor.CreatedBy,
 		CreatedAt:       contractor.CreatedAt,
 		UpdatedBy:       contractor.UpdatedBy,
@@ -60,7 +64,7 @@ func mapCreateContractorDTOToContractor(contractorDTO CreateContractorDTO) (doma
 		return domain.Contractor{}, err
 	}
 
-	return domain.NewContractor(
+	contractor, err := domain.NewContractor(
 		contractorDTO.LegalName,
 		contractorDTO.CompanyName,
 		contractorDTO.Document,
@@ -68,6 +72,13 @@ func mapCreateContractorDTOToContractor(contractorDTO CreateContractorDTO) (doma
 		mapContactDTOToContact(contractorDTO.BusinessContact),
 		contractorPlatformTemplate,
 	)
+	if err != nil {
+		return domain.Contractor{}, err
+	}
+
+	contractor.OrganizationID = contractorDTO.OrganizationID
+
+	return contractor, nil
 }
 
 func mapContractorsToContractorDTOs(contractors []domain.Contractor) []ContractorDTO {
@@ -99,6 +110,7 @@ func mapUpdateContractorDTOToUpdateContractor(updateContractorDTO UpdateContract
 		Document:        updateContractorDTO.Document,
 		DocumentType:    parsedDocumentType,
 		BusinessContact: parsedBusinessContact,
+		OrganizationID:  updateContractorDTO.OrganizationID,
 		UpdatedBy:       updateContractorDTO.UpdatedBy,
 	}
 }

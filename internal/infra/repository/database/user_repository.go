@@ -27,9 +27,9 @@ func (db *userDatabase) Create(ctx context.Context, user domain.User) (string, e
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO users "+
-			"(user_id, username, first_name, last_name, email, password, role, created_at, created_by, updated_at, updated_by, active, region, last_logged_ip, session_token, last_absence_at) "+
+			"(user_id, username, first_name, last_name, email, password, role, created_at, created_by, updated_at, updated_by, active, region, last_logged_ip, session_token, last_absence_at, organization_id) "+
 			"VALUES "+
-			"(:user_id, :username, :first_name, :last_name, :email, :password, :role, :created_at, :created_by, :updated_at, :updated_by, :active, :region, :last_logged_ip, :session_token, :last_absence_at)",
+			"(:user_id, :username, :first_name, :last_name, :email, :password, :role, :created_at, :created_by, :updated_at, :updated_by, :active, :region, :last_logged_ip, :session_token, :last_absence_at, :organization_id)",
 		userDTO,
 	)
 	if err != nil {
@@ -124,7 +124,8 @@ func (db *userDatabase) Update(ctx context.Context, userToUpdate domain.User) er
 			"password = :password, "+
 			"last_logged_ip = :last_logged_ip, "+
 			"session_token = :session_token, "+
-			"last_absence_at = :last_absence_at "+
+			"last_absence_at = :last_absence_at, "+
+			"organization_id = :organization_id "+
 			"WHERE user_id = :user_id",
 		userDTO,
 	)

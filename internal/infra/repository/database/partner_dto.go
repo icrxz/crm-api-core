@@ -30,6 +30,7 @@ type PartnerDTO struct {
 	PersonalEmail          string    `db:"personal_email"`
 	BusinessEmail          string    `db:"business_email"`
 	Region                 *int      `db:"region"`
+	OrganizationID         *string   `db:"organization_id"`
 	CreatedBy              string    `db:"created_by"`
 	CreatedAt              time.Time `db:"created_at"`
 	UpdatedBy              string    `db:"updated_by"`
@@ -106,6 +107,7 @@ func mapPartnerToPartnerDTO(partner domain.Partner) PartnerDTO {
 		BusinessPhone:          partner.BusinessContact.PhoneNumber,
 		PersonalEmail:          partner.PersonalContact.Email,
 		BusinessEmail:          partner.BusinessContact.Email,
+		OrganizationID:         partner.OrganizationID,
 		CreatedBy:              partner.CreatedBy,
 		CreatedAt:              partner.CreatedAt,
 		UpdatedBy:              partner.UpdatedBy,
@@ -182,12 +184,13 @@ func mapPartnerDTOToPartner(partnerDTO PartnerDTO) domain.Partner {
 			PhoneNumber: partnerDTO.BusinessPhone,
 			Email:       partnerDTO.BusinessEmail,
 		},
-		CreatedBy:   partnerDTO.CreatedBy,
-		CreatedAt:   partnerDTO.CreatedAt,
-		UpdatedBy:   partnerDTO.UpdatedBy,
-		UpdatedAt:   partnerDTO.UpdatedAt,
-		Active:      partnerDTO.Active,
-		Description: descriptionString,
+		OrganizationID: partnerDTO.OrganizationID,
+		CreatedBy:      partnerDTO.CreatedBy,
+		CreatedAt:      partnerDTO.CreatedAt,
+		UpdatedBy:      partnerDTO.UpdatedBy,
+		UpdatedAt:      partnerDTO.UpdatedAt,
+		Active:         partnerDTO.Active,
+		Description:    descriptionString,
 		Billing: domain.Billing{
 			Key:             paymentKeyString,
 			Option:          paymentOptionString,

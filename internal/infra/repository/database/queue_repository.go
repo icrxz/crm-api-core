@@ -29,9 +29,9 @@ func (r *queueRepository) Create(ctx context.Context, queue domain.Queue) (strin
 	_, err := executor(ctx, r.client).NamedExecContext(
 		ctx,
 		"INSERT INTO queues "+
-			"(queue_id, name, criteria, active, created_at, created_by, updated_at, updated_by) "+
+			"(queue_id, name, criteria, active, created_at, created_by, updated_at, updated_by, organization_id) "+
 			"VALUES "+
-			"(:queue_id, :name, :criteria, :active, :created_at, :created_by, :updated_at, :updated_by)",
+			"(:queue_id, :name, :criteria, :active, :created_at, :created_by, :updated_at, :updated_by, :organization_id)",
 		queueDTO,
 	)
 	if err != nil {
@@ -51,7 +51,8 @@ func (r *queueRepository) Update(ctx context.Context, queue domain.Queue) error 
 			"criteria = :criteria, "+
 			"active = :active, "+
 			"updated_at = :updated_at, "+
-			"updated_by = :updated_by "+
+			"updated_by = :updated_by, "+
+			"organization_id = :organization_id "+
 			"WHERE queue_id = :queue_id",
 		queueDTO,
 	)

@@ -29,6 +29,7 @@ type CaseDTO struct {
 	TargetDate        *time.Time `db:"target_date"`
 	QueueID           *string    `db:"queue_id"`
 	Metadata          JSONMap    `db:"metadata"`
+	OrganizationID    *string    `db:"organization_id"`
 }
 
 type CaseFullDTO struct {
@@ -106,6 +107,7 @@ func mapCaseToCaseDTO(crmCase domain.Case) CaseDTO {
 		ClosedAt:          crmCase.ClosedAt,
 		QueueID:           queueID,
 		Metadata:          JSONMap(crmCase.Metadata),
+		OrganizationID:    crmCase.OrganizationID,
 	}
 }
 
@@ -158,6 +160,7 @@ func mapCaseDTOToCase(crmCaseDTO CaseDTO) domain.Case {
 		TargetDate:        crmCaseDTO.TargetDate,
 		QueueID:           queueID,
 		Metadata:          map[string]any(crmCaseDTO.Metadata),
+		OrganizationID:    crmCaseDTO.OrganizationID,
 	}
 }
 

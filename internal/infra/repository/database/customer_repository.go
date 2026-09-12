@@ -27,9 +27,9 @@ func (db *customerRepository) Create(ctx context.Context, customer domain.Custom
 	_, err := db.client.NamedExecContext(
 		ctx,
 		"INSERT INTO customers "+
-			"(customer_id, first_name, last_name, company_name, legal_name, customer_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, created_at, created_by, updated_at, updated_by, active) "+
+			"(customer_id, first_name, last_name, company_name, legal_name, customer_type, document, document_type, shipping_address, shipping_city, shipping_state, shipping_zip_code, shipping_country, billing_address, billing_city, billing_state, billing_zip_code, billing_country, personal_phone, business_phone, personal_email, business_email, organization_id, created_at, created_by, updated_at, updated_by, active) "+
 			"VALUES "+
-			"(:customer_id, :first_name, :last_name, :company_name, :legal_name, :customer_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :created_at, :created_by, :updated_at, :updated_by, :active)",
+			"(:customer_id, :first_name, :last_name, :company_name, :legal_name, :customer_type, :document, :document_type, :shipping_address, :shipping_city, :shipping_state, :shipping_zip_code, :shipping_country, :billing_address, :billing_city, :billing_state, :billing_zip_code, :billing_country, :personal_phone, :business_phone, :personal_email, :business_email, :organization_id, :created_at, :created_by, :updated_at, :updated_by, :active)",
 		customerDTO,
 	)
 	if err != nil {
@@ -123,6 +123,7 @@ func (db *customerRepository) Update(ctx context.Context, customer domain.Custom
 			"business_phone = :business_phone, "+
 			"personal_email = :personal_email, "+
 			"business_email = :business_email, "+
+			"organization_id = :organization_id, "+
 			"updated_at = :updated_at, "+
 			"updated_by = :updated_by, "+
 			"active = :active "+

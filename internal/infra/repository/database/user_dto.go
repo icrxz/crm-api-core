@@ -8,63 +8,66 @@ import (
 )
 
 type UserDTO struct {
-	UserID        string     `db:"user_id"`
-	Username      string     `db:"username"`
-	FirstName     string     `db:"first_name"`
-	LastName      string     `db:"last_name"`
-	Email         string     `db:"email"`
-	Password      string     `db:"password"`
-	Role          string     `db:"role"`
-	Region        int        `db:"region"`
-	LastLoggedIP  string     `db:"last_logged_ip"`
-	SessionToken  *string    `db:"session_token"`
-	Active        bool       `db:"active"`
-	LastAbsenceAt *time.Time `db:"last_absence_at"`
-	CreatedAt     time.Time  `db:"created_at"`
-	CreatedBy     string     `db:"created_by"`
-	UpdatedAt     time.Time  `db:"updated_at"`
-	UpdatedBy     string     `db:"updated_by"`
+	UserID         string     `db:"user_id"`
+	Username       string     `db:"username"`
+	FirstName      string     `db:"first_name"`
+	LastName       string     `db:"last_name"`
+	Email          string     `db:"email"`
+	Password       string     `db:"password"`
+	Role           string     `db:"role"`
+	Region         int        `db:"region"`
+	LastLoggedIP   string     `db:"last_logged_ip"`
+	SessionToken   *string    `db:"session_token"`
+	Active         bool       `db:"active"`
+	LastAbsenceAt  *time.Time `db:"last_absence_at"`
+	OrganizationID *string    `db:"organization_id"`
+	CreatedAt      time.Time  `db:"created_at"`
+	CreatedBy      string     `db:"created_by"`
+	UpdatedAt      time.Time  `db:"updated_at"`
+	UpdatedBy      string     `db:"updated_by"`
 }
 
 func mapUserToUserDTO(user domain.User) UserDTO {
 	return UserDTO{
-		UserID:        user.UserID,
-		Username:      user.Username,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		Email:         user.Email,
-		Role:          string(user.Role),
-		Region:        user.Region,
-		Password:      user.Password,
-		LastLoggedIP:  user.LastLoggedIP,
-		SessionToken:  &user.SessionToken,
-		Active:        user.Active,
-		LastAbsenceAt: user.LastAbsenceAt,
-		CreatedAt:     user.CreatedAt,
-		CreatedBy:     user.CreatedBy,
-		UpdatedAt:     user.UpdatedAt,
-		UpdatedBy:     user.UpdatedBy,
+		UserID:         user.UserID,
+		Username:       user.Username,
+		FirstName:      user.FirstName,
+		LastName:       user.LastName,
+		Email:          user.Email,
+		Role:           string(user.Role),
+		Region:         user.Region,
+		Password:       user.Password,
+		LastLoggedIP:   user.LastLoggedIP,
+		SessionToken:   &user.SessionToken,
+		Active:         user.Active,
+		LastAbsenceAt:  user.LastAbsenceAt,
+		OrganizationID: user.OrganizationID,
+		CreatedAt:      user.CreatedAt,
+		CreatedBy:      user.CreatedBy,
+		UpdatedAt:      user.UpdatedAt,
+		UpdatedBy:      user.UpdatedBy,
 	}
 }
 
 func mapUserDTOToUser(userDTO UserDTO) domain.User {
 	return domain.User{
-		UserID:        userDTO.UserID,
-		Username:      userDTO.Username,
-		FirstName:     userDTO.FirstName,
-		LastName:      userDTO.LastName,
-		Email:         userDTO.Email,
-		Role:          domain.UserRole(userDTO.Role),
-		Region:        userDTO.Region,
-		CreatedAt:     userDTO.CreatedAt,
-		CreatedBy:     userDTO.CreatedBy,
-		UpdatedAt:     userDTO.UpdatedAt,
-		UpdatedBy:     userDTO.UpdatedBy,
-		Password:      userDTO.Password,
-		LastLoggedIP:  userDTO.LastLoggedIP,
-		SessionToken:  ptr.ToString(userDTO.SessionToken),
-		Active:        userDTO.Active,
-		LastAbsenceAt: userDTO.LastAbsenceAt,
+		UserID:         userDTO.UserID,
+		Username:       userDTO.Username,
+		FirstName:      userDTO.FirstName,
+		LastName:       userDTO.LastName,
+		Email:          userDTO.Email,
+		Role:           domain.UserRole(userDTO.Role),
+		Region:         userDTO.Region,
+		CreatedAt:      userDTO.CreatedAt,
+		CreatedBy:      userDTO.CreatedBy,
+		UpdatedAt:      userDTO.UpdatedAt,
+		UpdatedBy:      userDTO.UpdatedBy,
+		Password:       userDTO.Password,
+		LastLoggedIP:   userDTO.LastLoggedIP,
+		SessionToken:   ptr.ToString(userDTO.SessionToken),
+		Active:         userDTO.Active,
+		LastAbsenceAt:  userDTO.LastAbsenceAt,
+		OrganizationID: userDTO.OrganizationID,
 	}
 }
 
