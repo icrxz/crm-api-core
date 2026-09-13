@@ -13,13 +13,15 @@ type assurantBuilder struct {
 	columnsIndex map[string]int
 	author       string
 	companyName  string
+	category     string
 }
 
-func NewAssurantBuilder(columnsIndex map[string]int, author, companyName string) domain.CaseBuilder {
+func NewAssurantBuilder(columnsIndex map[string]int, author, companyName, category string) domain.CaseBuilder {
 	return &assurantBuilder{
 		columnsIndex: columnsIndex,
 		author:       author,
 		companyName:  companyName,
+		category:     category,
 	}
 }
 
@@ -43,7 +45,7 @@ func (b *assurantBuilder) BuildCase(row []string, contractors []domain.Contracto
 		dueDate,
 		b.author,
 		row[b.columnsIndex["Número Sinistro"]],
-		nil,
+		map[string]any{categoryMetadataKey: b.category},
 	)
 	if err != nil {
 		return nil, err

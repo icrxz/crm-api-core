@@ -11,12 +11,14 @@ import (
 type luizaSegBuilder struct {
 	columnsIndex map[string]int
 	author       string
+	category     string
 }
 
-func NewLuizaSegBuilder(columnsIndex map[string]int, author, _ string) domain.CaseBuilder {
+func NewLuizaSegBuilder(columnsIndex map[string]int, author, _, category string) domain.CaseBuilder {
 	return &luizaSegBuilder{
 		columnsIndex: columnsIndex,
 		author:       author,
+		category:     category,
 	}
 }
 
@@ -58,7 +60,7 @@ func (b *luizaSegBuilder) BuildCase(row []string, contractors []domain.Contracto
 		dueDate,
 		b.author,
 		row[b.columnsIndex["SINISTRO"]+1],
-		nil,
+		map[string]any{categoryMetadataKey: b.category},
 	)
 	if err != nil {
 		return nil, err
