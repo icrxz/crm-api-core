@@ -20,7 +20,7 @@ type batchCaseService struct {
 
 //go:generate mockgen -source=batch_case_service.go -destination=mock_application/mock_batch_case_service.go -package=mock_application
 type BatchCaseService interface {
-	CreateBatch(ctx context.Context, file io.Reader, fileName, createdBy, company string) ([]string, error)
+	CreateBatch(ctx context.Context, file io.Reader, fileName, createdBy, company, category string) ([]string, error)
 }
 
 func NewBatchCaseService(customerService CustomerService, productService ProductService, contractorService ContractorService, caseRepository domain.CaseRepository) BatchCaseService {
@@ -32,7 +32,7 @@ func NewBatchCaseService(customerService CustomerService, productService Product
 	}
 }
 
-func (s *batchCaseService) CreateBatch(ctx context.Context, file io.Reader, fileName, createdBy, companyName string) ([]string, error) {
+func (s *batchCaseService) CreateBatch(ctx context.Context, file io.Reader, fileName, createdBy, companyName, category string) ([]string, error) {
 	fileNameSplit := strings.Split(fileName, ".")
 	fileExtension := fileNameSplit[len(fileNameSplit)-1]
 
@@ -61,23 +61,23 @@ func (s *batchCaseService) CreateBatch(ctx context.Context, file io.Reader, file
 	case "Assurant":
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewAssurantBuilder(columnsIndex, createdBy, companyName)
+		caseBuilder = builder.NewAssurantBuilder(columnsIndex, createdBy, companyName, category)
 	case "Cardif":
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewLuizaSegBuilder(columnsIndex, createdBy, companyName)
+		caseBuilder = builder.NewLuizaSegBuilder(columnsIndex, createdBy, companyName, category)
 	case "Ezze Seguros":
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewEzzeBuilder(columnsIndex, createdBy, companyName)
+		caseBuilder = builder.NewEzzeBuilder(columnsIndex, createdBy, companyName, category)
 	case "LuizaSeg":
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewLuizaSegBuilder(columnsIndex, createdBy, companyName)
+		caseBuilder = builder.NewLuizaSegBuilder(columnsIndex, createdBy, companyName, category)
 	default:
 		columnsIndex = getColumnHeadersIndex(casesRows[0])
 		fileRows = casesRows[1:]
-		caseBuilder = builder.NewDefaultBuilder(columnsIndex, createdBy, companyName)
+		caseBuilder = builder.NewDefaultBuilder(columnsIndex, createdBy, companyName, category)
 	}
 
 	cases, err := s.buildCases(ctx, fileRows, caseBuilder)

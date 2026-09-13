@@ -7,17 +7,21 @@ import (
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
 
+const categoryMetadataKey = "category"
+
 type defaultBuilder struct {
 	columnsIndex map[string]int
 	author       string
 	company      string
+	category     string
 }
 
-func NewDefaultBuilder(columnsIndex map[string]int, author string, company string) domain.CaseBuilder {
+func NewDefaultBuilder(columnsIndex map[string]int, author string, company string, category string) domain.CaseBuilder {
 	return &defaultBuilder{
 		columnsIndex: columnsIndex,
 		author:       author,
 		company:      company,
+		category:     category,
 	}
 }
 
@@ -41,7 +45,7 @@ func (b *defaultBuilder) BuildCase(row []string, contractors []domain.Contractor
 		dueDate,
 		b.author,
 		row[b.columnsIndex["Sinistro"]],
-		nil,
+		map[string]any{categoryMetadataKey: b.category},
 	)
 	if err != nil {
 		return nil, err
