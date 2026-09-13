@@ -11,13 +11,15 @@ type ezzeBuilder struct {
 	columnsIndex map[string]int
 	author       string
 	companyName  string
+	category     string
 }
 
-func NewEzzeBuilder(columnsIndex map[string]int, author, companyName string) domain.CaseBuilder {
+func NewEzzeBuilder(columnsIndex map[string]int, author, companyName, category string) domain.CaseBuilder {
 	return &ezzeBuilder{
 		columnsIndex: columnsIndex,
 		author:       author,
 		companyName:  companyName,
+		category:     category,
 	}
 }
 
@@ -41,7 +43,7 @@ func (b *ezzeBuilder) BuildCase(row []string, contractors []domain.Contractor, c
 		dueDate,
 		b.author,
 		row[b.columnsIndex["Ticket"]],
-		nil,
+		map[string]any{categoryMetadataKey: b.category},
 	)
 	if err != nil {
 		return nil, err

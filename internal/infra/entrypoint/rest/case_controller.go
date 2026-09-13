@@ -113,6 +113,12 @@ func (c *CaseController) CreateBatch(ctx *gin.Context) {
 		return
 	}
 
+	category := ctx.Request.FormValue("category")
+	if category == "" {
+		_ = ctx.Error(domain.NewValidationError("category is required", nil))
+		return
+	}
+
 	fileNameSplit := strings.Split(fileHeader.Filename, ".")
 	fileExtension := fileNameSplit[len(fileNameSplit)-1]
 	allowExtensions := []string{"csv", "xls", "xlsx"}
@@ -129,7 +135,7 @@ func (c *CaseController) CreateBatch(ctx *gin.Context) {
 		return
 	}
 
-	result, err := c.batchCaseService.CreateBatch(ctx, file, fileHeader.Filename, author, company)
+	result, err := c.batchCaseService.CreateBatch(ctx, file, fileHeader.Filename, author, company, category)
 	if err != nil {
 		ctx.Error(err)
 		return

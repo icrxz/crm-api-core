@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"bytes"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -13,6 +15,32 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
+
+func buildBatchRequest(t *testing.T, fields map[string]string, withFile bool) *http.Request {
+	t.Helper()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	for key, value := range fields {
+		require.NoError(t, writer.WriteField(key, value))
+	}
+
+	if withFile {
+		part, err := writer.CreateFormFile("file", "cases.csv")
+		require.NoError(t, err)
+		_, err = part.Write([]byte("Sinistro,Descrição\nSIN-CSV-001,quebrado"))
+		require.NoError(t, err)
+	}
+
+	require.NoError(t, writer.Close())
+
+	req := httptest.NewRequest(http.MethodPost, "/cases/batch", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("X-Author", "author-1")
+
+	return req
+}
 
 func TestCaseController_parseQueryToFilters(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -190,4 +218,74 @@ func TestCaseController_SearchCases(t *testing.T) {
 			require.Equal(t, tc.expectedStatus, w.Code)
 		})
 	}
+}
+
+func TestCaseController_CreateBatch(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("returns 400 when category is missing", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockBatchCaseService := mock_application.NewMockBatchCaseService(ctrl)
+		mockBatchCaseService.EXPECT().CreateBatch(
+			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+		).Times(0)
+
+		controller := CaseController{batchCaseService: mockBatchCaseService}
+		router := gin.New()
+		router.Use(testErrorEncoder())
+		router.POST("/cases/batch", controller.CreateBatch)
+
+		req := buildBatchRequest(t, map[string]string{"company": "Assurant"}, true)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("returns 400 when company is missing", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockBatchCaseService := mock_application.NewMockBatchCaseService(ctrl)
+		mockBatchCaseService.EXPECT().CreateBatch(
+			gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+		).Times(0)
+
+		controller := CaseController{batchCaseService: mockBatchCaseService}
+		router := gin.New()
+		router.Use(testErrorEncoder())
+		router.POST("/cases/batch", controller.CreateBatch)
+
+		req := buildBatchRequest(t, map[string]string{"category": "d+"}, true)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("passes category through to the batch service", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockBatchCaseService := mock_application.NewMockBatchCaseService(ctrl)
+		mockBatchCaseService.EXPECT().
+			CreateBatch(gomock.Any(), gomock.Any(), "cases.csv", "author-1", "Assurant", "furniture").
+			Return([]string{"case-batch-1"}, nil)
+
+		controller := CaseController{batchCaseService: mockBatchCaseService}
+		router := gin.New()
+		router.Use(testErrorEncoder())
+		router.POST("/cases/batch", controller.CreateBatch)
+
+		req := buildBatchRequest(t, map[string]string{
+			"company":  "Assurant",
+			"category": "furniture",
+		}, true)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusCreated, w.Code)
+	})
 }

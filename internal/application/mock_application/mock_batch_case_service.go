@@ -42,16 +42,16 @@ func (m *MockBatchCaseService) EXPECT() *MockBatchCaseServiceMockRecorder {
 }
 
 // CreateBatch mocks base method.
-func (m *MockBatchCaseService) CreateBatch(ctx context.Context, file io.Reader, fileName, createdBy, company string) ([]string, error) {
+func (m *MockBatchCaseService) CreateBatch(ctx context.Context, file io.Reader, fileName, createdBy, company, category string) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateBatch", ctx, file, fileName, createdBy, company)
+	ret := m.ctrl.Call(m, "CreateBatch", ctx, file, fileName, createdBy, company, category)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateBatch indicates an expected call of CreateBatch.
-func (mr *MockBatchCaseServiceMockRecorder) CreateBatch(ctx, file, fileName, createdBy, company any) *gomock.Call {
+func (mr *MockBatchCaseServiceMockRecorder) CreateBatch(ctx, file, fileName, createdBy, company, category any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBatch", reflect.TypeOf((*MockBatchCaseService)(nil).CreateBatch), ctx, file, fileName, createdBy, company)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBatch", reflect.TypeOf((*MockBatchCaseService)(nil).CreateBatch), ctx, file, fileName, createdBy, company, category)
 }
