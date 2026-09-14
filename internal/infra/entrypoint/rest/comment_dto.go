@@ -13,6 +13,11 @@ type CreateCommentDTO struct {
 	CreatedBy   string                `json:"created_by"`
 }
 
+type UpdateCommentDTO struct {
+	Content   string `json:"content"`
+	UpdatedBy string `json:"updated_by"`
+}
+
 type CommentDTO struct {
 	CommentID   string          `json:"comment_id"`
 	CaseID      string          `json:"case_id"`

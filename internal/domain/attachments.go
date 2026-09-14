@@ -7,16 +7,19 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=attachments.go -destination=mock_domain/mock_attachment_repository.go -package=mock_domain
 type AttachmentRepository interface {
 	Save(ctx context.Context, attachment Attachment) error
 	SaveBatch(ctx context.Context, attachments []Attachment) error
 	GetByID(ctx context.Context, attachmentID string) (Attachment, error)
 	GetByCommentID(ctx context.Context, commentID string) ([]Attachment, error)
 	DeleteManyByComments(ctx context.Context, commentIDs []string) error
+	DeleteByID(ctx context.Context, attachmentID string) error
 }
 
 type AttachmentBucket interface {
 	Download(ctx context.Context, attachmentID string) ([]byte, error)
+	Delete(ctx context.Context, key string) error
 }
 
 type Attachment struct {

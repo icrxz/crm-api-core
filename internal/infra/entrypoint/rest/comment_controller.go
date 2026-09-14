@@ -42,8 +42,58 @@ func (c *CommentController) CreateComment(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
+	comment.CommentID = commentID
 
-	ctx.JSON(http.StatusCreated, gin.H{"comment_id": commentID})
+	ctx.JSON(http.StatusCreated, mapCommentToCommentDTO(comment))
+}
+
+func (c *CommentController) AddAttachment(ctx *gin.Context) {
+	commentID := ctx.Param("commentID")
+	if commentID == "" {
+		_ = ctx.Error(domain.NewValidationError("commentID is required", nil))
+		return
+	}
+
+	var attachmentDTO CreateAttachmentDTO
+	if err := ctx.ShouldBindJSON(&attachmentDTO); err != nil {
+		_ = ctx.Error(domain.NewValidationError("invalid request body", nil))
+		return
+	}
+
+	attachment, err := mapCreateAttachmentDTOToAttachment(attachmentDTO)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	savedAttachment, err := c.commentService.AddAttachment(ctx, commentID, attachment)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, mapAttachmentToAttachmentDTO(savedAttachment))
+}
+
+func (c *CommentController) UpdateContent(ctx *gin.Context) {
+	commentID := ctx.Param("commentID")
+	if commentID == "" {
+		_ = ctx.Error(domain.NewValidationError("commentID is required", nil))
+		return
+	}
+
+	var updateDTO UpdateCommentDTO
+	if err := ctx.ShouldBindJSON(&updateDTO); err != nil {
+		_ = ctx.Error(domain.NewValidationError("invalid request body", nil))
+		return
+	}
+
+	if err := c.commentService.UpdateContent(ctx, commentID, updateDTO.Content, updateDTO.UpdatedBy); err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
 
 func (c *CommentController) GetByID(ctx *gin.Context) {

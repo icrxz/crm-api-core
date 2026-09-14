@@ -17,6 +17,6 @@ repos:
 
   # 3. Linter Oficial (golangci-lint v2)
   - repo: https://github.com/golangci/golangci-lint
-    rev: v2.11.2
+    rev: v2.13.2
     hooks:
       - id: golangci-lint
