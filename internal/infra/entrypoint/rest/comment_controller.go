@@ -10,12 +10,29 @@ import (
 
 type CommentController struct {
 	commentService application.CommentService
+	userService    application.UserService
 }
 
-func NewCommentController(commentService application.CommentService) CommentController {
+func NewCommentController(commentService application.CommentService, userService application.UserService) CommentController {
 	return CommentController{
 		commentService: commentService,
+		userService:    userService,
 	}
+}
+
+func (c *CommentController) canEditComment(ctx *gin.Context, comment *domain.Comment) (string, error) {
+	requesterID := ctx.GetString("user_id")
+
+	requester, err := c.userService.GetByID(ctx.Request.Context(), requesterID)
+	if err != nil {
+		return "", err
+	}
+
+	if !requester.Role.IsAdmin() && requesterID != comment.CreatedBy {
+		return "", domain.NewUnauthorizedError("user cannot edit another user's comment")
+	}
+
+	return requesterID, nil
 }
 
 func (c *CommentController) CreateComment(ctx *gin.Context) {
@@ -54,6 +71,17 @@ func (c *CommentController) AddAttachment(ctx *gin.Context) {
 		return
 	}
 
+	comment, err := c.commentService.GetByID(ctx, commentID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	if _, err := c.canEditComment(ctx, comment); err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
 	var attachmentDTO CreateAttachmentDTO
 	if err := ctx.ShouldBindJSON(&attachmentDTO); err != nil {
 		_ = ctx.Error(domain.NewValidationError("invalid request body", nil))
@@ -88,7 +116,19 @@ func (c *CommentController) UpdateContent(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.commentService.UpdateContent(ctx, commentID, updateDTO.Content, updateDTO.UpdatedBy); err != nil {
+	comment, err := c.commentService.GetByID(ctx, commentID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	requesterID, err := c.canEditComment(ctx, comment)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	if err := c.commentService.UpdateContent(ctx, commentID, updateDTO.Content, requesterID); err != nil {
 		_ = ctx.Error(err)
 		return
 	}

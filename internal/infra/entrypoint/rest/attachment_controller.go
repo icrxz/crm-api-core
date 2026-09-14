@@ -10,11 +10,13 @@ import (
 
 type AttachmentController struct {
 	attachmentService application.AttachmentService
+	userService       application.UserService
 }
 
-func NewAttachmentController(attachmentService application.AttachmentService) AttachmentController {
+func NewAttachmentController(attachmentService application.AttachmentService, userService application.UserService) AttachmentController {
 	return AttachmentController{
 		attachmentService: attachmentService,
+		userService:       userService,
 	}
 }
 
@@ -25,7 +27,25 @@ func (c *AttachmentController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.attachmentService.DeleteByID(ctx, attachmentID); err != nil {
+	attachment, err := c.attachmentService.GetByID(ctx, attachmentID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	requesterID := ctx.GetString("user_id")
+	requester, err := c.userService.GetByID(ctx.Request.Context(), requesterID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	if !requester.Role.IsAdmin() && requesterID != attachment.CreatedBy {
+		_ = ctx.Error(domain.NewUnauthorizedError("user cannot delete another user's attachment"))
+		return
+	}
+
+	if err := c.attachmentService.DeleteByID(ctx, attachmentID, requesterID); err != nil {
 		_ = ctx.Error(err)
 		return
 	}
