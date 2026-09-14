@@ -51,7 +51,7 @@ func (r *attachmentRepository) GetByID(ctx context.Context, attachmentID string)
 	}
 
 	var attachmentDTO AttachmentDTO
-	err := executor(ctx, r.db).GetContext(ctx, &attachmentDTO, "SELECT * FROM attachments WHERE attachment_id = ?", attachmentID)
+	err := executor(ctx, r.db).GetContext(ctx, &attachmentDTO, "SELECT * FROM attachments WHERE attachment_id = $1", attachmentID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Attachment{}, domain.NewNotFoundError("attachment not found", map[string]any{"attachment_id": attachmentID})

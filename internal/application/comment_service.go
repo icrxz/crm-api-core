@@ -7,10 +7,11 @@ import (
 )
 
 type commentService struct {
-	commentRepository    domain.CommentRepository
-	attachmentRepository domain.AttachmentRepository
-	attachmentBucket     domain.AttachmentBucket
-	transactionManager   domain.TransactionManager
+	commentRepository        domain.CommentRepository
+	attachmentRepository     domain.AttachmentRepository
+	attachmentBucket         domain.AttachmentBucket
+	commentHistoryRepository domain.CommentHistoryRepository
+	transactionManager       domain.TransactionManager
 }
 
 //go:generate mockgen -source=comment_service.go -destination=mock_application/mock_comment_service.go -package=mock_application
@@ -27,13 +28,15 @@ func NewCommentService(
 	commentRepository domain.CommentRepository,
 	attachmentRepository domain.AttachmentRepository,
 	attachmentBucket domain.AttachmentBucket,
+	commentHistoryRepository domain.CommentHistoryRepository,
 	transactionManager domain.TransactionManager,
 ) CommentService {
 	return &commentService{
-		commentRepository:    commentRepository,
-		attachmentRepository: attachmentRepository,
-		attachmentBucket:     attachmentBucket,
-		transactionManager:   transactionManager,
+		commentRepository:        commentRepository,
+		attachmentRepository:     attachmentRepository,
+		attachmentBucket:         attachmentBucket,
+		commentHistoryRepository: commentHistoryRepository,
+		transactionManager:       transactionManager,
 	}
 }
 
@@ -117,13 +120,40 @@ func (s *commentService) AddAttachment(ctx context.Context, commentID string, at
 		return domain.Attachment{}, domain.NewValidationError("commentID is required", nil)
 	}
 
-	if _, err := s.commentRepository.GetByID(ctx, commentID); err != nil {
+	existingComment, err := s.commentRepository.GetByID(ctx, commentID)
+	if err != nil {
 		return domain.Attachment{}, err
 	}
 
 	attachment.CommentID = commentID
 
-	if err := s.attachmentRepository.Save(ctx, attachment); err != nil {
+	err = s.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := s.attachmentRepository.Save(txCtx, attachment); err != nil {
+			return err
+		}
+
+		if err := s.commentRepository.UpdateContent(txCtx, commentID, existingComment.Content, attachment.CreatedBy); err != nil {
+			return err
+		}
+
+		history, err := domain.NewCommentHistory(
+			commentID,
+			domain.CommentAttachmentAddedEvent,
+			attachment.CreatedBy,
+			map[string]any{},
+			map[string]any{
+				"attachment_id":  attachment.AttachmentID,
+				"file_name":      attachment.FileName,
+				"attachment_url": attachment.AttachmentURL,
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		return s.commentHistoryRepository.Create(txCtx, history)
+	})
+	if err != nil {
 		return domain.Attachment{}, err
 	}
 
@@ -135,5 +165,31 @@ func (s *commentService) UpdateContent(ctx context.Context, commentID string, co
 		return domain.NewValidationError("commentID is required", nil)
 	}
 
-	return s.commentRepository.UpdateContent(ctx, commentID, content, updatedBy)
+	existingComment, err := s.commentRepository.GetByID(ctx, commentID)
+	if err != nil {
+		return err
+	}
+
+	if existingComment.Content == content {
+		return nil
+	}
+
+	return s.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		if err := s.commentRepository.UpdateContent(txCtx, commentID, content, updatedBy); err != nil {
+			return err
+		}
+
+		history, err := domain.NewCommentHistory(
+			commentID,
+			domain.CommentContentUpdatedEvent,
+			updatedBy,
+			map[string]any{"content": existingComment.Content},
+			map[string]any{"content": content},
+		)
+		if err != nil {
+			return err
+		}
+
+		return s.commentHistoryRepository.Create(txCtx, history)
+	})
 }
