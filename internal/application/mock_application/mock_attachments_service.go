@@ -55,6 +55,20 @@ func (mr *MockAttachmentServiceMockRecorder) DeleteByComments(ctx, commentIDs an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByComments", reflect.TypeOf((*MockAttachmentService)(nil).DeleteByComments), ctx, commentIDs)
 }
 
+// DeleteByID mocks base method.
+func (m *MockAttachmentService) DeleteByID(ctx context.Context, attachmentID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, attachmentID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByID indicates an expected call of DeleteByID.
+func (mr *MockAttachmentServiceMockRecorder) DeleteByID(ctx, attachmentID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockAttachmentService)(nil).DeleteByID), ctx, attachmentID)
+}
+
 // GetByID mocks base method.
 func (m *MockAttachmentService) GetByID(ctx context.Context, attachmentID string) (*domain.Attachment, error) {
 	m.ctrl.T.Helper()

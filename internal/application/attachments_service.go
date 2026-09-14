@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 )
@@ -17,6 +18,7 @@ type AttachmentService interface {
 	GetByID(ctx context.Context, attachmentID string) (*domain.Attachment, error)
 	SearchByCommentID(ctx context.Context, commentID string) ([]domain.Attachment, error)
 	DeleteByComments(ctx context.Context, commentIDs []string) error
+	DeleteByID(ctx context.Context, attachmentID string) error
 }
 
 func NewAttachmentService(
@@ -62,4 +64,26 @@ func (s *attachmentService) DeleteByComments(ctx context.Context, commentIDs []s
 	}
 
 	return s.attachmentRepository.DeleteManyByComments(ctx, commentIDs)
+}
+
+func (s *attachmentService) DeleteByID(ctx context.Context, attachmentID string) error {
+	if attachmentID == "" {
+		return domain.NewValidationError("attachmentID is required", nil)
+	}
+
+	attachment, err := s.attachmentRepository.GetByID(ctx, attachmentID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.attachmentRepository.DeleteByID(ctx, attachmentID); err != nil {
+		return err
+	}
+
+	if err := s.attachmentBucket.Delete(ctx, attachment.Key); err != nil {
+		slog.WarnContext(ctx, "failed to delete attachment file from bucket, leaving it orphaned",
+			"attachment_id", attachmentID, "key", attachment.Key, "error", err)
+	}
+
+	return nil
 }

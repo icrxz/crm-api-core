@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/icrxz/crm-api-core/internal/domain"
 	"github.com/jmoiron/sqlx"
@@ -69,6 +70,23 @@ func (r *commentRepository) GetByCaseID(ctx context.Context, caseID string) ([]d
 	comments := mapCommentDTOsToComments(commentDTOs)
 
 	return comments, nil
+}
+
+func (r *commentRepository) UpdateContent(ctx context.Context, commentID string, content string, updatedBy string) error {
+	if commentID == "" {
+		return domain.NewValidationError("commentID is required", nil)
+	}
+
+	_, err := executor(ctx, r.db).ExecContext(
+		ctx,
+		"UPDATE comments SET content = $1, updated_by = $2, updated_at = $3 WHERE comment_id = $4",
+		content, updatedBy, time.Now().UTC(), commentID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *commentRepository) DeleteManyByCaseID(ctx context.Context, caseID string) error {
