@@ -46,6 +46,7 @@ func RunApp() error {
 	contractorRepository := database.NewContractorRepository(sqlDB)
 	caseRepository := database.NewCaseRepository(sqlDB)
 	caseHistoryRepository := database.NewCaseHistoryRepository(sqlDB)
+	commentHistoryRepository := database.NewCommentHistoryRepository(sqlDB)
 	transactionManager := database.NewTransactionManager(sqlDB)
 	productRepository := database.NewProductRepository(sqlDB)
 	commentRepository := database.NewCommentRepository(sqlDB)
@@ -61,7 +62,7 @@ func RunApp() error {
 	authService := application.NewAuthService(userRepository, appConfig.SecretKey())
 	productService := application.NewProductService(productRepository)
 	batchCaseService := application.NewBatchCaseService(customerService, productService, contractorService, caseRepository)
-	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket, transactionManager)
+	commentService := application.NewCommentService(commentRepository, attachmentRepository, attachmentBucket, commentHistoryRepository, transactionManager)
 	transactionService := application.NewTransactionService(transactionRepository, caseRepository)
 	queueService := application.NewQueueService(queueRepository)
 	queueResolver := application.NewQueueResolver(queueService)
@@ -89,7 +90,7 @@ func RunApp() error {
 		contractorService,
 		attachmentBucket,
 	)
-	attachmentService := application.NewAttachmentService(attachmentRepository, attachmentBucket)
+	attachmentService := application.NewAttachmentService(attachmentRepository, attachmentBucket, commentRepository, commentHistoryRepository, transactionManager)
 	caseActionService := application.NewCaseActionService(caseRepository, caseHistoryRepository, transactionManager, commentService, reportService, attachmentService, transactionService)
 
 	// controllers
@@ -102,11 +103,11 @@ func RunApp() error {
 	authController := rest.NewAuthController(authService)
 	caseController := rest.NewCaseController(caseService, batchCaseService)
 	productController := rest.NewProductController(productService)
-	commentController := rest.NewCommentController(commentService)
+	commentController := rest.NewCommentController(commentService, userService)
 	transactionController := rest.NewTransactionController(transactionService)
 	caseActionController := rest.NewCaseActionController(caseActionService)
 	queueController := rest.NewQueueController(queueService)
-	attachmentController := rest.NewAttachmentController(attachmentService)
+	attachmentController := rest.NewAttachmentController(attachmentService, userService)
 
 	// middlewares
 	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
