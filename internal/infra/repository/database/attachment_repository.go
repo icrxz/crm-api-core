@@ -20,6 +20,13 @@ func NewAttachmentRepository(db *sqlx.DB) domain.AttachmentRepository {
 }
 
 func (r *attachmentRepository) Save(ctx context.Context, attachment domain.Attachment) error {
+	attachmentDTO := mapAttachmentToAttachmentDTO(attachment)
+
+	_, err := executor(ctx, r.db).NamedExecContext(ctx, "INSERT INTO attachments (attachment_id, comment_id, key, file_name, attachment_url, file_extension, size, created_at, created_by) VALUES (:attachment_id, :comment_id, :key, :file_name, :attachment_url, :file_extension, :size, :created_at, :created_by)", attachmentDTO)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -73,6 +80,19 @@ func (r *attachmentRepository) GetByCommentID(ctx context.Context, commentID str
 	attachments := mapAttachmentsDTOToAttachments(attachmentsDTO)
 
 	return attachments, nil
+}
+
+func (r *attachmentRepository) DeleteByID(ctx context.Context, attachmentID string) error {
+	if attachmentID == "" {
+		return domain.NewValidationError("attachment_id is required", nil)
+	}
+
+	_, err := executor(ctx, r.db).ExecContext(ctx, "DELETE FROM attachments WHERE attachment_id = $1", attachmentID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *attachmentRepository) DeleteManyByComments(ctx context.Context, commentIDs []string) error {
