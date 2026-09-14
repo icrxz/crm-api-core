@@ -106,6 +106,7 @@ func RunApp() error {
 	transactionController := rest.NewTransactionController(transactionService)
 	caseActionController := rest.NewCaseActionController(caseActionService)
 	queueController := rest.NewQueueController(queueService)
+	attachmentController := rest.NewAttachmentController(attachmentService)
 
 	// middlewares
 	authMiddleware := middleware.NewAuthenticationMiddleware(authService)
@@ -135,6 +136,7 @@ func RunApp() error {
 		transactionController,
 		caseActionController,
 		queueController,
+		attachmentController,
 	)
 
 	return router.Run()

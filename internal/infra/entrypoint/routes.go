@@ -22,6 +22,7 @@ func LoadRoutes(
 	transactionController rest.TransactionController,
 	caseActionController rest.CaseActionController,
 	queueController rest.QueueController,
+	attachmentController rest.AttachmentController,
 ) {
 	authGroup := app.Group("/crm/core/api/v1")
 	authGroup.Use(authMiddleware.Authenticate())
@@ -88,6 +89,11 @@ func LoadRoutes(
 	authGroup.GET("/comments/:commentID", commentController.GetByID)
 	authGroup.POST("/cases/:caseID/comments", commentController.CreateComment)
 	authGroup.GET("/cases/:caseID/comments", commentController.GetByCaseID)
+	authGroup.POST("/comments/:commentID/attachments", commentController.AddAttachment)
+	authGroup.PATCH("/comments/:commentID", commentController.UpdateContent)
+
+	// attachments
+	authGroup.DELETE("/attachments/:attachmentID", attachmentController.Delete)
 
 	// transactions
 	authGroup.POST("/cases/:caseID/transactions", transactionController.CreateTransaction)
