@@ -41,6 +41,21 @@ func (m *MockCommentService) EXPECT() *MockCommentServiceMockRecorder {
 	return m.recorder
 }
 
+// AddAttachment mocks base method.
+func (m *MockCommentService) AddAttachment(ctx context.Context, commentID string, attachment domain.Attachment) (domain.Attachment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddAttachment", ctx, commentID, attachment)
+	ret0, _ := ret[0].(domain.Attachment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddAttachment indicates an expected call of AddAttachment.
+func (mr *MockCommentServiceMockRecorder) AddAttachment(ctx, commentID, attachment any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAttachment", reflect.TypeOf((*MockCommentService)(nil).AddAttachment), ctx, commentID, attachment)
+}
+
 // Create mocks base method.
 func (m *MockCommentService) Create(ctx context.Context, comment domain.Comment) (string, error) {
 	m.ctrl.T.Helper()
@@ -98,4 +113,18 @@ func (m *MockCommentService) GetByID(ctx context.Context, commentID string) (*do
 func (mr *MockCommentServiceMockRecorder) GetByID(ctx, commentID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockCommentService)(nil).GetByID), ctx, commentID)
+}
+
+// UpdateContent mocks base method.
+func (m *MockCommentService) UpdateContent(ctx context.Context, commentID, content, updatedBy string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateContent", ctx, commentID, content, updatedBy)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateContent indicates an expected call of UpdateContent.
+func (mr *MockCommentServiceMockRecorder) UpdateContent(ctx, commentID, content, updatedBy any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateContent", reflect.TypeOf((*MockCommentService)(nil).UpdateContent), ctx, commentID, content, updatedBy)
 }

@@ -19,6 +19,8 @@ type CommentService interface {
 	GetByID(ctx context.Context, commentID string) (*domain.Comment, error)
 	GetByCaseID(ctx context.Context, caseID string) ([]domain.Comment, error)
 	DeleteByCaseID(ctx context.Context, caseID string) error
+	AddAttachment(ctx context.Context, commentID string, attachment domain.Attachment) (domain.Attachment, error)
+	UpdateContent(ctx context.Context, commentID string, content string, updatedBy string) error
 }
 
 func NewCommentService(
@@ -108,4 +110,30 @@ func (s *commentService) DeleteByCaseID(ctx context.Context, caseID string) erro
 	}
 
 	return s.commentRepository.DeleteManyByCaseID(ctx, caseID)
+}
+
+func (s *commentService) AddAttachment(ctx context.Context, commentID string, attachment domain.Attachment) (domain.Attachment, error) {
+	if commentID == "" {
+		return domain.Attachment{}, domain.NewValidationError("commentID is required", nil)
+	}
+
+	if _, err := s.commentRepository.GetByID(ctx, commentID); err != nil {
+		return domain.Attachment{}, err
+	}
+
+	attachment.CommentID = commentID
+
+	if err := s.attachmentRepository.Save(ctx, attachment); err != nil {
+		return domain.Attachment{}, err
+	}
+
+	return attachment, nil
+}
+
+func (s *commentService) UpdateContent(ctx context.Context, commentID string, content string, updatedBy string) error {
+	if commentID == "" {
+		return domain.NewValidationError("commentID is required", nil)
+	}
+
+	return s.commentRepository.UpdateContent(ctx, commentID, content, updatedBy)
 }

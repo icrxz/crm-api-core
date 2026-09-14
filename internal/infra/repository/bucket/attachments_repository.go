@@ -21,6 +21,14 @@ func NewAttachmentBucket(s3Client *s3.Client, bucketName string) domain.Attachme
 	}
 }
 
+func (b *attachmentBucket) Delete(ctx context.Context, key string) error {
+	_, err := b.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(b.bucketName),
+		Key:    aws.String(key),
+	})
+	return err
+}
+
 func (b *attachmentBucket) Download(ctx context.Context, fileID string) ([]byte, error) {
 	result, err := b.s3Client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(b.bucketName),

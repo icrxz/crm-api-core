@@ -86,6 +86,35 @@ func (c *caseActionService) ChangeOwner(ctx context.Context, caseID string, newO
 	})
 }
 
+var partnerPaymentDescriptions = []string{"MO", "Deslocamento Técnico", "Peças técnico"}
+
+func (c *caseActionService) approvePartnerPayments(ctx context.Context, caseID, updatedBy string) error {
+	transactions, err := c.transactionService.SearchTransactions(ctx, domain.TransactionFilters{
+		CaseIDs: []string{caseID},
+		Types:   []string{string(domain.OUTGOING)},
+	})
+	if err != nil {
+		return err
+	}
+
+	approved := domain.TRANSACTION_APPROVED
+	for _, transaction := range transactions {
+		if transaction.Status != domain.TRANSACTION_PENDING {
+			continue
+		}
+		if !slices.Contains(partnerPaymentDescriptions, transaction.Description) {
+			continue
+		}
+
+		update := domain.TransactionUpdate{Status: &approved, UpdatedBy: updatedBy}
+		if err := c.transactionService.UpdateTransaction(ctx, transaction.TransactionID, update); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (c *caseActionService) ChangeStatus(ctx context.Context, caseID string, newStatus domain.ChangeStatus) error {
 	crmCase, err := c.caseRepository.GetByID(ctx, caseID)
 	if err != nil {
@@ -117,6 +146,12 @@ func (c *caseActionService) ChangeStatus(ctx context.Context, caseID string, new
 	return c.transactionManager.WithinTransaction(ctx, func(txCtx context.Context) error {
 		if err := c.caseRepository.Update(txCtx, *crmCase); err != nil {
 			return err
+		}
+
+		if newStatus.Status == domain.CLOSED {
+			if err := c.approvePartnerPayments(txCtx, caseID, newStatus.UpdatedBy); err != nil {
+				return err
+			}
 		}
 
 		return c.recordHistory(txCtx, caseID, eventName, newStatus.UpdatedBy, oldValues, newValues)
