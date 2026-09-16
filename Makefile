@@ -1,7 +1,9 @@
 APP_NAME := crm-api-core
 GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/)
+MIGRATE_IMAGE := migrate/migrate:v4.18.1
+DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/crm-core?sslmode=disable
 
-.PHONY: help setup install-tools mod lint test format build clean db-sync-safe
+.PHONY: help setup install-tools mod lint test format build clean db-sync-safe migrate-up migrate-down
 
 help:
 	@echo "Comandos disponíveis:"
@@ -48,6 +50,16 @@ clean: ## Limpa os arquivos compilados e cache
 
 db-sync-safe: ## Dump de base de dados
 	@bash ./scripts/db-sync/db_sync_safe.sh
+
+migrate-up: ## Aplica todas as migrations pendentes (DATABASE_URL sobrescrevível)
+	@echo "==> Aplicando migrations..."
+	docker run --rm --network host -v "$(CURDIR)/migrations":/migrations $(MIGRATE_IMAGE) \
+		-path=/migrations -database "$(DATABASE_URL)" up
+
+migrate-down: ## Regride N migrations (make migrate-down N=1, default N=1)
+	@echo "==> Regredindo $(or $(N),1) migration(s)..."
+	docker run --rm --network host -v "$(CURDIR)/migrations":/migrations $(MIGRATE_IMAGE) \
+		-path=/migrations -database "$(DATABASE_URL)" down $(or $(N),1)
 
 run:
 	docker compose up
