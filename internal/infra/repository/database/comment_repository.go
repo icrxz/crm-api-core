@@ -62,7 +62,7 @@ func (r *commentRepository) GetByCaseID(ctx context.Context, caseID string) ([]d
 	}
 
 	var commentDTOs []CommentDTO
-	err := executor(ctx, r.db).SelectContext(ctx, &commentDTOs, "SELECT * FROM comments WHERE case_id = $1", caseID)
+	err := executor(ctx, r.db).SelectContext(ctx, &commentDTOs, "SELECT * FROM comments WHERE case_id = $1 ORDER BY created_at ASC", caseID)
 	if err != nil {
 		return nil, err
 	}
