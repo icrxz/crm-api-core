@@ -9,6 +9,7 @@ import (
 type AttachmentDTO struct {
 	AttachmentID  string    `json:"attachment_id"`
 	FileExtension string    `json:"file_extension"`
+	DocumentType  string    `json:"document_type"`
 	FileName      string    `json:"file_name"`
 	Key           string    `json:"key"`
 	Size          int       `json:"size"`
@@ -19,6 +20,7 @@ type AttachmentDTO struct {
 
 type CreateAttachmentDTO struct {
 	FileExtension string `json:"file_extension"`
+	DocumentType  string `json:"document_type"`
 	FileName      string `json:"file_name"`
 	Key           string `json:"key"`
 	Size          int    `json:"size"`
@@ -34,6 +36,7 @@ func mapCreateAttachmentDTOToAttachment(createAttachmentDTO CreateAttachmentDTO)
 		createAttachmentDTO.Key,
 		createAttachmentDTO.CreatedBy,
 		createAttachmentDTO.Size,
+		domain.AttachmentDocumentType(createAttachmentDTO.DocumentType),
 	)
 }
 
@@ -41,6 +44,7 @@ func mapAttachmentToAttachmentDTO(attachment domain.Attachment) AttachmentDTO {
 	return AttachmentDTO{
 		AttachmentID:  attachment.AttachmentID,
 		FileExtension: attachment.FileExtension,
+		DocumentType:  string(attachment.DocumentType),
 		FileName:      attachment.FileName,
 		Size:          attachment.Size,
 		AttachmentURL: attachment.AttachmentURL,
