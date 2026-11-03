@@ -25,9 +25,9 @@ func (r *commentRepository) Create(ctx context.Context, comment domain.Comment) 
 
 	_, err := executor(ctx, r.db).NamedExecContext(
 		ctx, "INSERT INTO comments "+
-			"(comment_id, case_id, content, comment_type, created_by, created_at, updated_by, updated_at) "+
+			"(comment_id, case_id, content, comment_type, created_by, created_at, updated_by, updated_at, metadata) "+
 			"VALUES "+
-			"(:comment_id, :case_id, :content, :comment_type, :created_by, :created_at, :updated_by, :updated_at)",
+			"(:comment_id, :case_id, :content, :comment_type, :created_by, :created_at, :updated_by, :updated_at, :metadata)",
 		commentDTO,
 	)
 	if err != nil {
@@ -62,7 +62,7 @@ func (r *commentRepository) GetByCaseID(ctx context.Context, caseID string) ([]d
 	}
 
 	var commentDTOs []CommentDTO
-	err := executor(ctx, r.db).SelectContext(ctx, &commentDTOs, "SELECT * FROM comments WHERE case_id = $1", caseID)
+	err := executor(ctx, r.db).SelectContext(ctx, &commentDTOs, "SELECT * FROM comments WHERE case_id = $1 ORDER BY created_at ASC", caseID)
 	if err != nil {
 		return nil, err
 	}

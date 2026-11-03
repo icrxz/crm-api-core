@@ -11,6 +11,7 @@ type CreateCommentDTO struct {
 	CommentType domain.CommentType    `json:"comment_type"`
 	Attachments []CreateAttachmentDTO `json:"attachments"`
 	CreatedBy   string                `json:"created_by"`
+	Metadata    map[string]any        `json:"metadata"`
 }
 
 type UpdateCommentDTO struct {
@@ -28,6 +29,7 @@ type CommentDTO struct {
 	UpdatedBy   string          `json:"updated_by"`
 	UpdatedAt   time.Time       `json:"updated_at"`
 	Attachments []AttachmentDTO `json:"attachments"`
+	Metadata    map[string]any  `json:"metadata"`
 }
 
 func mapCommentToCommentDTO(comment domain.Comment) CommentDTO {
@@ -43,6 +45,7 @@ func mapCommentToCommentDTO(comment domain.Comment) CommentDTO {
 		UpdatedBy:   comment.UpdatedBy,
 		UpdatedAt:   comment.UpdatedAt,
 		Attachments: attachmentsDTOs,
+		Metadata:    comment.Metadata,
 	}
 }
 
@@ -69,6 +72,10 @@ func mapCreateCommentDTOToComment(createCommentDTO CreateCommentDTO, caseID stri
 	)
 	if err != nil {
 		return domain.Comment{}, err
+	}
+
+	if createCommentDTO.Metadata != nil {
+		comment.Metadata = createCommentDTO.Metadata
 	}
 
 	return comment, nil

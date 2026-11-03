@@ -22,7 +22,7 @@ func NewAttachmentRepository(db *sqlx.DB) domain.AttachmentRepository {
 func (r *attachmentRepository) Save(ctx context.Context, attachment domain.Attachment) error {
 	attachmentDTO := mapAttachmentToAttachmentDTO(attachment)
 
-	_, err := executor(ctx, r.db).NamedExecContext(ctx, "INSERT INTO attachments (attachment_id, comment_id, key, file_name, attachment_url, file_extension, size, created_at, created_by) VALUES (:attachment_id, :comment_id, :key, :file_name, :attachment_url, :file_extension, :size, :created_at, :created_by)", attachmentDTO)
+	_, err := executor(ctx, r.db).NamedExecContext(ctx, "INSERT INTO attachments (attachment_id, comment_id, key, file_name, attachment_url, file_extension, size, created_at, created_by, document_type) VALUES (:attachment_id, :comment_id, :key, :file_name, :attachment_url, :file_extension, :size, :created_at, :created_by, :document_type)", attachmentDTO)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func (r *attachmentRepository) SaveBatch(ctx context.Context, attachments []doma
 
 	attachmentsDTO := mapAttachmentsToAttachmentsDTO(attachments)
 
-	_, err := executor(ctx, r.db).NamedExecContext(ctx, "INSERT INTO attachments (attachment_id, comment_id, key, file_name, attachment_url, file_extension, size, created_at, created_by) VALUES (:attachment_id, :comment_id, :key, :file_name, :attachment_url, :file_extension, :size, :created_at, :created_by)", attachmentsDTO)
+	_, err := executor(ctx, r.db).NamedExecContext(ctx, "INSERT INTO attachments (attachment_id, comment_id, key, file_name, attachment_url, file_extension, size, created_at, created_by, document_type) VALUES (:attachment_id, :comment_id, :key, :file_name, :attachment_url, :file_extension, :size, :created_at, :created_by, :document_type)", attachmentsDTO)
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS attachments
+    ADD COLUMN IF NOT EXISTS document_type TEXT NOT NULL DEFAULT 'photo';
