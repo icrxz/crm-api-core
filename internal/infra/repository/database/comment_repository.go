@@ -25,9 +25,9 @@ func (r *commentRepository) Create(ctx context.Context, comment domain.Comment) 
 
 	_, err := executor(ctx, r.db).NamedExecContext(
 		ctx, "INSERT INTO comments "+
-			"(comment_id, case_id, content, comment_type, created_by, created_at, updated_by, updated_at) "+
+			"(comment_id, case_id, content, comment_type, created_by, created_at, updated_by, updated_at, metadata) "+
 			"VALUES "+
-			"(:comment_id, :case_id, :content, :comment_type, :created_by, :created_at, :updated_by, :updated_at)",
+			"(:comment_id, :case_id, :content, :comment_type, :created_by, :created_at, :updated_by, :updated_at, :metadata)",
 		commentDTO,
 	)
 	if err != nil {
