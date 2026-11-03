@@ -22,10 +22,13 @@ type Comment struct {
 	Content     string
 	CommentType CommentType
 	Attachments []Attachment
-	CreatedBy   string
-	CreatedAt   time.Time
-	UpdatedBy   string
-	UpdatedAt   time.Time
+	// Metadata carries whatever the client needs to find the comment again,
+	// e.g. which step of the ongoing wizard posted it.
+	Metadata  map[string]any
+	CreatedBy string
+	CreatedAt time.Time
+	UpdatedBy string
+	UpdatedAt time.Time
 }
 
 type CommentType string
@@ -62,5 +65,6 @@ func NewComment(
 		CreatedAt:   now,
 		UpdatedAt:   now,
 		Attachments: attachments,
+		Metadata:    map[string]any{},
 	}, nil
 }

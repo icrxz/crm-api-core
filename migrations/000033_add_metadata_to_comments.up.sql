@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS comments
+    ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb;

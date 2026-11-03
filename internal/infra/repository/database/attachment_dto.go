@@ -13,6 +13,7 @@ type AttachmentDTO struct {
 	FileName      string    `db:"file_name"`
 	AttachmentURL string    `db:"attachment_url"`
 	FileExtension string    `db:"file_extension"`
+	DocumentType  string    `db:"document_type"`
 	Size          int       `db:"size"`
 	CreatedAt     time.Time `db:"created_at"`
 	CreatedBy     string    `db:"created_by"`
@@ -26,6 +27,7 @@ func mapAttachmentToAttachmentDTO(attachment domain.Attachment) AttachmentDTO {
 		FileName:      attachment.FileName,
 		AttachmentURL: attachment.AttachmentURL,
 		FileExtension: attachment.FileExtension,
+		DocumentType:  string(attachment.DocumentType),
 		Size:          attachment.Size,
 		CreatedAt:     attachment.CreatedAt,
 		CreatedBy:     attachment.CreatedBy,
@@ -40,6 +42,7 @@ func mapAttachmentDTOToAttachment(attachmentDTO AttachmentDTO) domain.Attachment
 		FileName:      attachmentDTO.FileName,
 		AttachmentURL: attachmentDTO.AttachmentURL,
 		FileExtension: attachmentDTO.FileExtension,
+		DocumentType:  domain.AttachmentDocumentType(attachmentDTO.DocumentType),
 		Size:          attachmentDTO.Size,
 		CreatedAt:     attachmentDTO.CreatedAt,
 		CreatedBy:     attachmentDTO.CreatedBy,
