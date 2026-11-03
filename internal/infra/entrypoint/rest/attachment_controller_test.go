@@ -19,15 +19,6 @@ func withRequesterID(userID string) gin.HandlerFunc {
 	}
 }
 
-func respondWithControllerError(status int) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.Next()
-		if len(ctx.Errors) > 0 {
-			ctx.JSON(status, gin.H{"error": ctx.Errors[0].Error()})
-		}
-	}
-}
-
 func TestAttachmentController_Delete(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -43,13 +34,13 @@ func TestAttachmentController_Delete(t *testing.T) {
 
 		mockUserService := mock_application.NewMockUserService(ctrl)
 		mockUserService.EXPECT().
-			GetByID(gomock.Any(), testAdmin).
-			Return(&domain.User{UserID: testAdmin, Role: domain.ADMIN}, nil)
+			GetByID(gomock.Any(), testAdminID).
+			Return(&domain.User{UserID: testAdminID, Username: testAdmin, Role: domain.ADMIN}, nil)
 
 		c := NewAttachmentController(mockAttachmentService, mockUserService)
 
 		router := gin.New()
-		router.Use(withRequesterID(testAdmin))
+		router.Use(withRequesterID(testAdminID))
 		router.DELETE("/attachments/:attachmentID", c.Delete)
 
 		req := httptest.NewRequest(http.MethodDelete, "/attachments/attachment-1", nil)
@@ -72,13 +63,13 @@ func TestAttachmentController_Delete(t *testing.T) {
 
 		mockUserService := mock_application.NewMockUserService(ctrl)
 		mockUserService.EXPECT().
-			GetByID(gomock.Any(), testAuthor).
-			Return(&domain.User{UserID: testAuthor, Role: domain.OPERATOR}, nil)
+			GetByID(gomock.Any(), testAuthorID).
+			Return(&domain.User{UserID: testAuthorID, Username: testAuthor, Role: domain.OPERATOR}, nil)
 
 		c := NewAttachmentController(mockAttachmentService, mockUserService)
 
 		router := gin.New()
-		router.Use(withRequesterID(testAuthor))
+		router.Use(withRequesterID(testAuthorID))
 		router.DELETE("/attachments/:attachmentID", c.Delete)
 
 		req := httptest.NewRequest(http.MethodDelete, "/attachments/attachment-1", nil)
@@ -100,14 +91,14 @@ func TestAttachmentController_Delete(t *testing.T) {
 
 		mockUserService := mock_application.NewMockUserService(ctrl)
 		mockUserService.EXPECT().
-			GetByID(gomock.Any(), testOtherUser).
-			Return(&domain.User{UserID: testOtherUser, Role: domain.OPERATOR}, nil)
+			GetByID(gomock.Any(), testOtherUserID).
+			Return(&domain.User{UserID: testOtherUserID, Username: testOtherUser, Role: domain.OPERATOR}, nil)
 
 		c := NewAttachmentController(mockAttachmentService, mockUserService)
 
 		router := gin.New()
-		router.Use(withRequesterID(testOtherUser))
-		router.Use(respondWithControllerError(http.StatusForbidden))
+		router.Use(withRequesterID(testOtherUserID))
+		router.Use(testErrorEncoder())
 		router.DELETE("/attachments/:attachmentID", c.Delete)
 
 		req := httptest.NewRequest(http.MethodDelete, "/attachments/attachment-1", nil)

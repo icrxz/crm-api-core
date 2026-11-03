@@ -20,19 +20,19 @@ func NewCommentController(commentService application.CommentService, userService
 	}
 }
 
+// canEditComment returns the requester's username, which is what comments
+// store as their author (created_by/updated_by), not the user id.
 func (c *CommentController) canEditComment(ctx *gin.Context, comment *domain.Comment) (string, error) {
-	requesterID := ctx.GetString("user_id")
-
-	requester, err := c.userService.GetByID(ctx.Request.Context(), requesterID)
+	requester, err := c.userService.GetByID(ctx.Request.Context(), ctx.GetString("user_id"))
 	if err != nil {
 		return "", err
 	}
 
-	if !requester.Role.IsAdmin() && requesterID != comment.CreatedBy {
-		return "", domain.NewUnauthorizedError("user cannot edit another user's comment")
+	if !requester.Role.IsAdmin() && requester.Username != comment.CreatedBy {
+		return "", domain.NewForbiddenError("user cannot edit another user's comment")
 	}
 
-	return requesterID, nil
+	return requester.Username, nil
 }
 
 func (c *CommentController) CreateComment(ctx *gin.Context) {
@@ -122,13 +122,13 @@ func (c *CommentController) UpdateContent(ctx *gin.Context) {
 		return
 	}
 
-	requesterID, err := c.canEditComment(ctx, comment)
+	requesterUsername, err := c.canEditComment(ctx, comment)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	if err := c.commentService.UpdateContent(ctx, commentID, updateDTO.Content, requesterID); err != nil {
+	if err := c.commentService.UpdateContent(ctx, commentID, updateDTO.Content, requesterUsername); err != nil {
 		_ = ctx.Error(err)
 		return
 	}

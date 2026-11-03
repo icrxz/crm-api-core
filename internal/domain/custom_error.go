@@ -68,6 +68,16 @@ func NewUnauthorizedError(message string) error {
 	}
 }
 
+// NewForbiddenError is for an authenticated requester that is not allowed to
+// act on the resource. Unlike 401, it must not make clients drop the session.
+func NewForbiddenError(message string) error {
+	return &CustomError{
+		messagePrefix: "Forbidden error - Message:",
+		message:       message,
+		statusCode:    http.StatusForbidden,
+	}
+}
+
 func (e CustomError) IsNotFound() bool {
 	return e.statusCode == http.StatusNotFound
 }

@@ -33,19 +33,19 @@ func (c *AttachmentController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	requesterID := ctx.GetString("user_id")
-	requester, err := c.userService.GetByID(ctx.Request.Context(), requesterID)
+	requester, err := c.userService.GetByID(ctx.Request.Context(), ctx.GetString("user_id"))
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	if !requester.Role.IsAdmin() && requesterID != attachment.CreatedBy {
-		_ = ctx.Error(domain.NewUnauthorizedError("user cannot delete another user's attachment"))
+	// Attachments store the uploader's username as created_by, not the user id.
+	if !requester.Role.IsAdmin() && requester.Username != attachment.CreatedBy {
+		_ = ctx.Error(domain.NewForbiddenError("user cannot delete another user's attachment"))
 		return
 	}
 
-	if err := c.attachmentService.DeleteByID(ctx, attachmentID, requesterID); err != nil {
+	if err := c.attachmentService.DeleteByID(ctx, attachmentID, requester.Username); err != nil {
 		_ = ctx.Error(err)
 		return
 	}

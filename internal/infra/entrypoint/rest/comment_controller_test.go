@@ -18,9 +18,14 @@ const (
 	testCommentID  = "comment-1"
 	testAttachment = "attachment-1"
 	testFileName   = "comprovante.png"
-	testAuthor     = "user-1"
-	testAdmin      = "admin-1"
-	testOtherUser  = "other-user"
+	// Comments and attachments store the author's username as created_by, so
+	// each user here has an id that differs from its username.
+	testAuthor      = "marcio"
+	testAuthorID    = "user-1"
+	testAdmin       = "admin"
+	testAdminID     = "admin-1"
+	testOtherUser   = "joana"
+	testOtherUserID = "other-user"
 )
 
 func TestCommentController_AddAttachment(t *testing.T) {
@@ -40,13 +45,13 @@ func TestCommentController_AddAttachment(t *testing.T) {
 
 		mockUserService := mock_application.NewMockUserService(ctrl)
 		mockUserService.EXPECT().
-			GetByID(gomock.Any(), testAuthor).
-			Return(&domain.User{UserID: testAuthor, Role: domain.OPERATOR}, nil)
+			GetByID(gomock.Any(), testAuthorID).
+			Return(&domain.User{UserID: testAuthorID, Username: testAuthor, Role: domain.OPERATOR}, nil)
 
 		c := NewCommentController(mockCommentService, mockUserService)
 
 		router := gin.New()
-		router.Use(withRequesterID(testAuthor))
+		router.Use(withRequesterID(testAuthorID))
 		router.POST("/comments/:commentID/attachments", c.AddAttachment)
 
 		body, _ := json.Marshal(CreateAttachmentDTO{
@@ -81,14 +86,14 @@ func TestCommentController_AddAttachment(t *testing.T) {
 
 		mockUserService := mock_application.NewMockUserService(ctrl)
 		mockUserService.EXPECT().
-			GetByID(gomock.Any(), testOtherUser).
-			Return(&domain.User{UserID: testOtherUser, Role: domain.OPERATOR}, nil)
+			GetByID(gomock.Any(), testOtherUserID).
+			Return(&domain.User{UserID: testOtherUserID, Username: testOtherUser, Role: domain.OPERATOR}, nil)
 
 		c := NewCommentController(mockCommentService, mockUserService)
 
 		router := gin.New()
-		router.Use(withRequesterID(testOtherUser))
-		router.Use(respondWithControllerError(http.StatusForbidden))
+		router.Use(withRequesterID(testOtherUserID))
+		router.Use(testErrorEncoder())
 		router.POST("/comments/:commentID/attachments", c.AddAttachment)
 
 		body, _ := json.Marshal(CreateAttachmentDTO{FileName: testFileName})
@@ -113,7 +118,7 @@ func TestCommentController_AddAttachment(t *testing.T) {
 		c := NewCommentController(mockCommentService, mock_application.NewMockUserService(ctrl))
 
 		router := gin.New()
-		router.Use(respondWithControllerError(http.StatusNotFound))
+		router.Use(testErrorEncoder())
 		router.POST("/comments/:commentID/attachments", c.AddAttachment)
 
 		body, _ := json.Marshal(CreateAttachmentDTO{FileName: testFileName})
@@ -144,13 +149,13 @@ func TestCommentController_UpdateContent(t *testing.T) {
 
 		mockUserService := mock_application.NewMockUserService(ctrl)
 		mockUserService.EXPECT().
-			GetByID(gomock.Any(), testAdmin).
-			Return(&domain.User{UserID: testAdmin, Role: domain.ADMIN}, nil)
+			GetByID(gomock.Any(), testAdminID).
+			Return(&domain.User{UserID: testAdminID, Username: testAdmin, Role: domain.ADMIN}, nil)
 
 		c := NewCommentController(mockCommentService, mockUserService)
 
 		router := gin.New()
-		router.Use(withRequesterID(testAdmin))
+		router.Use(withRequesterID(testAdminID))
 		router.PATCH("/comments/:commentID", c.UpdateContent)
 
 		body, _ := json.Marshal(UpdateCommentDTO{
@@ -180,13 +185,13 @@ func TestCommentController_UpdateContent(t *testing.T) {
 
 		mockUserService := mock_application.NewMockUserService(ctrl)
 		mockUserService.EXPECT().
-			GetByID(gomock.Any(), testAuthor).
-			Return(&domain.User{UserID: testAuthor, Role: domain.OPERATOR}, nil)
+			GetByID(gomock.Any(), testAuthorID).
+			Return(&domain.User{UserID: testAuthorID, Username: testAuthor, Role: domain.OPERATOR}, nil)
 
 		c := NewCommentController(mockCommentService, mockUserService)
 
 		router := gin.New()
-		router.Use(withRequesterID(testAuthor))
+		router.Use(withRequesterID(testAuthorID))
 		router.PATCH("/comments/:commentID", c.UpdateContent)
 
 		body, _ := json.Marshal(UpdateCommentDTO{
@@ -213,14 +218,14 @@ func TestCommentController_UpdateContent(t *testing.T) {
 
 		mockUserService := mock_application.NewMockUserService(ctrl)
 		mockUserService.EXPECT().
-			GetByID(gomock.Any(), testOtherUser).
-			Return(&domain.User{UserID: testOtherUser, Role: domain.OPERATOR}, nil)
+			GetByID(gomock.Any(), testOtherUserID).
+			Return(&domain.User{UserID: testOtherUserID, Username: testOtherUser, Role: domain.OPERATOR}, nil)
 
 		c := NewCommentController(mockCommentService, mockUserService)
 
 		router := gin.New()
-		router.Use(withRequesterID(testOtherUser))
-		router.Use(respondWithControllerError(http.StatusForbidden))
+		router.Use(withRequesterID(testOtherUserID))
+		router.Use(testErrorEncoder())
 		router.PATCH("/comments/:commentID", c.UpdateContent)
 
 		body, _ := json.Marshal(UpdateCommentDTO{Content: "texto malicioso"})
