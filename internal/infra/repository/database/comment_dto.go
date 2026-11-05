@@ -15,6 +15,7 @@ type CommentDTO struct {
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedBy   string    `db:"updated_by"`
 	UpdatedAt   time.Time `db:"updated_at"`
+	Metadata    JSONMap   `db:"metadata"`
 }
 
 func mapCommentToCommentDTO(comment domain.Comment) CommentDTO {
@@ -27,6 +28,7 @@ func mapCommentToCommentDTO(comment domain.Comment) CommentDTO {
 		CreatedAt:   comment.CreatedAt,
 		UpdatedBy:   comment.UpdatedBy,
 		UpdatedAt:   comment.UpdatedAt,
+		Metadata:    JSONMap(comment.Metadata),
 	}
 }
 
@@ -40,6 +42,7 @@ func mapCommentDTOToComment(commentDTO CommentDTO) domain.Comment {
 		CreatedAt:   commentDTO.CreatedAt,
 		UpdatedBy:   commentDTO.UpdatedBy,
 		UpdatedAt:   commentDTO.UpdatedAt,
+		Metadata:    map[string]any(commentDTO.Metadata),
 	}
 }
 

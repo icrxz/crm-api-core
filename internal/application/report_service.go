@@ -9,6 +9,7 @@ import (
 	_ "image/png"
 	"io"
 	"os"
+	"slices"
 	"time"
 
 	_ "golang.org/x/image/webp"
@@ -176,9 +177,17 @@ func (s *reportService) readReportTemplate(ctx context.Context, reportData Repor
 		return err
 	}
 
-	resolution, resolutionAttachments, attachmentKeys, err := s.extractResolutionFromComments(ctx, reportData.Comments)
+	resolution := reportConclusion(reportData.Comments)
+	photos := reportPhotos(reportData.CrmCase, reportData.Comments)
+
+	resolutionAttachments, err := s.downloadFiles(ctx, photos)
 	if err != nil {
 		return err
+	}
+
+	attachmentKeys := make([]string, 0, len(photos))
+	for _, photo := range photos {
+		attachmentKeys = append(attachmentKeys, photo.Key)
 	}
 
 	if err = docEdit.Replace("$resolution", fmt.Sprintf("%s\r\n", resolution), -1); err != nil {
@@ -218,28 +227,73 @@ func (s *reportService) replaceReportFields(docEdit *docx.Docx, reportData Repor
 	return nil
 }
 
-func (s *reportService) extractResolutionFromComments(ctx context.Context, comments []domain.Comment) (string, [][]byte, []string, error) {
-	var resolution string
-	resolutionAttachments := make([][]byte, 0)
-	attachmentKeys := make([]string, 0)
+// Mirrors the stamp crm-platform-fe puts on a case when it enters Ongoing
+// through the multi-step wizard (src/app/utils/case_metadata.ts).
+const (
+	ongoingFlowVersionMetadataKey = "ongoing_flow_version"
+	ongoingFlowVersionV2          = "v2"
+)
 
-	for _, comment := range comments {
-		switch comment.CommentType {
-		case domain.COMMENT_RESOLUTION:
-			files, err := s.downloadFiles(ctx, comment.Attachments)
-			if err != nil {
-				return "", nil, nil, err
-			}
-			resolutionAttachments = files
-			for _, a := range comment.Attachments {
-				attachmentKeys = append(attachmentKeys, a.Key)
-			}
-		case domain.COMMENT_REPORT:
-			resolution = comment.Content
+func sortedByCreatedAt(comments []domain.Comment) []domain.Comment {
+	sorted := slices.Clone(comments)
+	slices.SortStableFunc(sorted, func(a, b domain.Comment) int {
+		return a.CreatedAt.Compare(b.CreatedAt)
+	})
+	return sorted
+}
+
+// reportConclusion is the text of the latest Report comment, the admin's
+// conclusion written when the case moves on to payment.
+func reportConclusion(comments []domain.Comment) string {
+	var conclusion string
+	for _, comment := range sortedByCreatedAt(comments) {
+		if comment.CommentType == domain.COMMENT_REPORT {
+			conclusion = comment.Content
+		}
+	}
+	return conclusion
+}
+
+// reportPhotos picks the pictures that fill the template's image slots. Only
+// photos go in: the signed paperwork is attached to the same comments but is
+// not a picture of the product.
+//
+// In the original flow the partner uploads the report photos in one go when
+// sending the case to Report, so only the latest Resolution comment counts —
+// an earlier one belongs to a submission that was sent back. In the v2 wizard
+// the partner sends the photos in their own step, possibly over several
+// comments, and the final submit carries no attachments, so every Resolution
+// comment contributes, without repeating a file.
+func reportPhotos(crmCase domain.Case, comments []domain.Comment) []domain.Attachment {
+	resolutions := make([]domain.Comment, 0)
+	for _, comment := range sortedByCreatedAt(comments) {
+		if comment.CommentType == domain.COMMENT_RESOLUTION {
+			resolutions = append(resolutions, comment)
 		}
 	}
 
-	return resolution, resolutionAttachments, attachmentKeys, nil
+	if len(resolutions) == 0 {
+		return []domain.Attachment{}
+	}
+
+	if crmCase.Metadata[ongoingFlowVersionMetadataKey] != ongoingFlowVersionV2 {
+		resolutions = resolutions[len(resolutions)-1:]
+	}
+
+	photos := make([]domain.Attachment, 0)
+	seenKeys := make(map[string]bool)
+	for _, comment := range resolutions {
+		for _, attachment := range comment.Attachments {
+			isPhoto := attachment.DocumentType == domain.DOCUMENT_PHOTO || attachment.DocumentType == ""
+			if !isPhoto || seenKeys[attachment.Key] {
+				continue
+			}
+			seenKeys[attachment.Key] = true
+			photos = append(photos, attachment)
+		}
+	}
+
+	return photos
 }
 
 func (s *reportService) downloadFiles(ctx context.Context, files []domain.Attachment) ([][]byte, error) {
