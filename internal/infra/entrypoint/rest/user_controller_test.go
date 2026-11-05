@@ -213,7 +213,7 @@ func TestUserController_UpdateUser(t *testing.T) {
 
 		router.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
 
 	t.Run("rejects when an operator tries to change role, region or active status", func(t *testing.T) {
@@ -600,7 +600,7 @@ func TestUserController_ChangePassword(t *testing.T) {
 
 		router.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
 
 	t.Run("returns error when payload is invalid", func(t *testing.T) {

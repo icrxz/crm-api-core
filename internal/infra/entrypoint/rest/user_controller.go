@@ -61,7 +61,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 
 	if !requester.Role.IsAdmin() {
 		if requesterID != userID {
-			_ = ctx.Error(domain.NewUnauthorizedError("user cannot update another user"))
+			_ = ctx.Error(domain.NewForbiddenError("user cannot update another user"))
 			return
 		}
 		if userDTO.Role != nil || userDTO.Region != nil || userDTO.Active != nil {
@@ -89,7 +89,7 @@ func (c *UserController) ChangePassword(ctx *gin.Context) {
 
 	requesterID := ctx.GetString("user_id")
 	if requesterID != userID {
-		_ = ctx.Error(domain.NewUnauthorizedError("user cannot change another user's password"))
+		_ = ctx.Error(domain.NewForbiddenError("user cannot change another user's password"))
 		return
 	}
 
